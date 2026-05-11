@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Athlete Detail — CoachSync</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: rgba(255,255,255,0.9);
+    }
+    .top-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 24px; border-bottom: 1px solid rgba(80,184,240,0.15);
+      background: rgba(15,23,42,0.6);
+    }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .btn-back {
+      background: none; border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.6); font-size: 0.85rem; font-weight: 600;
+      padding: 6px 16px; border-radius: 25px; cursor: pointer;
+      text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-back:hover { border-color: #50b8f0; color: #50b8f0; }
+    .btn-logout {
+      background: none; border: 1px solid rgba(239,68,68,0.4);
+      color: rgba(239,68,68,0.8); font-size: 0.85rem; font-weight: 600;
+      padding: 6px 16px; border-radius: 25px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-logout:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.08); }
+
+    /* ── Profile hero ── */
+    .profile-hero {
+      background: rgba(30,41,59,0.85); border: 1px solid rgba(80,184,240,0.2);
+      border-radius: 18px; padding: 30px; margin: 32px 0 24px;
+      display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+    }
+    .profile-avatar {
+      width: 72px; height: 72px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #1e8fe0, #50b8f0);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; font-weight: 800; color: white; text-transform: uppercase;
+    }
+    .profile-info { flex: 1; }
+    .profile-name  { font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 4px; }
+    .profile-email { color: rgba(255,255,255,0.45); font-size: 0.9rem; margin-bottom: 10px; }
+    .profile-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge-pill {
+      font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+      padding: 4px 12px; border-radius: 20px;
+    }
+    .badge-blue   { background: rgba(80,184,240,0.15); border: 1px solid rgba(80,184,240,0.35); color: #50b8f0; }
+    .badge-green  { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); color: #10b981; }
+    .badge-amber  { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3);  color: #f59e0b; }
+    .badge-muted  { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.4); }
+
+    /* ── Stat row ── */
+    .stat-row {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 14px; margin-bottom: 28px;
+    }
+    .stat-card {
+      background: rgba(30,41,59,0.8); border: 1px solid rgba(30,143,224,0.18);
+      border-radius: 12px; padding: 18px 16px; text-align: center;
+    }
+    .stat-value { font-size: 1.5rem; font-weight: 800; color: #1e8fe0; margin-bottom: 4px; }
+    .stat-label { font-size: 0.72rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.4px; }
+
+    /* ── Program card ── */
+    .section-label {
+      font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: rgba(255,255,255,0.35); margin-bottom: 14px;
+    }
+    .program-card {
+      background: rgba(30,41,59,0.85); border: 1px solid rgba(80,184,240,0.2);
+      border-radius: 14px; padding: 22px 24px; margin-bottom: 28px;
+    }
+    .program-name { font-size: 1.1rem; font-weight: 700; color: #50b8f0; margin-bottom: 8px; }
+    .program-meta { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; }
+    .program-meta span { color: rgba(255,255,255,0.5); font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
+    .prog-bar-track { background: rgba(255,255,255,0.08); border-radius: 8px; height: 8px; overflow: hidden; margin-bottom: 6px; }
+    .prog-bar-fill  { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #1e8fe0, #50b8f0); transition: width 0.5s; }
+    .prog-bar-labels { display: flex; justify-content: space-between; font-size: 0.78rem; color: rgba(255,255,255,0.4); }
+
+    /* ── Tabs ── */
+    .tabs { display: flex; gap: 6px; margin-bottom: 22px; }
+    .tab {
+      background: none; border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.5); font-size: 0.875rem; font-weight: 600;
+      padding: 8px 20px; border-radius: 25px; cursor: pointer; transition: all 0.2s;
+    }
+    .tab.active { background: rgba(80,184,240,0.15); border-color: rgba(80,184,240,0.45); color: #50b8f0; }
+    .tab:hover:not(.active) { border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.75); }
+
+    /* ── History cards ── */
+    .history-card {
+      background: rgba(30,41,59,0.8); border: 1px solid rgba(30,143,224,0.18);
+      border-radius: 12px; padding: 18px 20px; margin-bottom: 12px;
+    }
+    .history-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    .history-week-day { font-size: 0.95rem; font-weight: 700; color: rgba(255,255,255,0.85); }
+    .history-date     { font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .history-badge {
+      font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+      background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #10b981;
+      white-space: nowrap;
+    }
+    .history-exercises { display: flex; flex-wrap: wrap; gap: 6px; }
+    .ex-pill {
+      font-size: 0.75rem; padding: 3px 10px; border-radius: 20px;
+      background: rgba(30,143,224,0.12); border: 1px solid rgba(30,143,224,0.25);
+      color: rgba(255,255,255,0.6);
+    }
+    .ex-pill.done { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.3); color: #10b981; }
+
+    /* ── Current workout ── */
+    .current-exercise-card {
+      background: rgba(30,41,59,0.8); border: 1px solid rgba(30,143,224,0.18);
+      border-radius: 12px; padding: 16px 18px; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .ex-check {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+    }
+    .ex-check.done-check { background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); color: #10b981; }
+    .ex-check.pending-check { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.3); }
+    .ex-info { flex: 1; }
+    .ex-name    { font-size: 0.9rem; font-weight: 700; color: rgba(255,255,255,0.85); margin-bottom: 3px; }
+    .ex-details { font-size: 0.78rem; color: rgba(255,255,255,0.4); display: flex; gap: 10px; flex-wrap: wrap; }
+    .athlete-note { font-size: 0.78rem; color: #f59e0b; margin-top: 4px; font-style: italic; }
+
+    .empty-state { text-align: center; padding: 50px 20px; }
+    .empty-state i { font-size: 2.5rem; color: rgba(80,184,240,0.2); margin-bottom: 14px; display: block; }
+    .empty-state p { color: rgba(255,255,255,0.35); font-size: 0.9rem; }
+
+    .loading-overlay {
+      position: fixed; inset: 0; background: linear-gradient(135deg, #0f172a, #1e293b);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; font-size: 1.1rem; color: rgba(255,255,255,0.5); gap: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .top-nav { padding: 14px 16px; }
+      .profile-hero { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <i class="fa-solid fa-spinner fa-spin"></i> Loading…
+</div>
+
+<nav class="top-nav">
+  <a href="my-athletes.html">
+    <img src="CoachSyncLogo.png" alt="CoachSync" style="height:56px;">
+  </a>
+  <div class="nav-right">
+    <a href="my-athletes.html" class="btn-back">
+      <i class="fa-solid fa-arrow-left"></i> My Athletes
+    </a>
+    <button class="btn-logout" onclick="doSignOut()">
+      <i class="fa-solid fa-right-from-bracket me-1"></i>Sign Out
+    </button>
+  </div>
+</nav>
+
+<div class="container" style="max-width:860px;">
+
+  <!-- Profile hero -->
+  <div class="profile-hero" id="profileHero" style="display:none;">
+    <div class="profile-avatar" id="heroAvatar"></div>
+    <div class="profile-info">
+      <div class="profile-name"  id="heroName"></div>
+      <div class="profile-email" id="heroEmail"></div>
+      <div class="profile-badges" id="heroBadges"></div>
+    </div>
+  </div>
+
+  <!-- Stat row -->
+  <div class="stat-row" id="statRow" style="display:none;">
+    <div class="stat-card">
+      <div class="stat-value" id="statWorkouts">—</div>
+      <div class="stat-label">Workouts Logged</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statWeek">—</div>
+      <div class="stat-label">Current Week</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statDay">—</div>
+      <div class="stat-label">Current Day</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statLast">—</div>
+      <div class="stat-label">Last Workout</div>
+    </div>
+  </div>
+
+  <!-- Program progress -->
+  <div id="programSection" style="display:none; margin-bottom:28px;">
+    <p class="section-label">Current Program</p>
+    <div class="program-card">
+      <div class="program-name" id="progName"></div>
+      <div class="program-meta" id="progMeta"></div>
+      <div class="prog-bar-track">
+        <div class="prog-bar-fill" id="progBar" style="width:0%"></div>
+      </div>
+      <div class="prog-bar-labels">
+        <span id="progBarLeft"></span>
+        <span id="progBarRight"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs: Today / History -->
+  <div class="tabs">
+    <button class="tab active" id="tabToday"   onclick="setTab('today')">
+      <i class="fa-solid fa-dumbbell me-1"></i> Today's Workout
+    </button>
+    <button class="tab" id="tabHistory" onclick="setTab('history')">
+      <i class="fa-solid fa-clock-rotate-left me-1"></i> History
+    </button>
+  </div>
+
+  <div id="todayView"></div>
+  <div id="historyView" style="display:none;"></div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDnaS5J_-KkmFZcE3FtjjxV54cZkbWcop8",
+    authDomain: "coachsync-7e07e.firebaseapp.com",
+    projectId: "coachsync-7e07e",
+    storageBucket: "coachsync-7e07e.firebasestorage.app",
+    messagingSenderId: "774513797996",
+    appId: "1:774513797996:web:e38f47773c5b487982e149"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db   = firebase.firestore();
+
+  const params    = new URLSearchParams(location.search);
+  const athleteId = params.get('id');
+
+  let athleteData = null;
+  let programData = null;
+  let currentWeek = 1;
+  let currentDay  = 1;
+
+  function computeWeekDay(startDateMs, daysPerWeek) {
+    const msPerDay = 86400000;
+    const dayIndex = Math.max(0, Math.floor(Date.now() / msPerDay) - Math.floor(startDateMs / msPerDay));
+    return { week: Math.floor(dayIndex / daysPerWeek) + 1, day: (dayIndex % daysPerWeek) + 1 };
+  }
+
+  function relativeTime(ts) {
+    if (!ts) return '—';
+    const days = Math.floor((Date.now() - ts.seconds * 1000) / 86400000);
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    return days + ' days ago';
+  }
+
+  auth.onAuthStateChanged(async user => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    if (!athleteId) { window.location.href = 'my-athletes.html'; return; }
+
+    const trainerSnap = await db.collection('users').doc(user.uid).get();
+    if (!trainerSnap.exists || trainerSnap.data().role !== 'trainer') {
+      window.location.href = 'index.html'; return;
+    }
+
+    const snap = await db.collection('users').doc(athleteId).get();
+    if (!snap.exists) { window.location.href = 'my-athletes.html'; return; }
+    athleteData = { id: snap.id, ...snap.data() };
+
+    // Verify this athlete belongs to the trainer
+    if (athleteData.trainerId !== user.uid) { window.location.href = 'my-athletes.html'; return; }
+
+    renderProfile();
+    await loadProgram();
+    renderStats();
+    renderToday();
+    await renderHistory();
+
+    document.getElementById('loadingOverlay').style.display = 'none';
+  });
+
+  function renderProfile() {
+    const name     = athleteData.displayName || athleteData.email || 'Athlete';
+    const initials = name.trim().split(' ').map(p => p[0]).join('').slice(0,2).toUpperCase();
+
+    document.getElementById('heroAvatar').textContent = initials;
+    document.getElementById('heroName').textContent   = name;
+    document.getElementById('heroEmail').textContent  = athleteData.email || '';
+
+    const badges = [];
+    if (athleteData.lastWorkout) {
+      const days = Math.floor((Date.now() - athleteData.lastWorkout.seconds * 1000) / 86400000);
+      badges.push(days <= 7
+        ? `<span class="badge-pill badge-green"><i class="fa-solid fa-circle" style="font-size:6px;"></i> Active</span>`
+        : `<span class="badge-pill badge-amber"><i class="fa-solid fa-circle" style="font-size:6px;"></i> Inactive</span>`);
+    }
+    if (athleteData.assignedProgram && !athleteData.programStartDate) {
+      badges.push(`<span class="badge-pill badge-muted"><i class="fa-solid fa-clock"></i> Not started</span>`);
+    }
+    if (athleteData.createdAt) {
+      const joined = new Date(athleteData.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      badges.push(`<span class="badge-pill badge-muted"><i class="fa-solid fa-calendar"></i> Joined ${joined}</span>`);
+    }
+    document.getElementById('heroBadges').innerHTML = badges.join('');
+    document.getElementById('profileHero').style.display = 'flex';
+  }
+
+  async function loadProgram() {
+    if (!athleteData.assignedProgram) return;
+    const snap = await db.collection('programs').where('name', '==', athleteData.assignedProgram).get();
+    if (snap.empty) return;
+    programData = { id: snap.docs[0].id, ...snap.docs[0].data() };
+
+    const numDays    = parseInt(programData.daysPerWeek) || 1;
+    const totalWeeks = parseInt(programData.duration) || 0;
+
+    if (athleteData.programStartDate) {
+      const pos   = computeWeekDay(athleteData.programStartDate, numDays);
+      currentWeek = pos.week;
+      currentDay  = pos.day;
+    }
+
+    // Render program section
+    document.getElementById('progName').textContent = programData.name;
+    document.getElementById('progMeta').innerHTML = [
+      programData.difficulty  ? `<span><i class="fa-solid fa-signal"></i> ${esc(programData.difficulty)}</span>` : '',
+      programData.duration    ? `<span><i class="fa-regular fa-clock"></i> ${esc(programData.duration)}</span>` : '',
+      programData.daysPerWeek ? `<span><i class="fa-solid fa-calendar-days"></i> ${esc(programData.daysPerWeek)}</span>` : '',
+      programData.goal        ? `<span><i class="fa-solid fa-bullseye"></i> ${esc(programData.goal)}</span>` : '',
+    ].join('');
+
+    if (athleteData.programStartDate && totalWeeks) {
+      const pct = Math.min(100, Math.round((currentWeek - 1) / totalWeeks * 100));
+      document.getElementById('progBar').style.width = pct + '%';
+      document.getElementById('progBarLeft').textContent  = `Week ${currentWeek} of ${totalWeeks}`;
+      document.getElementById('progBarRight').textContent = pct + '% complete';
+    } else if (athleteData.programStartDate) {
+      document.getElementById('progBarLeft').textContent = `Week ${currentWeek} · Day ${currentDay}`;
+    } else {
+      document.getElementById('progBarLeft').textContent = 'Program not started yet';
+    }
+
+    document.getElementById('programSection').style.display = 'block';
+  }
+
+  function renderStats() {
+    document.getElementById('statWorkouts').textContent = athleteData.sessionsCompleted || 0;
+    document.getElementById('statWeek').textContent     = athleteData.programStartDate ? currentWeek : '—';
+    document.getElementById('statDay').textContent      = athleteData.programStartDate ? currentDay  : '—';
+    document.getElementById('statLast').textContent     = relativeTime(athleteData.lastWorkout);
+    document.getElementById('statRow').style.display    = 'grid';
+  }
+
+  // ── Today's workout for this athlete ──
+  async function renderToday() {
+    const view = document.getElementById('todayView');
+
+    if (!programData || !athleteData.programStartDate) {
+      view.innerHTML = `<div class="empty-state">
+        <i class="fa-solid fa-dumbbell"></i>
+        <p>${!athleteData.assignedProgram ? 'No program assigned.' : 'Athlete has not set a start date yet.'}</p>
+      </div>`;
+      return;
+    }
+
+    // Load today's log
+    const logSnap = await db.collection('workoutLogs')
+      .where('athleteId', '==', athleteId)
+      .where('week', '==', currentWeek)
+      .get();
+
+    const logDoc  = logSnap.docs.find(d => d.data().day === currentDay);
+    const logData = logDoc ? logDoc.data() : null;
+    const doneSet = new Set(logData ? (logData.completedExercises || []) : []);
+    const notes   = logData ? (logData.exerciseNotes || {}) : {};
+    const exs     = programData.exercises || [];
+    const done    = doneSet.size;
+    const total   = exs.length;
+
+    let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+      <div style="font-size:1rem;font-weight:700;color:rgba(255,255,255,0.8);">Week ${currentWeek} · Day ${currentDay}</div>
+      <div style="font-size:0.85rem;color:${done===total&&total>0?'#10b981':'rgba(255,255,255,0.45)'};">
+        ${logData ? `${done} / ${total} exercises completed` : 'Not started today'}
+      </div>
+    </div>`;
+
+    if (logData && total > 0) {
+      const pct = Math.round(done / total * 100);
+      html += `<div style="background:rgba(255,255,255,0.08);border-radius:8px;height:6px;overflow:hidden;margin-bottom:20px;">
+        <div style="height:100%;border-radius:8px;background:linear-gradient(90deg,#10b981,#34d399);width:${pct}%;transition:width 0.4s;"></div>
+      </div>`;
+    }
+
+    if (exs.length === 0) {
+      html += `<div class="empty-state"><i class="fa-solid fa-list"></i><p>No exercises in this program.</p></div>`;
+    } else {
+      exs.forEach((ex, i) => {
+        const isDone  = doneSet.has(i.toString());
+        const noteKey = `${currentDay}_${i}`;
+        const note    = notes[noteKey] || '';
+        html += `
+          <div class="current-exercise-card">
+            <div class="ex-check ${isDone ? 'done-check' : 'pending-check'}">
+              <i class="fa-solid fa-check"></i>
+            </div>
+            <div class="ex-info">
+              <div class="ex-name" style="${isDone ? 'text-decoration:line-through;opacity:0.6;' : ''}">${esc(ex.name)}</div>
+              <div class="ex-details">
+                ${ex.sets ? `<span><i class="fa-solid fa-layer-group"></i> ${esc(ex.sets)} sets</span>` : ''}
+                ${ex.reps ? `<span><i class="fa-solid fa-repeat"></i> ${esc(ex.reps)} reps</span>` : ''}
+                ${ex.rest ? `<span><i class="fa-regular fa-clock"></i> ${esc(ex.rest)}s rest</span>` : ''}
+              </div>
+              ${ex.notes ? `<div style="font-size:0.78rem;color:rgba(255,255,255,0.4);font-style:italic;margin-top:3px;"><i class="fa-solid fa-whistle" style="font-size:0.65rem;margin-right:3px;"></i>${esc(ex.notes)}</div>` : ''}
+              ${note ? `<div class="athlete-note"><i class="fa-solid fa-pen-to-square" style="font-size:0.65rem;margin-right:3px;"></i>${esc(note)}</div>` : ''}
+            </div>
+          </div>`;
+      });
+    }
+
+    view.innerHTML = html;
+  }
+
+  // ── Workout history ──
+  async function renderHistory() {
+    const view = document.getElementById('historyView');
+    view.innerHTML = '<p style="color:rgba(255,255,255,0.3);font-size:0.9rem;">Loading history…</p>';
+
+    try {
+      const snap = await db.collection('workoutLogs')
+        .where('athleteId', '==', athleteId)
+        .get();
+
+      const logs = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => {
+          if (b.week !== a.week) return (b.week || 0) - (a.week || 0);
+          return (b.day || 0) - (a.day || 0);
+        });
+
+      if (logs.length === 0) {
+        view.innerHTML = `<div class="empty-state">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <p>No workout history yet.</p>
+        </div>`;
+        return;
+      }
+
+      view.innerHTML = logs.map(log => {
+        const done   = (log.completedExercises || []).length;
+        const total  = log.totalExercises || (log.exerciseNames || []).length || '?';
+        const names  = log.exerciseNames || [];
+        const doneSet = new Set(log.completedExercises || []);
+        const dateStr = log.date ? new Date(log.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : '';
+        const pct    = total !== '?' && total > 0 ? Math.round(done / total * 100) : null;
+
+        const pillsHtml = names.map((n, i) => {
+          const isCompleted = doneSet.has(i.toString());
+          return `<span class="ex-pill ${isCompleted ? 'done' : ''}">${isCompleted ? '<i class="fa-solid fa-check" style="font-size:0.6rem;margin-right:3px;"></i>' : ''}${esc(n)}</span>`;
+        }).join('');
+
+        const noteEntries = Object.entries(log.exerciseNotes || {});
+        const notesHtml = noteEntries.length ? `
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);">
+            <div style="font-size:0.72rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;">Athlete Notes</div>
+            ${noteEntries.map(([key, text]) => {
+              const idx = parseInt(key.split('_')[1]);
+              const exName = names[idx] || `Exercise ${idx+1}`;
+              return `<div style="font-size:0.8rem;color:#f59e0b;font-style:italic;margin-bottom:3px;">
+                <span style="color:rgba(255,255,255,0.4);font-style:normal;">${esc(exName)}:</span> ${esc(text)}
+              </div>`;
+            }).join('')}
+          </div>` : '';
+
+        return `
+          <div class="history-card">
+            <div class="history-header">
+              <div>
+                <div class="history-week-day">${log.week ? `Week ${log.week} · Day ${log.day}` : (log.day ? `Day ${log.day}` : 'Workout')}</div>
+                <div class="history-date">${dateStr}</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                <span class="history-badge">${done} / ${total} completed</span>
+                ${pct !== null ? `<span style="font-size:0.72rem;color:rgba(255,255,255,0.35);">${pct}%</span>` : ''}
+              </div>
+            </div>
+            ${pct !== null ? `
+            <div style="background:rgba(255,255,255,0.07);border-radius:6px;height:4px;overflow:hidden;margin-bottom:10px;">
+              <div style="height:100%;border-radius:6px;background:linear-gradient(90deg,#10b981,#34d399);width:${pct}%;"></div>
+            </div>` : ''}
+            ${pillsHtml ? `<div class="history-exercises">${pillsHtml}</div>` : ''}
+            ${notesHtml}
+          </div>`;
+      }).join('');
+    } catch(e) {
+      view.innerHTML = `<p style="color:#ef4444;font-size:0.9rem;">Error loading history: ${e.message}</p>`;
+    }
+  }
+
+  function setTab(tab) {
+    document.getElementById('tabToday').classList.toggle('active',   tab === 'today');
+    document.getElementById('tabHistory').classList.toggle('active', tab === 'history');
+    document.getElementById('todayView').style.display   = tab === 'today'   ? 'block' : 'none';
+    document.getElementById('historyView').style.display = tab === 'history' ? 'block' : 'none';
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  async function doSignOut() { await auth.signOut(); window.location.href = 'index.html'; }
+</script>
+</body>
+</html>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
-  <title>Athlete Dashboard — ZBTrainer</title>
+  <title>Athlete Dashboard — CoachSync</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
@@ -21,13 +21,13 @@
       align-items: center;
       justify-content: space-between;
       padding: 18px 24px;
-      border-bottom: 1px solid rgba(96,165,250,0.15);
+      border-bottom: 1px solid rgba(114,184,50,0.15);
       background: rgba(15,23,42,0.6);
     }
     .nav-brand {
       font-size: 1.35rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      background: linear-gradient(135deg, #72b832, #a0d060);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       display: flex;
@@ -43,9 +43,9 @@
       letter-spacing: 0.5px;
       padding: 4px 12px;
       border-radius: 25px;
-      background: rgba(96,165,250,0.15);
-      border: 1px solid rgba(96,165,250,0.4);
-      color: #60a5fa;
+      background: rgba(114,184,50,0.15);
+      border: 1px solid rgba(114,184,50,0.4);
+      color: #72b832;
     }
     .btn-logout {
       background: none;
@@ -71,14 +71,14 @@
     }
     .dash-hero .hero-icon {
       font-size: 3rem;
-      color: #60a5fa;
-      text-shadow: 0 0 30px rgba(96,165,250,0.5);
+      color: #72b832;
+      text-shadow: 0 0 30px rgba(114,184,50,0.5);
       margin-bottom: 14px;
     }
     .dash-hero h1 {
       font-size: 2rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      background: linear-gradient(135deg, #72b832, #a0d060);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 8px;
@@ -96,7 +96,7 @@
     }
     .feature-card {
       background: rgba(30,41,59,0.8);
-      border: 1px solid rgba(96,165,250,0.2);
+      border: 1px solid rgba(114,184,50,0.2);
       border-radius: 15px;
       padding: 28px 24px;
       text-align: center;
@@ -111,11 +111,11 @@
     .feature-card:hover {
       transform: translateY(-8px);
       box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-      border-color: rgba(96,165,250,0.5);
+      border-color: rgba(114,184,50,0.5);
       color: inherit;
     }
     .feature-icon { font-size: 2.8rem; margin-bottom: 14px; }
-    .feature-card h2 { color: #60a5fa; font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+    .feature-card h2 { color: #72b832; font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
     .feature-card p { color: rgba(255,255,255,0.6); font-size: 0.875rem; margin: 0; }
 
     .loading-overlay {
@@ -127,6 +127,52 @@
       color: rgba(255,255,255,0.5);
       gap: 12px;
     }
+
+    /* ── Link trainer modal ── */
+    .link-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.92); z-index: 99999;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .link-overlay.open { display: flex; }
+    .link-box {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1px solid rgba(114,184,50,0.35); border-radius: 20px;
+      padding: 40px; width: 100%; max-width: 440px; text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+    }
+    .link-icon {
+      width: 64px; height: 64px; border-radius: 16px; margin: 0 auto 20px;
+      background: rgba(114,184,50,0.12); border: 1px solid rgba(114,184,50,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; color: #72b832;
+    }
+    .link-title {
+      font-size: 1.4rem; font-weight: 800; margin-bottom: 8px;
+      background: linear-gradient(135deg, #72b832, #a0d060);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .link-sub { color: rgba(255,255,255,0.45); font-size: 0.9rem; margin-bottom: 28px; }
+    .link-input {
+      background: rgba(15,23,42,0.7); border: 2px solid rgba(114,184,50,0.3);
+      color: white; border-radius: 10px; padding: 14px; width: 100%;
+      font-size: 1.1rem; font-weight: 700; letter-spacing: 3px; text-align: center;
+      text-transform: uppercase; outline: none; box-sizing: border-box; margin-bottom: 16px;
+    }
+    .link-input:focus { border-color: #72b832; box-shadow: 0 0 0 3px rgba(114,184,50,0.15); }
+    .link-input::placeholder { color: rgba(255,255,255,0.25); letter-spacing: 1px; font-weight: 400; font-size: 0.9rem; }
+    .link-error {
+      color: #ef4444; font-size: 0.85rem; background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3); border-radius: 8px;
+      padding: 8px 14px; margin-bottom: 14px; display: none;
+    }
+    .btn-link {
+      background: #72b832; border: none; color: white; font-weight: 700;
+      padding: 13px; border-radius: 25px; width: 100%; font-size: 1rem;
+      cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(114,184,50,0.3);
+    }
+    .btn-link:hover { background: #5a9528; transform: translateY(-2px); }
+    .btn-link:disabled { opacity: 0.6; transform: none; cursor: not-allowed; }
 
     @media (max-width: 768px) {
       .top-nav { padding: 14px 16px; }
@@ -147,9 +193,23 @@
   <i class="fa-solid fa-spinner fa-spin"></i> Loading…
 </div>
 
+<!-- Connect to trainer modal (shown if no trainerId) -->
+<div class="link-overlay" id="linkModal">
+  <div class="link-box">
+    <div class="link-icon"><i class="fa-solid fa-link"></i></div>
+    <h2 class="link-title">Connect to Your Trainer</h2>
+    <p class="link-sub">Enter the unique code your trainer gave you to link your account.</p>
+    <div class="link-error" id="linkError"></div>
+    <input type="text" class="link-input" id="linkCodeInput" placeholder="e.g. CS-X4K2AB" maxlength="10" />
+    <button class="btn-link" id="btnLink" onclick="doLink()">
+      <i class="fa-solid fa-link me-2"></i>Connect
+    </button>
+  </div>
+</div>
+
 <nav class="top-nav">
   <div class="nav-brand">
-    <i class="fa-solid fa-dumbbell"></i> ZBTrainer
+    <img src="CoachSyncLogo.png" alt="CoachSync" style="height:56px;">
   </div>
   <div class="nav-right">
     <span class="user-name" id="userName"></span>
@@ -161,19 +221,13 @@
 </nav>
 
 <div class="container" style="max-width:960px;">
-  <div class="dash-hero">
-    <div class="hero-icon"><i class="fa-solid fa-person-running"></i></div>
-    <h1 id="welcomeMsg">Welcome back!</h1>
-    <p>Track your workouts, monitor progress, and connect with your trainer.</p>
-  </div>
-
   <p class="section-label">My Dashboard</p>
   <div class="row g-4 mb-5">
     <div class="col-6 col-md-4">
       <a href="workouts.html" class="feature-card">
         <div class="feature-icon">🏋️</div>
         <h2>My Workouts</h2>
-        <p>View programs assigned by your trainer and log completed sessions.</p>
+        <p id="assignedProgramLabel">View programs assigned by your trainer and log completed sessions.</p>
       </a>
     </div>
     <div class="col-6 col-md-4">
@@ -220,23 +274,25 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
   const firebaseConfig = {
-    apiKey: "AIzaSyDReR325Fg0E1ygr0kyNB4tl176MrFDJxk",
-    authDomain: "zbtrainer.firebaseapp.com",
-    projectId: "zbtrainer",
-    storageBucket: "zbtrainer.firebasestorage.app",
-    messagingSenderId: "674267791113",
-    appId: "1:674267791113:web:83da3e5b0db879f6881dd8"
+    apiKey: "AIzaSyDnaS5J_-KkmFZcE3FtjjxV54cZkbWcop8",
+    authDomain: "coachsync-7e07e.firebaseapp.com",
+    projectId: "coachsync-7e07e",
+    storageBucket: "coachsync-7e07e.firebasestorage.app",
+    messagingSenderId: "774513797996",
+    appId: "1:774513797996:web:e38f47773c5b487982e149"
   };
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db   = firebase.firestore();
 
+  let currentUser = null;
+
   auth.onAuthStateChanged(async user => {
     if (!user) { window.location.href = 'index.html'; return; }
+    currentUser = user;
 
     let snap = await db.collection('users').doc(user.uid).get();
 
-    // Auto-create Firestore doc if missing (e.g. Google sign-in before signup flow)
     if (!snap.exists) {
       await db.collection('users').doc(user.uid).set({
         uid: user.uid,
@@ -248,16 +304,70 @@
       snap = await db.collection('users').doc(user.uid).get();
     }
 
-    if (snap.exists && snap.data().role === 'trainer') {
+    if (snap.data().role === 'trainer') {
       window.location.href = 'trainer-dashboard.html';
       return;
     }
 
-    const name = snap.exists ? snap.data().displayName : user.displayName || 'Athlete';
+    const name = snap.data().displayName || user.displayName || 'Athlete';
     document.getElementById('userName').textContent = name;
-    document.getElementById('welcomeMsg').textContent = 'Welcome back, ' + name.split(' ')[0] + '!';
+
+    const assignedProgram = snap.data().assignedProgram;
+    if (assignedProgram) {
+      document.getElementById('assignedProgramLabel').innerHTML =
+        `<strong style="color:#72b832;">${esc(assignedProgram)}</strong><br><span style="font-size:0.78rem;">Tap to view &amp; log exercises</span>`;
+    }
+
     document.getElementById('loadingOverlay').style.display = 'none';
+
+    // If not linked to a trainer yet, show the linking modal
+    if (!snap.data().trainerId) {
+      document.getElementById('linkModal').classList.add('open');
+    }
   });
+
+  async function doLink() {
+    const code = document.getElementById('linkCodeInput').value.trim().toUpperCase();
+    const errEl = document.getElementById('linkError');
+    errEl.style.display = 'none';
+
+    if (!code) { errEl.textContent = 'Please enter a trainer code.'; errEl.style.display = 'block'; return; }
+
+    const btn = document.getElementById('btnLink');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Connecting…';
+
+    try {
+      const trainerSnap = await db.collection('users')
+        .where('trainerCode', '==', code)
+        .get();
+
+      const trainerDoc = trainerSnap.docs.find(d => d.data().role === 'trainer');
+      if (!trainerDoc) {
+        errEl.textContent = 'Code not found. Double-check with your trainer and try again.';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-link me-2"></i>Connect';
+        return;
+      }
+
+      await db.collection('users').doc(currentUser.uid).update({
+        trainerId:   trainerDoc.id,
+        trainerName: trainerDoc.data().displayName
+      });
+      document.getElementById('linkModal').classList.remove('open');
+    } catch(e) {
+      errEl.textContent = 'Error connecting: ' + e.message;
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-link me-2"></i>Connect';
+    }
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
 
   async function doSignOut() {
     await auth.signOut();

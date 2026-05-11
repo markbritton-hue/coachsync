@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
-  <title>Sign Up — ZBTrainer</title>
+  <title>Sign Up — CoachSync</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
@@ -20,107 +20,101 @@
     }
     .signup-card {
       background: linear-gradient(135deg, #1e293b, #0f172a);
-      border: 1px solid rgba(96,165,250,0.3);
+      border: 1px solid rgba(30,143,224,0.3);
       border-radius: 20px;
       padding: 40px;
       max-width: 460px;
       width: 100%;
       box-shadow: 0 20px 60px rgba(0,0,0,0.8);
     }
-    .card-logo {
-      text-align: center;
-      margin-bottom: 6px;
-    }
-    .card-logo i {
-      font-size: 2.6rem;
-      color: #60a5fa;
-      text-shadow: 0 0 30px rgba(96,165,250,0.5);
-    }
+    .card-logo { text-align: center; margin-bottom: 6px; }
     .card-title {
-      font-size: 1.8rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #60a5fa, #a78bfa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-align: center;
-      margin-bottom: 4px;
+      font-size: 1.8rem; font-weight: 800;
+      background: linear-gradient(135deg, #1e8fe0, #72b832);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 4px;
     }
     .card-sub {
-      text-align: center;
-      color: rgba(255,255,255,0.5);
-      font-size: 0.9rem;
-      margin-bottom: 28px;
+      text-align: center; color: rgba(255,255,255,0.5);
+      font-size: 0.9rem; margin-bottom: 24px;
     }
+
+    /* Role toggle */
+    .role-toggle {
+      display: flex; gap: 10px; margin-bottom: 24px;
+    }
+    .role-btn {
+      flex: 1; padding: 12px; border-radius: 12px; cursor: pointer;
+      border: 2px solid rgba(255,255,255,0.12);
+      background: rgba(15,23,42,0.5); color: rgba(255,255,255,0.5);
+      font-weight: 700; font-size: 0.9rem; transition: all 0.2s;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+    .role-btn i { font-size: 1.4rem; }
+    .role-btn.active-trainer {
+      border-color: #1e8fe0; background: rgba(30,143,224,0.12); color: #1e8fe0;
+    }
+    .role-btn.active-athlete {
+      border-color: #72b832; background: rgba(114,184,50,0.12); color: #72b832;
+    }
+
     .field-label {
-      color: rgba(255,255,255,0.6);
-      font-size: 0.82rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 6px;
-      display: block;
+      color: rgba(255,255,255,0.6); font-size: 0.82rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block;
     }
     .field-input {
-      background: rgba(15,23,42,0.7);
-      border: 2px solid rgba(96,165,250,0.3);
-      color: white;
-      border-radius: 8px;
-      padding: 12px;
-      width: 100%;
-      font-size: 0.95rem;
-      margin-bottom: 16px;
-      outline: none;
-      box-sizing: border-box;
+      background: rgba(15,23,42,0.7); border: 2px solid rgba(30,143,224,0.3);
+      color: white; border-radius: 8px; padding: 12px; width: 100%;
+      font-size: 0.95rem; margin-bottom: 16px; outline: none; box-sizing: border-box;
     }
-    .field-input:focus {
-      border-color: #60a5fa;
-      box-shadow: 0 0 0 3px rgba(96,165,250,0.2);
-    }
+    .field-input:focus { border-color: #1e8fe0; box-shadow: 0 0 0 3px rgba(30,143,224,0.2); }
     .field-input::placeholder { color: rgba(255,255,255,0.3); }
+    .field-input.athlete-field:focus { border-color: #72b832; box-shadow: 0 0 0 3px rgba(114,184,50,0.2); }
+
+    .trainer-code-hint {
+      background: rgba(114,184,50,0.08); border: 1px solid rgba(114,184,50,0.25);
+      border-radius: 8px; padding: 10px 14px; font-size: 0.82rem;
+      color: rgba(255,255,255,0.5); margin-top: -10px; margin-bottom: 16px;
+    }
+    .trainer-code-hint i { color: #72b832; }
 
     .btn-auth {
-      background: #60a5fa;
-      border: none;
-      color: white;
-      font-weight: 700;
-      padding: 13px;
-      border-radius: 25px;
-      width: 100%;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 4px 12px rgba(96,165,250,0.3);
-      margin-bottom: 18px;
+      border: none; color: white; font-weight: 700; padding: 13px;
+      border-radius: 25px; width: 100%; font-size: 1rem; cursor: pointer;
+      transition: all 0.2s; margin-bottom: 18px;
     }
-    .btn-auth:hover { background: #3b82f6; transform: translateY(-2px); }
+    .btn-auth.trainer { background: #1e8fe0; box-shadow: 0 4px 12px rgba(30,143,224,0.3); }
+    .btn-auth.trainer:hover { background: #1070c0; transform: translateY(-2px); }
+    .btn-auth.athlete { background: #72b832; box-shadow: 0 4px 12px rgba(114,184,50,0.3); }
+    .btn-auth.athlete:hover { background: #5a9528; transform: translateY(-2px); }
     .btn-auth:disabled { opacity: 0.6; transform: none; cursor: not-allowed; }
-    .auth-switch {
-      text-align: center;
-      color: rgba(255,255,255,0.45);
-      font-size: 0.88rem;
-    }
-    .auth-switch a { color: #60a5fa; text-decoration: none; font-weight: 600; }
+
+    .auth-switch { text-align: center; color: rgba(255,255,255,0.45); font-size: 0.88rem; }
+    .auth-switch a { color: #1e8fe0; text-decoration: none; font-weight: 600; }
     .auth-switch a:hover { color: #93c5fd; }
     .auth-error {
-      color: #ef4444;
-      font-size: 0.88rem;
-      background: rgba(239,68,68,0.1);
-      border: 1px solid rgba(239,68,68,0.3);
-      border-radius: 8px;
-      padding: 10px 14px;
-      margin-bottom: 14px;
-      display: none;
+      color: #ef4444; font-size: 0.88rem; background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3); border-radius: 8px;
+      padding: 10px 14px; margin-bottom: 14px; display: none;
     }
-    @media (max-width: 575px) {
-      .signup-card { padding: 28px 20px; }
-    }
+    @media (max-width: 575px) { .signup-card { padding: 28px 20px; } }
   </style>
 </head>
 <body>
 <div class="signup-card">
-  <div class="card-logo"><i class="fa-solid fa-dumbbell"></i></div>
-  <h1 class="card-title">ZBTrainer</h1>
+  <div class="card-logo"><img src="CoachSyncLogo.png" alt="CoachSync" style="height:110px;"></div>
+  <h1 class="card-title" style="display:none;">CoachSync</h1>
   <p class="card-sub">Create your free account</p>
+
+  <!-- Role selection -->
+  <div class="role-toggle">
+    <button class="role-btn active-trainer" id="roleTrainer" onclick="setRole('trainer')">
+      <i class="fa-solid fa-whistle"></i> I'm a Trainer
+    </button>
+    <button class="role-btn" id="roleAthlete" onclick="setRole('athlete')">
+      <i class="fa-solid fa-person-running"></i> I'm an Athlete
+    </button>
+  </div>
 
   <div class="auth-error" id="authError"></div>
 
@@ -133,7 +127,18 @@
   <label class="field-label">Password</label>
   <input type="password" class="field-input" id="password" placeholder="Min 6 characters" />
 
-  <button class="btn-auth" id="btnSignup" onclick="doSignup()">
+  <!-- Athlete-only: trainer code -->
+  <div id="trainerCodeSection" style="display:none;">
+    <label class="field-label">Trainer Code</label>
+    <input type="text" class="field-input athlete-field" id="trainerCode"
+           placeholder="e.g. CS-X4K2AB" style="text-transform:uppercase; letter-spacing:2px;" />
+    <div class="trainer-code-hint">
+      <i class="fa-solid fa-circle-info me-1"></i>
+      Ask your trainer for their unique CoachSync code.
+    </div>
+  </div>
+
+  <button class="btn-auth trainer" id="btnSignup" onclick="doSignup()">
     <i class="fa-solid fa-user-plus me-2"></i>Create Account
   </button>
 
@@ -146,25 +151,40 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
   const firebaseConfig = {
-    apiKey: "AIzaSyDReR325Fg0E1ygr0kyNB4tl176MrFDJxk",
-    authDomain: "zbtrainer.firebaseapp.com",
-    projectId: "zbtrainer",
-    storageBucket: "zbtrainer.firebasestorage.app",
-    messagingSenderId: "674267791113",
-    appId: "1:674267791113:web:83da3e5b0db879f6881dd8"
+    apiKey: "AIzaSyDnaS5J_-KkmFZcE3FtjjxV54cZkbWcop8",
+    authDomain: "coachsync-7e07e.firebaseapp.com",
+    projectId: "coachsync-7e07e",
+    storageBucket: "coachsync-7e07e.firebasestorage.app",
+    messagingSenderId: "774513797996",
+    appId: "1:774513797996:web:e38f47773c5b487982e149"
   };
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db   = firebase.firestore();
 
-  // Redirect if already logged in
+  let selectedRole = 'trainer';
+  let signingUp = false;
+
   auth.onAuthStateChanged(async user => {
-    if (user) {
+    if (user && !signingUp) {
       const snap = await db.collection('users').doc(user.uid).get();
       const role = snap.exists ? snap.data().role : 'athlete';
       window.location.href = role === 'trainer' ? 'trainer-dashboard.html' : 'athlete-dashboard.html';
     }
   });
+
+  function setRole(role) {
+    selectedRole = role;
+    const tBtn = document.getElementById('roleTrainer');
+    const aBtn = document.getElementById('roleAthlete');
+    const codeSection = document.getElementById('trainerCodeSection');
+    const btn = document.getElementById('btnSignup');
+
+    tBtn.className = 'role-btn' + (role === 'trainer' ? ' active-trainer' : '');
+    aBtn.className = 'role-btn' + (role === 'athlete' ? ' active-athlete' : '');
+    codeSection.style.display = role === 'athlete' ? 'block' : 'none';
+    btn.className = 'btn-auth ' + role;
+  }
 
   function showError(msg) {
     const el = document.getElementById('authError');
@@ -180,30 +200,70 @@
       : '<i class="fa-solid fa-user-plus me-2"></i>Create Account';
   }
 
+  async function generateUniqueCode() {
+    let code, exists;
+    do {
+      code = 'CS-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      const snap = await db.collection('users').where('trainerCode', '==', code).get();
+      exists = !snap.empty;
+    } while (exists);
+    return code;
+  }
+
   async function doSignup() {
     document.getElementById('authError').style.display = 'none';
     const displayName = document.getElementById('displayName').value.trim();
     const email       = document.getElementById('email').value.trim();
     const password    = document.getElementById('password').value;
-    const role        = 'athlete';
 
     if (!displayName) { showError('Please enter your full name.'); return; }
     if (!email)       { showError('Please enter your email.'); return; }
     if (password.length < 6) { showError('Password must be at least 6 characters.'); return; }
 
+    // Basic client-side check for athlete code presence before hitting the network
+    if (selectedRole === 'athlete') {
+      const code = document.getElementById('trainerCode').value.trim();
+      if (!code) { showError('Please enter your trainer\'s code.'); return; }
+    }
+
     setLoading(true);
+    signingUp = true;
     try {
+      // Create the auth account first
       const cred = await auth.createUserWithEmailAndPassword(email, password);
       await cred.user.updateProfile({ displayName });
-      await db.collection('users').doc(cred.user.uid).set({
+
+      const userData = {
         uid: cred.user.uid,
         displayName,
         email,
-        role,
+        role: selectedRole,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      window.location.href = role === 'trainer' ? 'trainer-dashboard.html' : 'athlete-dashboard.html';
+      };
+
+      if (selectedRole === 'trainer') {
+        userData.trainerCode = await generateUniqueCode();
+      } else {
+        // Now authenticated — validate trainer code
+        const code = document.getElementById('trainerCode').value.trim().toUpperCase();
+        const trainerSnap = await db.collection('users').where('trainerCode', '==', code).get();
+        const trainerDoc = trainerSnap.docs.find(d => d.data().role === 'trainer');
+        if (!trainerDoc) {
+          // Roll back: delete the auth account we just created
+          await cred.user.delete();
+          signingUp = false;
+          showError('Trainer code not found. Check the code and try again.');
+          setLoading(false);
+          return;
+        }
+        userData.trainerId   = trainerDoc.id;
+        userData.trainerName = trainerDoc.data().displayName;
+      }
+
+      await db.collection('users').doc(cred.user.uid).set(userData);
+      window.location.href = selectedRole === 'trainer' ? 'trainer-dashboard.html' : 'athlete-dashboard.html';
     } catch (e) {
+      signingUp = false;
       showError(friendlyError(e.code));
       setLoading(false);
     }
