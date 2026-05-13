@@ -155,6 +155,64 @@
     }
     .btn-copy:hover { background: rgba(30,143,224,0.22); border-color: #1e8fe0; }
 
+    /* ── Dashboard two-col layout ── */
+    .dash-layout {
+      display: flex; gap: 28px; align-items: flex-start; max-width: 1200px;
+      margin: 0 auto; padding: 0 20px 48px;
+    }
+    .dash-main  { flex: 1; min-width: 0; }
+    .dash-aside {
+      width: 320px; flex-shrink: 0;
+      background: rgba(30,41,59,0.85); border: 1px solid rgba(80,184,240,0.2);
+      border-radius: 16px; overflow: hidden;
+      display: flex; flex-direction: column; max-height: calc(100vh - 100px); position: sticky; top: 20px;
+    }
+    .aside-header {
+      padding: 16px 20px; border-bottom: 1px solid rgba(80,184,240,0.12);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .aside-title { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.4); }
+    .aside-badge {
+      background: #50b8f0; color: white; font-size: 0.68rem; font-weight: 800;
+      min-width: 18px; height: 18px; border-radius: 10px;
+      display: none; align-items: center; justify-content: center; padding: 0 5px;
+    }
+    .aside-badge.visible { display: flex; }
+    .msg-feed { flex: 1; overflow-y: auto; }
+    .msg-feed::-webkit-scrollbar { width: 4px; }
+    .msg-feed::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+
+    .msg-item {
+      padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.05);
+      cursor: pointer; transition: background 0.15s; text-decoration: none; display: block;
+    }
+    .msg-item:hover { background: rgba(80,184,240,0.07); }
+    .msg-item.unread { background: rgba(80,184,240,0.05); border-left: 3px solid #50b8f0; }
+    .msg-item-top { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+    .msg-avatar {
+      width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #1e8fe0, #50b8f0);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 800; color: white; text-transform: uppercase;
+    }
+    .msg-sender { font-size: 0.88rem; font-weight: 700; color: rgba(255,255,255,0.85); flex: 1; }
+    .msg-time-sm { font-size: 0.7rem; color: rgba(255,255,255,0.3); }
+    .msg-text { font-size: 0.8rem; color: rgba(255,255,255,0.45); padding-left: 44px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .msg-text.unread-text { color: rgba(255,255,255,0.75); font-weight: 600; }
+
+    .aside-empty { padding: 40px 20px; text-align: center; color: rgba(255,255,255,0.25); font-size: 0.85rem; line-height: 1.6; }
+    .aside-footer {
+      padding: 12px 18px; border-top: 1px solid rgba(80,184,240,0.1);
+      text-align: center;
+    }
+    .aside-footer a {
+      color: #50b8f0; font-size: 0.82rem; font-weight: 700; text-decoration: none;
+    }
+    .aside-footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 900px) {
+      .dash-aside { display: none; }
+    }
     @media (max-width: 768px) {
       .top-nav { padding: 14px 16px; }
       .dash-hero h1 { font-size: 1.5rem; }
@@ -187,52 +245,71 @@
   </div>
 </nav>
 
-<div class="container" style="max-width:960px;">
-  <p class="section-label">Trainer Tools</p>
-  <div class="row g-4 mb-5">
-    <div class="col-6 col-md-4">
-      <a href="my-athletes.html" class="feature-card">
-        <div class="feature-icon">👥</div>
-        <h2>My Athletes</h2>
-        <p>View all connected athletes and their current training status.</p>
-      </a>
-    </div>
-    <div class="col-6 col-md-4">
-      <a href="programs.html" class="feature-card">
-        <div class="feature-icon">📋</div>
-        <h2>Programs</h2>
-        <p>Create and assign custom workout programs to your clients.</p>
-      </a>
-    </div>
-    <div class="col-6 col-md-4">
-      <a href="schedule.html" class="feature-card">
-        <div class="feature-icon">📅</div>
-        <h2>Schedule</h2>
-        <p>Manage upcoming sessions and set your availability.</p>
-      </a>
-    </div>
-    <div class="col-6 col-md-4">
-      <a href="analytics.html" class="feature-card">
-        <div class="feature-icon">📊</div>
-        <h2>Analytics</h2>
-        <p>Review athlete performance data and progress trends.</p>
-      </a>
-    </div>
-    <div class="col-6 col-md-4">
-      <a href="messages.html" class="feature-card">
-        <div class="feature-icon">💬</div>
-        <h2>Messages</h2>
-        <p>Communicate with athletes and send workout feedback.</p>
-      </a>
-    </div>
-    <div class="col-6 col-md-4">
-      <a href="settings.html" class="feature-card">
-        <div class="feature-icon">⚙️</div>
-        <h2>Settings</h2>
-        <p>Manage your profile, trainer code, and preferences.</p>
-      </a>
+<div class="dash-layout">
+
+  <!-- Feature cards -->
+  <div class="dash-main">
+    <p class="section-label">Trainer Tools</p>
+    <div class="row g-4 mb-4">
+      <div class="col-6 col-md-4">
+        <a href="my-athletes.html" class="feature-card">
+          <div class="feature-icon">👥</div>
+          <h2>My Athletes</h2>
+          <p>View all connected athletes and their current training status.</p>
+        </a>
+      </div>
+      <div class="col-6 col-md-4">
+        <a href="programs.html" class="feature-card">
+          <div class="feature-icon">📋</div>
+          <h2>Programs</h2>
+          <p>Create and assign custom workout programs to your clients.</p>
+        </a>
+      </div>
+      <div class="col-6 col-md-4">
+        <a href="schedule.html" class="feature-card">
+          <div class="feature-icon">📅</div>
+          <h2>Schedule</h2>
+          <p>Manage upcoming sessions and set your availability.</p>
+        </a>
+      </div>
+      <div class="col-6 col-md-4">
+        <a href="analytics.html" class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h2>Analytics</h2>
+          <p>Review athlete performance data and progress trends.</p>
+        </a>
+      </div>
+      <div class="col-6 col-md-4">
+        <a href="messages.html" class="feature-card" id="msgCard">
+          <div class="feature-icon">💬</div>
+          <h2>Messages</h2>
+          <p>Communicate with athletes and send workout feedback.</p>
+        </a>
+      </div>
+      <div class="col-6 col-md-4">
+        <a href="settings.html" class="feature-card">
+          <div class="feature-icon">⚙️</div>
+          <h2>Settings</h2>
+          <p>Manage your profile, trainer code, and preferences.</p>
+        </a>
+      </div>
     </div>
   </div>
+
+  <!-- Messages panel -->
+  <aside class="dash-aside">
+    <div class="aside-header">
+      <span class="aside-title">Inbox</span>
+      <span class="aside-badge" id="inboxBadge"></span>
+    </div>
+    <div class="msg-feed" id="msgFeed">
+      <div class="aside-empty" id="msgEmpty">No messages yet.</div>
+    </div>
+    <div class="aside-footer">
+      <a href="messages.html">Open full messages →</a>
+    </div>
+  </aside>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -252,8 +329,11 @@
   const auth = firebase.auth();
   const db   = firebase.firestore();
 
+  let currentUser = null;
+
   auth.onAuthStateChanged(async user => {
     if (!user) { window.location.href = 'index.html'; return; }
+    currentUser = user;
 
     const snap = await db.collection('users').doc(user.uid).get();
     if (snap.exists && snap.data().role === 'athlete') {
@@ -265,7 +345,88 @@
     const name = data.displayName || user.displayName || 'Trainer';
     document.getElementById('userName').textContent = name;
     document.getElementById('loadingOverlay').style.display = 'none';
+
+    loadInbox();
   });
+
+  // ── Live inbox panel ──
+  function loadInbox() {
+    // Load all athletes for this trainer first, then listen for their messages
+    db.collection('users').where('trainerId', '==', currentUser.uid).get().then(athleteSnap => {
+      const athletes = {};
+      athleteSnap.docs.forEach(d => { athletes[d.id] = d.data(); });
+
+      // Listen for messages where trainer is the receiver
+      db.collection('messages')
+        .where('receiverId', '==', currentUser.uid)
+        .onSnapshot(snap => {
+          const feed   = document.getElementById('msgFeed');
+          const empty  = document.getElementById('msgEmpty');
+          const badge  = document.getElementById('inboxBadge');
+
+          const msgs = snap.docs
+            .map(d => ({ id: d.id, ...d.data() }))
+            .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+          // Deduplicate: show only the latest message per sender
+          const seen = new Set();
+          const latest = msgs.filter(m => {
+            if (seen.has(m.senderId)) return false;
+            seen.add(m.senderId); return true;
+          });
+
+          const unreadTotal = msgs.filter(m => !m.read).length;
+          badge.textContent = unreadTotal > 9 ? '9+' : unreadTotal;
+          badge.classList.toggle('visible', unreadTotal > 0);
+
+          feed.querySelectorAll('.msg-item').forEach(el => el.remove());
+
+          if (latest.length === 0) {
+            empty.style.display = 'block';
+            return;
+          }
+          empty.style.display = 'none';
+
+          latest.forEach(msg => {
+            const athlete  = athletes[msg.senderId] || {};
+            const name     = athlete.displayName || msg.senderName || msg.senderId;
+            const initials = getInitials(name);
+            const isUnread = !msg.read;
+            const timeStr  = msg.createdAt ? formatTime(msg.createdAt.toDate()) : '';
+            const convoId  = [currentUser.uid, msg.senderId].sort().join('_');
+
+            const item = document.createElement('a');
+            item.href      = `messages.html`;
+            item.className = 'msg-item' + (isUnread ? ' unread' : '');
+            item.innerHTML = `
+              <div class="msg-item-top">
+                <div class="msg-avatar">${initials}</div>
+                <div class="msg-sender">${esc(name)}</div>
+                <div class="msg-time-sm">${timeStr}</div>
+              </div>
+              <div class="msg-text ${isUnread ? 'unread-text' : ''}">${esc(msg.text)}</div>`;
+            feed.insertBefore(item, empty);
+          });
+        });
+    });
+  }
+
+  function getInitials(name) {
+    const parts = (name || '?').trim().split(' ');
+    return (parts.length >= 2 ? parts[0][0] + parts[parts.length-1][0] : name.slice(0,2)).toUpperCase();
+  }
+
+  function formatTime(date) {
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    if (isToday) return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
 
   async function doSignOut() {
     await auth.signOut();

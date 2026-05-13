@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Messages — CoachSync</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: rgba(255,255,255,0.9);
+      display: flex; flex-direction: column;
+    }
+
+    /* ── Nav ── */
+    .top-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 24px; border-bottom: 1px solid rgba(80,184,240,0.15);
+      background: rgba(15,23,42,0.8); flex-shrink: 0;
+    }
+    .top-nav.athlete-nav { border-bottom-color: rgba(114,184,50,0.15); }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .btn-back {
+      background: none; border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.6); font-size: 0.85rem; font-weight: 600;
+      padding: 6px 16px; border-radius: 25px; text-decoration: none;
+      transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-back.trainer-back:hover { border-color: #50b8f0; color: #50b8f0; }
+    .btn-back.athlete-back:hover { border-color: #72b832; color: #72b832; }
+    .btn-logout {
+      background: none; border: 1px solid rgba(239,68,68,0.4);
+      color: rgba(239,68,68,0.8); font-size: 0.85rem; font-weight: 600;
+      padding: 6px 16px; border-radius: 25px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-logout:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.08); }
+
+    /* ── Main layout ── */
+    .messages-layout {
+      display: flex; flex: 1; overflow: hidden; min-height: 0;
+    }
+
+    /* ── Sidebar (trainer only) ── */
+    .sidebar {
+      width: 300px; flex-shrink: 0;
+      border-right: 1px solid rgba(80,184,240,0.12);
+      display: flex; flex-direction: column; overflow: hidden;
+      background: rgba(15,23,42,0.4);
+    }
+    .sidebar-header {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid rgba(80,184,240,0.1);
+      flex-shrink: 0;
+    }
+    .sidebar-title { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.35); }
+    .sidebar-list { flex: 1; overflow-y: auto; }
+    .sidebar-list::-webkit-scrollbar { width: 4px; }
+    .sidebar-list::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+    .convo-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 20px; cursor: pointer; transition: background 0.15s;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .convo-item:hover   { background: rgba(80,184,240,0.07); }
+    .convo-item.active  { background: rgba(80,184,240,0.12); border-left: 3px solid #50b8f0; }
+    .convo-avatar {
+      width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #1e8fe0, #50b8f0);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; font-weight: 800; color: white; text-transform: uppercase;
+    }
+    .convo-info { flex: 1; min-width: 0; }
+    .convo-name    { font-size: 0.9rem; font-weight: 700; color: rgba(255,255,255,0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .convo-preview { font-size: 0.78rem; color: rgba(255,255,255,0.4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+    .convo-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+    .convo-time  { font-size: 0.7rem; color: rgba(255,255,255,0.3); }
+    .unread-badge {
+      background: #50b8f0; color: white; font-size: 0.68rem; font-weight: 800;
+      min-width: 18px; height: 18px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; padding: 0 5px;
+    }
+    .unread-badge.athlete-badge { background: #72b832; }
+
+    .sidebar-empty {
+      padding: 40px 20px; text-align: center;
+      color: rgba(255,255,255,0.3); font-size: 0.88rem; line-height: 1.6;
+    }
+
+    /* ── Thread pane ── */
+    .thread-pane {
+      flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0;
+    }
+    .thread-header {
+      padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.07);
+      display: flex; align-items: center; gap: 14px; flex-shrink: 0;
+      background: rgba(15,23,42,0.3);
+    }
+    .thread-avatar {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #1e8fe0, #50b8f0);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.95rem; font-weight: 800; color: white; text-transform: uppercase;
+    }
+    .thread-avatar.athlete-avatar { background: linear-gradient(135deg, #72b832, #a0d060); }
+    .thread-name { font-size: 1rem; font-weight: 700; color: rgba(255,255,255,0.9); }
+    .thread-sub  { font-size: 0.78rem; color: rgba(255,255,255,0.4); }
+
+    .thread-no-convo {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 14px; color: rgba(255,255,255,0.25);
+    }
+    .thread-no-convo i { font-size: 3rem; }
+    .thread-no-convo p { font-size: 0.95rem; }
+
+    /* ── Messages ── */
+    .messages-scroll {
+      flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .messages-scroll::-webkit-scrollbar { width: 4px; }
+    .messages-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+    .msg-row { display: flex; align-items: flex-end; gap: 8px; }
+    .msg-row.mine { flex-direction: row-reverse; }
+
+    .msg-avatar-sm {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #1e8fe0, #50b8f0);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 800; color: white; text-transform: uppercase;
+    }
+    .msg-avatar-sm.theirs-athlete { background: linear-gradient(135deg, #72b832, #a0d060); }
+    .msg-avatar-sm.mine-trainer   { background: linear-gradient(135deg, #1e8fe0, #50b8f0); }
+    .msg-avatar-sm.mine-athlete   { background: linear-gradient(135deg, #72b832, #a0d060); }
+
+    .msg-bubble {
+      max-width: 68%; padding: 10px 14px; border-radius: 16px;
+      font-size: 0.9rem; line-height: 1.45; word-break: break-word;
+    }
+    .msg-bubble.theirs {
+      background: rgba(30,41,59,0.9); border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.85); border-bottom-left-radius: 4px;
+    }
+    .msg-bubble.mine-trainer {
+      background: rgba(30,143,224,0.25); border: 1px solid rgba(30,143,224,0.35);
+      color: rgba(255,255,255,0.9); border-bottom-right-radius: 4px;
+    }
+    .msg-bubble.mine-athlete {
+      background: rgba(114,184,50,0.25); border: 1px solid rgba(114,184,50,0.35);
+      color: rgba(255,255,255,0.9); border-bottom-right-radius: 4px;
+    }
+    .msg-time {
+      font-size: 0.68rem; color: rgba(255,255,255,0.25); margin-top: 3px;
+      text-align: right;
+    }
+    .msg-row.mine .msg-time { text-align: left; }
+
+    .date-divider {
+      text-align: center; font-size: 0.72rem; color: rgba(255,255,255,0.25);
+      padding: 8px 0; font-weight: 600; letter-spacing: 0.3px;
+    }
+
+    /* ── Input bar ── */
+    .input-bar {
+      padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.07);
+      display: flex; gap: 10px; align-items: flex-end; flex-shrink: 0;
+      background: rgba(15,23,42,0.4);
+    }
+    .msg-input {
+      flex: 1; background: rgba(30,41,59,0.8); border: 1px solid rgba(255,255,255,0.12);
+      color: white; border-radius: 22px; padding: 10px 18px;
+      font-size: 0.92rem; outline: none; resize: none; max-height: 120px;
+      font-family: inherit; line-height: 1.4;
+    }
+    .msg-input:focus { border-color: rgba(80,184,240,0.45); }
+    .msg-input.athlete-input:focus { border-color: rgba(114,184,50,0.45); }
+    .msg-input::placeholder { color: rgba(255,255,255,0.25); }
+    .btn-send {
+      width: 42px; height: 42px; border-radius: 50%; border: none; cursor: pointer;
+      background: #1e8fe0; color: white; font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.2s; box-shadow: 0 4px 12px rgba(30,143,224,0.3);
+    }
+    .btn-send.athlete-send { background: #72b832; box-shadow: 0 4px 12px rgba(114,184,50,0.3); }
+    .btn-send:hover { transform: scale(1.08); }
+    .btn-send:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .loading-overlay {
+      position: fixed; inset: 0; background: linear-gradient(135deg, #0f172a, #1e293b);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; font-size: 1.1rem; color: rgba(255,255,255,0.5); gap: 12px;
+    }
+
+    /* ── Athlete single-thread layout ── */
+    .athlete-layout .sidebar { display: none; }
+
+    @media (max-width: 768px) {
+      .top-nav { padding: 12px 16px; }
+      .sidebar { width: 260px; }
+      .msg-bubble { max-width: 82%; }
+    }
+    @media (max-width: 600px) {
+      .sidebar { display: none; }
+      .sidebar.mobile-open { display: flex; position: fixed; inset: 0; z-index: 100; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <i class="fa-solid fa-spinner fa-spin"></i> Loading…
+</div>
+
+<nav class="top-nav" id="topNav">
+  <a href="#" id="navLogoLink">
+    <img src="CoachSyncLogo.png" alt="CoachSync" style="height:52px;">
+  </a>
+  <div class="nav-right">
+    <a href="#" id="btnBack" class="btn-back">
+      <i class="fa-solid fa-arrow-left"></i> Dashboard
+    </a>
+    <button class="btn-logout" onclick="doSignOut()">
+      <i class="fa-solid fa-right-from-bracket me-1"></i>Sign Out
+    </button>
+  </div>
+</nav>
+
+<div class="messages-layout" id="messagesLayout">
+
+  <!-- Sidebar (trainer only, hidden for athlete via CSS) -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Conversations</div>
+    </div>
+    <div class="sidebar-list" id="sidebarList">
+      <div class="sidebar-empty" id="sidebarEmpty" style="display:none;">
+        No athletes connected yet.
+      </div>
+    </div>
+  </div>
+
+  <!-- Thread pane -->
+  <div class="thread-pane" id="threadPane">
+    <div class="thread-no-convo" id="noConvo">
+      <i class="fa-solid fa-comments"></i>
+      <p>Select an athlete to start messaging</p>
+    </div>
+
+    <!-- Active thread (hidden until a conversation is selected) -->
+    <div id="activeThread" style="display:none; flex-direction:column; flex:1; overflow:hidden; min-height:0;">
+      <div class="thread-header" id="threadHeader">
+        <div class="thread-avatar" id="threadAvatar"></div>
+        <div>
+          <div class="thread-name" id="threadName"></div>
+          <div class="thread-sub"  id="threadSub"></div>
+        </div>
+      </div>
+      <div class="messages-scroll" id="messagesScroll"></div>
+      <div class="input-bar">
+        <textarea class="msg-input" id="msgInput" placeholder="Type a message…" rows="1"
+          oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+        <button class="btn-send" id="btnSend" onclick="sendMessage()">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDnaS5J_-KkmFZcE3FtjjxV54cZkbWcop8",
+    authDomain: "coachsync-7e07e.firebaseapp.com",
+    projectId: "coachsync-7e07e",
+    storageBucket: "coachsync-7e07e.firebasestorage.app",
+    messagingSenderId: "774513797996",
+    appId: "1:774513797996:web:e38f47773c5b487982e149"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db   = firebase.firestore();
+
+  let currentUser   = null;
+  let userRole      = null;
+  let userData      = null;
+  let athletes      = [];          // trainer only
+  let activeConvoId = null;
+  let threadUnsub   = null;        // unsubscribe from active thread listener
+  let convoUnsubMap = {};          // convoId → unsubscribe fn (trainer sidebar previews)
+
+  // ── Auth ──
+  auth.onAuthStateChanged(async user => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    currentUser = user;
+
+    const snap = await db.collection('users').doc(user.uid).get();
+    if (!snap.exists) { window.location.href = 'index.html'; return; }
+    userData = snap.data();
+    userRole = userData.role;
+
+    setupNav();
+
+    if (userRole === 'trainer') {
+      setupTrainerLayout();
+      loadAthletes();
+    } else {
+      setupAthleteLayout();
+      openAthleteThread();
+    }
+
+    document.getElementById('loadingOverlay').style.display = 'none';
+  });
+
+  function setupNav() {
+    const nav      = document.getElementById('topNav');
+    const btnBack  = document.getElementById('btnBack');
+    const backHref = userRole === 'trainer' ? 'trainer-dashboard.html' : 'athlete-dashboard.html';
+    btnBack.href   = backHref;
+    btnBack.classList.add(userRole === 'trainer' ? 'trainer-back' : 'athlete-back');
+    if (userRole === 'athlete') nav.classList.add('athlete-nav');
+  }
+
+  // ── Trainer layout ──
+  function setupTrainerLayout() {
+    document.getElementById('msgInput').classList.remove('athlete-input');
+    document.getElementById('btnSend').classList.remove('athlete-send');
+  }
+
+  function loadAthletes() {
+    db.collection('users')
+      .where('trainerId', '==', currentUser.uid)
+      .onSnapshot(snap => {
+        athletes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderSidebar();
+      });
+  }
+
+  function renderSidebar() {
+    const list  = document.getElementById('sidebarList');
+    const empty = document.getElementById('sidebarEmpty');
+
+    // Remove existing convo items (keep the empty notice)
+    list.querySelectorAll('.convo-item').forEach(el => el.remove());
+    Object.values(convoUnsubMap).forEach(unsub => unsub());
+    convoUnsubMap = {};
+
+    if (athletes.length === 0) { empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+
+    athletes.forEach(athlete => {
+      const convoId  = makeConvoId(currentUser.uid, athlete.id);
+      const initials = getInitials(athlete.displayName || athlete.email || '?');
+
+      const item = document.createElement('div');
+      item.className = 'convo-item' + (convoId === activeConvoId ? ' active' : '');
+      item.id        = 'convo-' + convoId;
+      item.onclick   = () => openThread(athlete);
+      item.innerHTML = `
+        <div class="convo-avatar">${initials}</div>
+        <div class="convo-info">
+          <div class="convo-name">${esc(athlete.displayName || athlete.email)}</div>
+          <div class="convo-preview" id="preview-${convoId}">No messages yet</div>
+        </div>
+        <div class="convo-meta">
+          <div class="convo-time" id="time-${convoId}"></div>
+          <div id="badge-${convoId}"></div>
+        </div>`;
+      list.appendChild(item);
+
+      // Live preview of last message
+      const unsub = db.collection('messages')
+        .where('conversationId', '==', convoId)
+        .orderBy('createdAt', 'desc')
+        .limit(1)
+        .onSnapshot(snap => {
+          if (snap.empty) return;
+          const msg = snap.docs[0].data();
+          const previewEl = document.getElementById('preview-' + convoId);
+          const timeEl    = document.getElementById('time-' + convoId);
+          const badgeEl   = document.getElementById('badge-' + convoId);
+          if (previewEl) previewEl.textContent = (msg.senderId === currentUser.uid ? 'You: ' : '') + msg.text;
+          if (timeEl && msg.createdAt) timeEl.textContent = formatTime(msg.createdAt.toDate());
+
+          // Unread count — messages to trainer that aren't read
+          db.collection('messages')
+            .where('conversationId', '==', convoId)
+            .where('receiverId', '==', currentUser.uid)
+            .where('read', '==', false)
+            .get().then(unreadSnap => {
+              if (badgeEl) {
+                badgeEl.innerHTML = unreadSnap.size > 0
+                  ? `<div class="unread-badge">${unreadSnap.size}</div>` : '';
+              }
+            });
+        });
+      convoUnsubMap[convoId] = unsub;
+    });
+  }
+
+  // ── Open a thread (trainer clicks athlete) ──
+  function openThread(athlete) {
+    if (threadUnsub) { threadUnsub(); threadUnsub = null; }
+    activeConvoId = makeConvoId(currentUser.uid, athlete.id);
+
+    // Update sidebar active state
+    document.querySelectorAll('.convo-item').forEach(el => el.classList.remove('active'));
+    const item = document.getElementById('convo-' + activeConvoId);
+    if (item) item.classList.add('active');
+
+    // Thread header
+    const initials = getInitials(athlete.displayName || athlete.email || '?');
+    document.getElementById('threadAvatar').textContent  = initials;
+    document.getElementById('threadName').textContent    = athlete.displayName || athlete.email;
+    document.getElementById('threadSub').textContent     = athlete.email || '';
+    document.getElementById('noConvo').style.display     = 'none';
+    const activeThread = document.getElementById('activeThread');
+    activeThread.style.display = 'flex';
+
+    listenThread(activeConvoId, athlete.id);
+    markRead(activeConvoId);
+
+    document.getElementById('msgInput').focus();
+  }
+
+  // ── Athlete layout — single thread with trainer ──
+  function setupAthleteLayout() {
+    document.getElementById('messagesLayout').classList.add('athlete-layout');
+    document.getElementById('msgInput').classList.add('athlete-input');
+    document.getElementById('btnSend').classList.add('athlete-send');
+    document.getElementById('threadAvatar').classList.add('athlete-avatar');
+  }
+
+  async function openAthleteThread() {
+    if (!userData.trainerId) {
+      document.getElementById('noConvo').innerHTML =
+        '<i class="fa-solid fa-link"></i><p>You\'re not connected to a trainer yet.</p>';
+      return;
+    }
+
+    // Get trainer info
+    const trainerSnap = await db.collection('users').doc(userData.trainerId).get();
+    const trainer = trainerSnap.exists ? trainerSnap.data() : {};
+    const initials = getInitials(trainer.displayName || trainer.email || 'T');
+
+    activeConvoId = makeConvoId(userData.trainerId, currentUser.uid);
+
+    document.getElementById('threadAvatar').textContent = initials;
+    document.getElementById('threadName').textContent   = trainer.displayName || 'My Trainer';
+    document.getElementById('threadSub').textContent    = trainer.email || '';
+    document.getElementById('noConvo').style.display    = 'none';
+    const activeThread = document.getElementById('activeThread');
+    activeThread.style.display = 'flex';
+
+    listenThread(activeConvoId, userData.trainerId);
+    markRead(activeConvoId);
+  }
+
+  // ── Real-time thread listener ──
+  function listenThread(convoId, otherUserId) {
+    const scroll = document.getElementById('messagesScroll');
+    scroll.innerHTML = '';
+
+    threadUnsub = db.collection('messages')
+      .where('conversationId', '==', convoId)
+      .orderBy('createdAt', 'asc')
+      .onSnapshot(snap => {
+        renderMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        markRead(convoId);
+
+        // Update unread badge in sidebar
+        const badgeEl = document.getElementById('badge-' + convoId);
+        if (badgeEl) badgeEl.innerHTML = '';
+      });
+  }
+
+  function renderMessages(msgs) {
+    const scroll   = document.getElementById('messagesScroll');
+    const atBottom = scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight < 60;
+    scroll.innerHTML = '';
+
+    let lastDate = null;
+    msgs.forEach(msg => {
+      const d    = msg.createdAt ? msg.createdAt.toDate() : new Date();
+      const dateStr = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+      if (dateStr !== lastDate) {
+        lastDate = dateStr;
+        const div = document.createElement('div');
+        div.className = 'date-divider';
+        div.textContent = dateStr;
+        scroll.appendChild(div);
+      }
+
+      const isMine = msg.senderId === currentUser.uid;
+      const initials = getInitials(msg.senderName || '?');
+
+      // Determine bubble class
+      let bubbleClass = 'theirs';
+      let avatarClass = userRole === 'trainer' ? 'theirs-athlete' : 'theirs-trainer';
+      if (isMine) {
+        bubbleClass = userRole === 'trainer' ? 'mine-trainer' : 'mine-athlete';
+        avatarClass = userRole === 'trainer' ? 'mine-trainer' : 'mine-athlete';
+      }
+
+      const row = document.createElement('div');
+      row.className = 'msg-row' + (isMine ? ' mine' : '');
+      row.innerHTML = `
+        <div class="msg-avatar-sm ${avatarClass}">${initials}</div>
+        <div>
+          <div class="msg-bubble ${bubbleClass}">${esc(msg.text)}</div>
+          <div class="msg-time">${formatTime(d)}</div>
+        </div>`;
+      scroll.appendChild(row);
+    });
+
+    if (msgs.length === 0) {
+      scroll.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.2);font-size:0.88rem;margin-top:60px;">No messages yet. Say hello!</div>';
+    }
+
+    // Scroll to bottom
+    if (atBottom || msgs.length <= 1) {
+      scroll.scrollTop = scroll.scrollHeight;
+    }
+  }
+
+  // ── Send ──
+  async function sendMessage() {
+    const input = document.getElementById('msgInput');
+    const text  = input.value.trim();
+    if (!text || !activeConvoId) return;
+
+    const btn = document.getElementById('btnSend');
+    btn.disabled = true;
+    input.value  = '';
+    autoResize(input);
+
+    const otherUserId = activeConvoId.split('_').find(id => id !== currentUser.uid);
+    const senderName  = userData.displayName || userData.email || 'Unknown';
+
+    try {
+      await db.collection('messages').add({
+        conversationId: activeConvoId,
+        senderId:   currentUser.uid,
+        senderName,
+        receiverId: otherUserId,
+        text,
+        read:      false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch(e) {
+      console.error('Send error:', e);
+      input.value = text; // restore on failure
+    } finally {
+      btn.disabled = false;
+      input.focus();
+    }
+  }
+
+  // ── Mark messages as read ──
+  function markRead(convoId) {
+    db.collection('messages')
+      .where('conversationId', '==', convoId)
+      .where('receiverId', '==', currentUser.uid)
+      .where('read', '==', false)
+      .get().then(snap => {
+        const batch = db.batch();
+        snap.docs.forEach(doc => batch.update(doc.ref, { read: true }));
+        if (!snap.empty) batch.commit();
+      });
+  }
+
+  // ── Helpers ──
+  function makeConvoId(uid1, uid2) {
+    return [uid1, uid2].sort().join('_');
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  function formatTime(date) {
+    const now  = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    if (isToday) return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function getInitials(name) {
+    const parts = name.trim().split(' ');
+    return (parts.length >= 2 ? parts[0][0] + parts[parts.length-1][0] : name.slice(0,2)).toUpperCase();
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  async function doSignOut() { await auth.signOut(); window.location.href = 'index.html'; }
+</script>
+</body>
+</html>

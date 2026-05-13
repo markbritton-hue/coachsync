@@ -27,6 +27,18 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && request.auth.uid == resource.data.athleteId;
     }
 
+    match /messages/{msgId} {
+      // Only the sender or receiver can read/write
+      allow read: if request.auth != null &&
+        (request.auth.uid == resource.data.senderId ||
+         request.auth.uid == resource.data.receiverId);
+      allow create: if request.auth != null &&
+        request.resource.data.senderId == request.auth.uid;
+      allow update: if request.auth != null &&
+        request.auth.uid == resource.data.receiverId; // only receiver marks read
+      allow delete: if false;
+    }
+
     match /users/{uid} {
       allow read:   if request.auth != null;
       allow create: if request.auth != null && request.auth.uid == uid;
