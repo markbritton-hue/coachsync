@@ -107,6 +107,19 @@
       text-decoration: none;
       display: block;
       color: inherit;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-size: 75%;
+      background-repeat: no-repeat;
+      background-position: center 110%;
+      opacity: 0.06;
+      pointer-events: none;
+      filter: grayscale(1);
     }
     .feature-card:hover {
       transform: translateY(-8px);
@@ -114,9 +127,14 @@
       border-color: rgba(114,184,50,0.5);
       color: inherit;
     }
-    .feature-icon { font-size: 2.8rem; margin-bottom: 14px; }
-    .feature-card h2 { color: #72b832; font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
-    .feature-card p { color: rgba(255,255,255,0.6); font-size: 0.875rem; margin: 0; }
+    .feature-card:hover::before { opacity: 0.10; }
+    .feature-card[href="workouts.html"]::before   { background-image: url('workout-plan.svg'); }
+    .feature-card[href="my-trainer.html"]::before { background-image: url('fitness-trainer.svg'); }
+    .feature-card[href="schedule.html"]::before   { background-image: url('training-schedule.svg'); }
+    .feature-icon { font-size: 2.8rem; margin-bottom: 14px; position: relative; }
+    .feature-icon img { filter: none; }
+    .feature-card h2 { color: #72b832; font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; position: relative; }
+    .feature-card p { color: rgba(255,255,255,0.6); font-size: 0.875rem; margin: 0; position: relative; }
 
     .loading-overlay {
       position: fixed; inset: 0;
@@ -259,7 +277,7 @@
 
 <nav class="top-nav">
   <div class="nav-brand">
-    <img src="CoachSyncLogo.png" alt="CoachSync" style="height:56px;">
+    <img src="CoachSyncLogo.png" alt="CoachSync" style="height:72px;">
   </div>
   <div class="nav-right">
     <span class="user-name" id="userName"></span>
@@ -292,14 +310,14 @@
       </div>
       <div class="col-6 col-md-4">
         <a href="my-trainer.html" class="feature-card">
-          <div class="feature-icon">👤</div>
+          <div class="feature-icon"><img src="fitness-trainer.svg" alt="My Trainer" style="height:40px;"></div>
           <h2>My Trainer</h2>
           <p>Connect with a trainer and get personalized feedback.</p>
         </a>
       </div>
       <div class="col-6 col-md-4">
         <a href="schedule.html" class="feature-card">
-          <div class="feature-icon">📅</div>
+          <div class="feature-icon"><img src="training-schedule.svg" alt="Schedule" style="height:40px;"></div>
           <h2>Schedule</h2>
           <p>View upcoming sessions and book time with your trainer.</p>
         </a>
