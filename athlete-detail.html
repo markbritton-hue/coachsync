@@ -201,6 +201,10 @@
       <div class="stat-value" id="statLast">—</div>
       <div class="stat-label">Last Workout</div>
     </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statRpe">—</div>
+      <div class="stat-label">Avg RPE</div>
+    </div>
   </div>
 
   <!-- Program progress -->
@@ -251,8 +255,9 @@
   const auth = firebase.auth();
   const db   = firebase.firestore();
 
-  const params    = new URLSearchParams(location.search);
-  const athleteId = params.get('id');
+  const params       = new URLSearchParams(location.search);
+  const athleteId    = params.get('id');
+  const focusProgram = params.get('program'); // optional: scope to one program
 
   let athleteData = null;
   let programData = null;
@@ -295,6 +300,10 @@
     renderToday();
     await renderHistory();
 
+    if (focusProgram) {
+      document.title = focusProgram + ' — CoachSync';
+    }
+
     document.getElementById('loadingOverlay').style.display = 'none';
   });
 
@@ -325,35 +334,41 @@
   }
 
   async function loadProgram() {
-    if (!athleteData.assignedProgram) return;
-    const snap = await db.collection('programs').where('name', '==', athleteData.assignedProgram).get();
+    const progName = focusProgram || athleteData.assignedProgram;
+    if (!progName) return;
+
+    const snap = await db.collection('programs').where('name', '==', progName).get();
     if (snap.empty) return;
     programData = { id: snap.docs[0].id, ...snap.docs[0].data() };
 
     const numDays    = parseInt(programData.daysPerWeek) || 1;
     const totalWeeks = parseInt(programData.duration) || 0;
 
-    if (athleteData.programStartDate) {
-      const pos   = computeWeekDay(athleteData.programStartDate, numDays);
+    // Per-program start date (map field) with legacy fallback
+    const startDate = (athleteData.programStartDates && athleteData.programStartDates[progName])
+      || athleteData.programStartDate || null;
+
+    if (startDate) {
+      const pos   = computeWeekDay(startDate, numDays);
       currentWeek = pos.week;
       currentDay  = pos.day;
     }
 
-    // Render program section
     document.getElementById('progName').textContent = programData.name;
     document.getElementById('progMeta').innerHTML = [
-      programData.difficulty  ? `<span><i class="fa-solid fa-signal"></i> ${esc(programData.difficulty)}</span>` : '',
-      programData.duration    ? `<span><i class="fa-regular fa-clock"></i> ${esc(programData.duration)}</span>` : '',
-      programData.daysPerWeek ? `<span><i class="fa-solid fa-calendar-days"></i> ${esc(programData.daysPerWeek)}</span>` : '',
-      programData.goal        ? `<span><i class="fa-solid fa-bullseye"></i> ${esc(programData.goal)}</span>` : '',
+      programData.difficulty     ? `<span><i class="fa-solid fa-signal"></i> ${esc(programData.difficulty)}</span>` : '',
+      programData.duration       ? `<span><i class="fa-regular fa-clock"></i> ${esc(programData.duration)}</span>` : '',
+      programData.daysPerWeek    ? `<span><i class="fa-solid fa-calendar-days"></i> ${esc(programData.daysPerWeek)} days/wk</span>` : '',
+      programData.estWorkoutTime ? `<span><i class="fa-solid fa-stopwatch"></i> ~${esc(programData.estWorkoutTime)} min</span>` : '',
+      programData.goal           ? `<span><i class="fa-solid fa-bullseye"></i> ${esc(programData.goal)}</span>` : '',
     ].join('');
 
-    if (athleteData.programStartDate && totalWeeks) {
+    if (startDate && totalWeeks) {
       const pct = Math.min(100, Math.round((currentWeek - 1) / totalWeeks * 100));
       document.getElementById('progBar').style.width = pct + '%';
       document.getElementById('progBarLeft').textContent  = `Week ${currentWeek} of ${totalWeeks}`;
       document.getElementById('progBarRight').textContent = pct + '% complete';
-    } else if (athleteData.programStartDate) {
+    } else if (startDate) {
       document.getElementById('progBarLeft').textContent = `Week ${currentWeek} · Day ${currentDay}`;
     } else {
       document.getElementById('progBarLeft').textContent = 'Program not started yet';
@@ -363,9 +378,12 @@
   }
 
   function renderStats() {
+    const progName  = focusProgram || athleteData.assignedProgram;
+    const startDate = (athleteData.programStartDates && athleteData.programStartDates[progName])
+      || athleteData.programStartDate || null;
     document.getElementById('statWorkouts').textContent = athleteData.sessionsCompleted || 0;
-    document.getElementById('statWeek').textContent     = athleteData.programStartDate ? currentWeek : '—';
-    document.getElementById('statDay').textContent      = athleteData.programStartDate ? currentDay  : '—';
+    document.getElementById('statWeek').textContent     = startDate ? currentWeek : '—';
+    document.getElementById('statDay').textContent      = startDate ? currentDay  : '—';
     document.getElementById('statLast').textContent     = relativeTime(athleteData.lastWorkout);
     document.getElementById('statRow').style.display    = 'grid';
   }
@@ -373,22 +391,28 @@
   // ── Today's workout for this athlete ──
   async function renderToday() {
     const view = document.getElementById('todayView');
+    const progName  = focusProgram || athleteData.assignedProgram;
+    const startDate = (athleteData.programStartDates && athleteData.programStartDates[progName])
+      || athleteData.programStartDate || null;
 
-    if (!programData || !athleteData.programStartDate) {
+    if (!programData || !startDate) {
       view.innerHTML = `<div class="empty-state">
         <i class="fa-solid fa-dumbbell"></i>
-        <p>${!athleteData.assignedProgram ? 'No program assigned.' : 'Athlete has not set a start date yet.'}</p>
+        <p>${!progName ? 'No program assigned.' : 'Athlete has not started this program yet.'}</p>
       </div>`;
       return;
     }
 
-    // Load today's log
+    // Load today's log for this program
     const logSnap = await db.collection('workoutLogs')
       .where('athleteId', '==', athleteId)
       .where('week', '==', currentWeek)
       .get();
 
-    const logDoc  = logSnap.docs.find(d => d.data().day === currentDay);
+    const logDoc  = logSnap.docs.find(d => {
+      const data = d.data();
+      return data.day === currentDay && (!focusProgram || data.programName === focusProgram);
+    });
     const logData = logDoc ? logDoc.data() : null;
     const doneSet = new Set(logData ? (logData.completedExercises || []) : []);
     const notes   = logData ? (logData.exerciseNotes || {}) : {};
@@ -425,9 +449,10 @@
             <div class="ex-info">
               <div class="ex-name" style="${isDone ? 'text-decoration:line-through;opacity:0.6;' : ''}">${esc(ex.name)}</div>
               <div class="ex-details">
-                ${ex.sets ? `<span><i class="fa-solid fa-layer-group"></i> ${esc(ex.sets)} sets</span>` : ''}
-                ${ex.reps ? `<span><i class="fa-solid fa-repeat"></i> ${esc(ex.reps)} reps</span>` : ''}
-                ${ex.rest ? `<span><i class="fa-regular fa-clock"></i> ${esc(ex.rest)}s rest</span>` : ''}
+                ${ex.sets   ? `<span><i class="fa-solid fa-layer-group"></i> ${esc(ex.sets)} sets</span>` : ''}
+                ${ex.value  ? `<span><i class="fa-solid fa-repeat"></i> ${esc(ex.value)} ${esc(ex.type||'reps')}</span>` : (ex.reps ? `<span><i class="fa-solid fa-repeat"></i> ${esc(ex.reps)} reps</span>` : '')}
+                ${ex.weight ? `<span><i class="fa-solid fa-dumbbell"></i> ${esc(ex.weight)} lbs</span>` : ''}
+                ${ex.rest   ? `<span><i class="fa-regular fa-clock"></i> ${esc(ex.rest)}s rest</span>` : ''}
               </div>
               ${ex.notes ? `<div style="font-size:0.78rem;color:rgba(255,255,255,0.4);font-style:italic;margin-top:3px;"><i class="fa-solid fa-whistle" style="font-size:0.65rem;margin-right:3px;"></i>${esc(ex.notes)}</div>` : ''}
               ${note ? `<div class="athlete-note"><i class="fa-solid fa-pen-to-square" style="font-size:0.65rem;margin-right:3px;"></i>${esc(note)}</div>` : ''}
@@ -449,12 +474,21 @@
         .where('athleteId', '==', athleteId)
         .get();
 
+      const progFilter = focusProgram || athleteData.assignedProgram;
       const logs = snap.docs
         .map(d => ({ id: d.id, ...d.data() }))
+        .filter(d => !progFilter || d.programName === progFilter)
         .sort((a, b) => {
           if (b.week !== a.week) return (b.week || 0) - (a.week || 0);
           return (b.day || 0) - (a.day || 0);
         });
+
+      // Avg RPE stat
+      const rpeScores = logs.map(l => l.rpe).filter(r => r != null);
+      if (rpeScores.length) {
+        const avg = (rpeScores.reduce((a,b) => a+b, 0) / rpeScores.length).toFixed(1);
+        document.getElementById('statRpe').textContent = avg;
+      }
 
       if (logs.length === 0) {
         view.innerHTML = `<div class="empty-state">
@@ -490,6 +524,22 @@
             }).join('')}
           </div>` : '';
 
+        const rpeHtml = log.rpe ? (() => {
+          const rpeLabels = {1:'Very easy',2:'Easy',3:'Moderate',4:'Somewhat hard',5:'Hard',6:'Hard+',7:'Very hard',8:'Very hard+',9:'Extremely hard',10:'Max effort'};
+          const rpeColor  = log.rpe <= 6 ? '#10b981' : log.rpe <= 9 ? '#f59e0b' : '#ef4444';
+          const blocks    = Array.from({length:10},(_,i) => {
+            const n = i+1;
+            const lit = n <= log.rpe;
+            const c   = n <= 6 ? '#10b981' : n <= 9 ? '#f59e0b' : '#ef4444';
+            return `<div style="flex:1;height:20px;border-radius:4px;background:${lit?c:'rgba(255,255,255,0.06)'};display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:${lit?'white':'transparent'};">${n}</div>`;
+          }).join('');
+          return `<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);">
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;"><i class="fa-solid fa-fire-flame-curved" style="margin-right:4px;"></i>Effort (RPE)</div>
+            <div style="display:flex;gap:3px;margin-bottom:5px;">${blocks}</div>
+            <div style="font-size:0.78rem;"><span style="color:${rpeColor};font-weight:700;">${log.rpe}/10</span> <span style="color:rgba(255,255,255,0.4);">— ${rpeLabels[log.rpe]||''}</span></div>
+          </div>`;
+        })() : '';
+
         return `
           <div class="history-card">
             <div class="history-header">
@@ -508,6 +558,7 @@
             </div>` : ''}
             ${pillsHtml ? `<div class="history-exercises">${pillsHtml}</div>` : ''}
             ${notesHtml}
+            ${rpeHtml}
           </div>`;
       }).join('');
     } catch(e) {

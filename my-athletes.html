@@ -635,15 +635,13 @@
             badgeClass = 'status-active'; badgeText = 'Started'; badgeIcon = 'fa-circle';
           }
 
-          // Mini program card — clicking anywhere on it opens the edit page
+          // Mini program card — clicking opens athlete progress for this program
           const miniCard = document.createElement('div');
           miniCard.className = 'program-mini-card';
           miniCard.style.cursor = 'pointer';
           miniCard.addEventListener('click', (e) => {
             e.stopPropagation();
-            let url = 'programs.html?returnTo=my-athletes&editName=' + encodeURIComponent(pName);
-            if (prog) url += '&editId=' + encodeURIComponent(prog.id);
-            window.location.href = url;
+            window.location.href = `athlete-detail.html?id=${encodeURIComponent(a.id)}&program=${encodeURIComponent(pName)}`;
           });
 
           // Top row: name + action buttons
@@ -719,10 +717,10 @@
 
             const viewBtn = document.createElement('button');
             viewBtn.className = 'log-view-btn';
-            viewBtn.innerHTML = '<i class="fa-solid fa-chart-bar"></i> Details';
+            viewBtn.innerHTML = '<i class="fa-solid fa-arrow-right"></i> View';
             viewBtn.addEventListener('click', (e) => {
               e.stopPropagation();
-              openDetailModal(a, pName, log);
+              window.location.href = `athlete-detail.html?id=${encodeURIComponent(a.id)}&program=${encodeURIComponent(pName)}`;
             });
             logRow.appendChild(viewBtn);
 
