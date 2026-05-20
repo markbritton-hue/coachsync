@@ -739,7 +739,8 @@
   }
 
   function goBack() {
-    window.location.href = returnUrl;
+    const sep = returnUrl.includes('?') ? '&' : '?';
+    window.location.href = returnUrl + sep + `day=${paramDay}&week=${paramWeek}`;
   }
 
   function esc(str) {

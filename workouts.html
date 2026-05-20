@@ -405,6 +405,10 @@
   const auth = firebase.auth();
   const db   = firebase.firestore();
 
+  const _urlParams   = new URLSearchParams(location.search);
+  const _restoreDay  = parseInt(_urlParams.get('day')  || '0');
+  const _restoreWeek = parseInt(_urlParams.get('week') || '0');
+
   let currentUser    = null;
   let athleteData    = null;
   let programData    = null;
@@ -522,8 +526,8 @@
 
     const numDays = parseInt(programData.daysPerWeek) || 1;
     const pos     = computeWeekDay(startDate, numDays);
-    currentWeek   = pos.week;
-    currentDay    = pos.day;
+    currentWeek   = _restoreWeek || pos.week;
+    currentDay    = _restoreDay  || pos.day;
     completed     = new Set();
     exerciseNotes = {};
     todayLogId    = null;
