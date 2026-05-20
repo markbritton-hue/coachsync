@@ -245,9 +245,12 @@
 
     const entries = buildEntries();
 
-    // Split into groups
-    const active   = entries.filter(e => e.startMs && e.startMs <= Date.now());
-    const upcoming = entries.filter(e => e.startMs && e.startMs > Date.now());
+    // Compare by calendar day, not exact timestamp
+    const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
+    const todayDay = startOfToday.getTime();
+
+    const active   = entries.filter(e => e.startMs && new Date(e.startMs).setHours(0,0,0,0) <= todayDay);
+    const upcoming = entries.filter(e => e.startMs && new Date(e.startMs).setHours(0,0,0,0) >  todayDay);
     const unset    = entries.filter(e => !e.startMs);
 
     // Sort active by most recently started first
@@ -273,6 +276,7 @@
   }
 
   function buildCard(entry, type) {
+    const todayDay = new Date().setHours(0,0,0,0);
     const { athlete: a, progName, startMs } = entry;
     const name     = a.displayName || a.email || 'Athlete';
     const initials = name.trim().split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
@@ -322,7 +326,7 @@
     metaEl.className = 'card-meta';
 
     if (startMs && type === 'active') {
-      const daysActive = Math.floor((Date.now() - startMs) / 86400000);
+      const daysActive = Math.floor((todayDay - new Date(startMs).setHours(0,0,0,0)) / 86400000);
       metaEl.innerHTML += `<span class="meta-pill pill-green"><i class="fa-solid fa-circle-check"></i> Day ${daysActive + 1} active</span>`;
 
       if (a.lastWorkout) {
