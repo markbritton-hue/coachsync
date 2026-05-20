@@ -347,9 +347,7 @@
       athleteData = snap.data();
 
       const todayStr = today.toISOString().split('T')[0];
-      document.getElementById('sessDate').min  = todayStr;
-      document.getElementById('startDate').min = todayStr;
-      document.getElementById('startDate').value = todayStr;
+      document.getElementById('sessDate').min = todayStr;
 
       loadProgram();
       loadSessions();
