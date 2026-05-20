@@ -565,12 +565,13 @@
     empty.style.display = 'none';
 
     filtered.forEach(a => {
-      const isStarted = pName =>
-        !!(a.programStartDates && a.programStartDates[pName]) || !!a.programStartDate;
-      const assignedPrograms = (a.assignedPrograms
+      const rawList = a.assignedPrograms
         ? a.assignedPrograms
-        : (a.assignedProgram ? [a.assignedProgram] : []))
-        .slice()
+        : (a.assignedProgram ? [a.assignedProgram] : []);
+      const isStarted = pName =>
+        !!(a.programStartDates && a.programStartDates[pName]) ||
+        (rawList.length === 1 && !!a.programStartDate);
+      const assignedPrograms = rawList.slice()
         .sort((x, y) => (isStarted(y) ? 1 : 0) - (isStarted(x) ? 1 : 0));
 
       // ── Card shell ──
