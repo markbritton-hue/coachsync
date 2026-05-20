@@ -459,40 +459,42 @@
       ? athleteData.assignedPrograms
       : (athleteData.assignedProgram ? [athleteData.assignedProgram] : []);
 
-    // Only show programs that have been started
-    allAssigned = all.filter(name => {
-      const perProgram = athleteData.programStartDates && athleteData.programStartDates[name];
-      // Legacy single-date only counts if this is the only assigned program
-      const legacy = all.length === 1 ? athleteData.programStartDate : null;
-      return !!(perProgram || legacy);
-    });
-
-    if (allAssigned.length === 0) {
+    if (all.length === 0) {
       document.getElementById('noProgramState').style.display = 'block';
-      // Update message to be more helpful
-      document.querySelector('#noProgramState p').innerHTML =
-        all.length > 0
-          ? 'No programs started yet.<br><a href="schedule.html" style="color:#72b832;font-weight:700;">Go to Schedule</a> to start a program.'
-          : 'No program assigned yet.<br>Your trainer will assign one soon.';
       return;
     }
 
-    // Build program selector if more than one active program
-    const selectorEl = document.getElementById('programSelector');
-    if (allAssigned.length > 1) {
-      selectorEl.style.display = 'flex';
-      selectorEl.innerHTML = '';
-      allAssigned.forEach((name, i) => {
-        const btn = document.createElement('button');
-        btn.className = 'program-selector-btn' + (i === 0 ? ' active' : '');
-        btn.dataset.program = name;
-        btn.textContent = name;
-        btn.addEventListener('click', () => switchProgram(name, btn));
-        selectorEl.appendChild(btn);
-      });
+    // Find the program they most recently logged a workout for
+    let activeProg = null;
+    const logSnap = await db.collection('workoutLogs')
+      .where('athleteId', '==', currentUser.uid)
+      .get();
+    if (!logSnap.empty) {
+      const sorted = logSnap.docs
+        .map(d => d.data())
+        .filter(d => d.programName)
+        .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      if (sorted.length) activeProg = sorted[0].programName;
     }
 
-    await switchProgram(allAssigned[0], null);
+    // Fall back to first program that has a start date
+    if (!activeProg) {
+      activeProg = all.find(name => {
+        const perProgram = athleteData.programStartDates && athleteData.programStartDates[name];
+        const legacy = all.length === 1 ? athleteData.programStartDate : null;
+        return !!(perProgram || legacy);
+      }) || null;
+    }
+
+    if (!activeProg) {
+      document.getElementById('noProgramState').style.display = 'block';
+      document.querySelector('#noProgramState p').innerHTML =
+        'No programs started yet.<br><a href="schedule.html" style="color:#72b832;font-weight:700;">Go to Schedule</a> to start a program.';
+      return;
+    }
+
+    allAssigned = [activeProg];
+    await switchProgram(activeProg, null);
   }
 
   async function switchProgram(progName, btnEl) {
@@ -514,6 +516,7 @@
     const startDate = (athleteData.programStartDates && athleteData.programStartDates[progName])
       || (allAssigned.length === 1 ? athleteData.programStartDate : null)
       || null;
+    programData._startDate = startDate;
 
     if (!startDate) {
       document.getElementById('noStartDateState').style.display = 'block';
@@ -561,7 +564,12 @@
   function renderProgram() {
     document.getElementById('programName').textContent = programData.name;
 
+    const startDateStr = programData._startDate
+      ? new Date(programData._startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      : null;
+
     document.getElementById('programMeta').innerHTML = [
+      startDateStr                ? `<span class="meta-pill"><i class="fa-solid fa-calendar-check"></i>Started ${startDateStr}</span>` : '',
       programData.difficulty     ? `<span class="meta-pill"><i class="fa-solid fa-signal"></i>${esc(programData.difficulty)}</span>` : '',
       programData.duration       ? `<span class="meta-pill"><i class="fa-regular fa-clock"></i>${esc(programData.duration)}</span>` : '',
       programData.daysPerWeek    ? `<span class="meta-pill"><i class="fa-solid fa-calendar-days"></i>${esc(programData.daysPerWeek)} days/week</span>` : '',
