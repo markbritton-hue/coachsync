@@ -196,7 +196,7 @@
 
   let currentUser = null;
   let allAthletes = [];
-  const todayMs   = new Date().setHours(0, 0, 0, 0);
+  let latestLogs  = {}; // athleteId → { programName → log }
 
   auth.onAuthStateChanged(async user => {
     if (!user) { window.location.href = 'index.html'; return; }
@@ -209,11 +209,33 @@
   function loadAthletes() {
     db.collection('users')
       .where('trainerId', '==', currentUser.uid)
-      .onSnapshot(snap => {
+      .onSnapshot(async snap => {
         allAthletes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        await loadLatestLogs();
         render();
         document.getElementById('loadingOverlay').style.display = 'none';
       });
+  }
+
+  async function loadLatestLogs() {
+    if (!allAthletes.length) return;
+    const ids = allAthletes.map(a => a.id);
+    const chunks = [];
+    for (let i = 0; i < ids.length; i += 30) chunks.push(ids.slice(i, i + 30));
+    const allDocs = [];
+    await Promise.all(chunks.map(chunk =>
+      db.collection('workoutLogs').where('athleteId', 'in', chunk).get()
+        .then(s => s.docs.forEach(d => allDocs.push({ id: d.id, ...d.data() })))
+        .catch(() => {})
+    ));
+    allDocs.sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
+    latestLogs = {};
+    allDocs.forEach(log => {
+      const key = log.athleteId;
+      if (!latestLogs[key]) latestLogs[key] = {};
+      const prog = log.programName || '__unknown__';
+      if (!latestLogs[key][prog]) latestLogs[key][prog] = log;
+    });
   }
 
   function computeWeekDay(startMs, daysPerWeek) {
@@ -238,7 +260,8 @@
         const startMs = (a.programStartDates && a.programStartDates[pName])
           || (programs.length === 1 ? a.programStartDate : null)
           || null;
-        entries.push({ athlete: a, progName: pName, startMs });
+        const hasLog = !!(latestLogs[a.id] && latestLogs[a.id][pName]);
+        entries.push({ athlete: a, progName: pName, startMs, hasLog });
       });
     });
     return entries;
@@ -258,22 +281,21 @@
 
     const entries = buildEntries();
 
-    // Compare by calendar day, not exact timestamp
-    const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
-    const todayDay = startOfToday.getTime();
-
-    const active   = entries.filter(e => e.startMs && new Date(e.startMs).setHours(0,0,0,0) <= todayDay);
-    const upcoming = entries.filter(e => e.startMs && new Date(e.startMs).setHours(0,0,0,0) >  todayDay);
-    const unset    = entries.filter(e => !e.startMs);
+    // Active = athlete has logged at least one workout for this program
+    // Upcoming = start date set but no workout logged yet
+    // Unset = no start date and no log
+    const active   = entries.filter(e => e.hasLog);
+    const upcoming = entries.filter(e => !e.hasLog && e.startMs);
+    const unset    = entries.filter(e => !e.hasLog && !e.startMs);
 
     // Sort active by most recently started first
     active.sort((a, b) => b.startMs - a.startMs);
     // Sort upcoming by soonest first
     upcoming.sort((a, b) => a.startMs - b.startMs);
 
-    if (active.length)   renderSection('Active Programs', 'dot-green',  'active',   active,   content);
-    if (upcoming.length) renderSection('Upcoming Starts', 'dot-blue',   'upcoming', upcoming, content);
-    if (unset.length)    renderSection('Not Started',     'dot-muted',  'unset',    unset,    content);
+    if (active.length)   renderSection('Active Programs',  'dot-green', 'active',   active,   content);
+    if (upcoming.length) renderSection('Scheduled Starts','dot-blue',  'upcoming', upcoming, content);
+    if (unset.length)    renderSection('Not Scheduled',   'dot-muted', 'unset',    unset,    content);
 
     document.getElementById('pageSubtitle').textContent =
       `${allAthletes.length} athlete${allAthletes.length !== 1 ? 's' : ''} · ${active.length} active · ${upcoming.length} upcoming`;

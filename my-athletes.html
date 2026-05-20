@@ -594,9 +594,7 @@
       const rawList = a.assignedPrograms
         ? a.assignedPrograms
         : (a.assignedProgram ? [a.assignedProgram] : []);
-      const isStarted = pName =>
-        !!(a.programStartDates && a.programStartDates[pName]) ||
-        (rawList.length === 1 && !!a.programStartDate);
+      const isStarted = pName => !!(latestLogs[a.id] && latestLogs[a.id][pName]);
       const assignedPrograms = rawList.slice()
         .sort((x, y) => (isStarted(y) ? 1 : 0) - (isStarted(x) ? 1 : 0));
 
@@ -657,12 +655,17 @@
         assignedPrograms.forEach(pName => {
           const prog = allPrograms.find(p => p.name === pName);
 
-          // Status badge — check per-program start date
-          const perProgStart = (a.programStartDates && a.programStartDates[pName])
-            || (assignedPrograms.length === 1 ? a.programStartDate : null);
-          let badgeClass = 'status-nostart', badgeText = 'Not started', badgeIcon = 'fa-clock';
-          if (perProgStart) {
-            badgeClass = 'status-active'; badgeText = 'Started'; badgeIcon = 'fa-circle';
+          // Status badge — only "Started" if athlete has logged a workout for this program
+          const hasLog = !!(latestLogs[a.id] && latestLogs[a.id][pName]);
+          const hasStartDate = !!(a.programStartDates && a.programStartDates[pName])
+            || (assignedPrograms.length === 1 && !!a.programStartDate);
+          let badgeClass, badgeText, badgeIcon;
+          if (hasLog) {
+            badgeClass = 'status-active';   badgeText = 'Started';   badgeIcon = 'fa-circle';
+          } else if (hasStartDate) {
+            badgeClass = 'status-inactive'; badgeText = 'Scheduled'; badgeIcon = 'fa-calendar';
+          } else {
+            badgeClass = 'status-nostart';  badgeText = 'Not started'; badgeIcon = 'fa-clock';
           }
 
           // Mini program card — clicking opens athlete progress for this program
