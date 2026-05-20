@@ -772,9 +772,9 @@
         const osc  = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.connect(gain); gain.connect(ctx.destination);
-        osc.type = 'sine';
+        osc.type = 'square';
         osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.6, ctx.currentTime + start);
+        gain.gain.setValueAtTime(1.0, ctx.currentTime + start);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
         osc.start(ctx.currentTime + start);
         osc.stop(ctx.currentTime + start + dur + 0.05);
