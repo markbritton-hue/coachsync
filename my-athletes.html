@@ -627,17 +627,12 @@
         assignedPrograms.forEach(pName => {
           const prog = allPrograms.find(p => p.name === pName);
 
-          // Status badge
+          // Status badge — check per-program start date
+          const perProgStart = (a.programStartDates && a.programStartDates[pName])
+            || (assignedPrograms.length === 1 ? a.programStartDate : null);
           let badgeClass = 'status-nostart', badgeText = 'Not started', badgeIcon = 'fa-clock';
-          if (a.programStartDate && prog) {
-            const daysSinceLast = a.lastWorkout
-              ? Math.floor((Date.now() - a.lastWorkout.seconds * 1000) / 86400000)
-              : null;
-            if (daysSinceLast !== null && daysSinceLast <= 7) {
-              badgeClass = 'status-active'; badgeText = 'Active'; badgeIcon = 'fa-circle';
-            } else {
-              badgeClass = 'status-inactive'; badgeText = 'Inactive'; badgeIcon = 'fa-circle';
-            }
+          if (perProgStart) {
+            badgeClass = 'status-active'; badgeText = 'Started'; badgeIcon = 'fa-circle';
           }
 
           // Mini program card — clicking anywhere on it opens the edit page
