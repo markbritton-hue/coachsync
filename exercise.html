@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Exercise — CoachSync</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: rgba(255,255,255,0.9);
+    }
+
+    /* ── Nav ── */
+    .top-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid rgba(114,184,50,0.15);
+      background: rgba(15,23,42,0.6);
+    }
+    .btn-back {
+      background: none; border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.6); font-size: 0.85rem; font-weight: 600;
+      padding: 6px 16px; border-radius: 25px; cursor: pointer;
+      text-decoration: none; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-back:hover { border-color: #72b832; color: #72b832; }
+
+    /* ── Exercise header ── */
+    .ex-header {
+      text-align: center;
+      padding: 36px 20px 20px;
+    }
+    .ex-header h1 {
+      font-size: 2rem; font-weight: 800;
+      background: linear-gradient(135deg, #72b832, #a0d060);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+    .ex-meta {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+      margin-bottom: 10px;
+    }
+    .meta-pill {
+      background: rgba(114,184,50,0.1); border: 1px solid rgba(114,184,50,0.25);
+      border-radius: 20px; padding: 4px 14px; font-size: 0.82rem;
+      color: rgba(255,255,255,0.65); display: inline-flex; align-items: center; gap: 6px;
+    }
+    .trainer-note {
+      font-size: 0.82rem; color: rgba(255,255,255,0.35); font-style: italic; margin-top: 6px;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .btn-video {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+      color: #ef4444; font-size: 0.82rem; font-weight: 600;
+      padding: 6px 14px; border-radius: 20px; text-decoration: none; margin-top: 10px;
+      transition: all 0.2s;
+    }
+    .btn-video:hover { background: rgba(239,68,68,0.2); color: #ef4444; }
+
+    /* ── Set tracker dots ── */
+    .set-dots {
+      display: flex; justify-content: center; gap: 10px;
+      margin: 24px 0 8px;
+    }
+    .set-dot {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 2px solid rgba(114,184,50,0.35);
+      background: none;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.35);
+      transition: all 0.3s;
+    }
+    .set-dot.done { background: #72b832; border-color: #72b832; color: white; }
+    .set-dot.current { border-color: #72b832; color: #72b832; box-shadow: 0 0 0 3px rgba(114,184,50,0.2); }
+
+    .set-label {
+      text-align: center; font-size: 0.82rem;
+      color: rgba(255,255,255,0.4); margin-bottom: 28px;
+    }
+
+    /* ── Main workout panel ── */
+    .workout-panel {
+      background: rgba(30,41,59,0.9); border: 1px solid rgba(114,184,50,0.2);
+      border-radius: 20px; padding: 36px 28px; text-align: center;
+      max-width: 480px; margin: 0 auto 32px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    }
+
+    /* REP counter */
+    .rep-counter-label {
+      font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: rgba(255,255,255,0.35); margin-bottom: 16px;
+    }
+    .rep-counter {
+      display: flex; align-items: center; justify-content: center; gap: 24px;
+      margin-bottom: 28px;
+    }
+    .rep-btn {
+      width: 56px; height: 56px; border-radius: 50%;
+      border: 2px solid rgba(114,184,50,0.4);
+      background: rgba(114,184,50,0.1); color: #72b832;
+      font-size: 1.6rem; font-weight: 700; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+      user-select: none;
+    }
+    .rep-btn:hover { background: rgba(114,184,50,0.2); transform: scale(1.05); }
+    .rep-btn:active { transform: scale(0.95); }
+    .rep-value {
+      font-size: 5rem; font-weight: 900; line-height: 1;
+      background: linear-gradient(135deg, #72b832, #a0d060);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      min-width: 120px;
+    }
+
+    /* TIMED set countdown */
+    .set-timer-ring {
+      position: relative; width: 180px; height: 180px;
+      margin: 0 auto 24px;
+    }
+    .set-timer-ring svg { transform: rotate(-90deg); }
+    .set-timer-ring circle.track {
+      fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 10;
+    }
+    .set-timer-ring circle.fill {
+      fill: none; stroke: #72b832; stroke-width: 10;
+      stroke-linecap: round; transition: stroke-dashoffset 1s linear;
+    }
+    .set-timer-number {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .set-timer-number .big { font-size: 3rem; font-weight: 900; color: #72b832; line-height: 1; }
+    .set-timer-number .unit { font-size: 0.78rem; color: rgba(255,255,255,0.4); margin-top: 4px; }
+
+    /* REST countdown */
+    .rest-overlay {
+      display: none;
+      flex-direction: column; align-items: center; text-align: center;
+    }
+    .rest-overlay.active { display: flex; }
+    .rest-label {
+      font-size: 0.85rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 20px;
+    }
+    .rest-ring {
+      position: relative; width: 200px; height: 200px; margin-bottom: 20px;
+    }
+    .rest-ring svg { transform: rotate(-90deg); }
+    .rest-ring circle.track { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 12; }
+    .rest-ring circle.fill {
+      fill: none; stroke: #50b8f0; stroke-width: 12;
+      stroke-linecap: round; transition: stroke-dashoffset 1s linear;
+    }
+    .rest-number {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .rest-number .big { font-size: 3.5rem; font-weight: 900; color: #50b8f0; line-height: 1; }
+    .rest-number .unit { font-size: 0.78rem; color: rgba(255,255,255,0.4); margin-top: 4px; }
+    .rest-next-label { font-size: 0.88rem; color: rgba(255,255,255,0.45); margin-bottom: 18px; }
+
+    /* Buttons */
+    .btn-done-set {
+      background: #72b832; border: none; color: white; font-weight: 700;
+      padding: 15px 40px; border-radius: 30px; font-size: 1.05rem;
+      cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(114,184,50,0.35);
+      display: inline-flex; align-items: center; gap: 10px; width: 100%; justify-content: center;
+    }
+    .btn-done-set:hover { background: #5a9528; transform: translateY(-2px); }
+    .btn-done-set:disabled { opacity: 0.4; transform: none; cursor: not-allowed; }
+
+    .btn-skip-rest {
+      background: none; border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.5); font-size: 0.88rem; font-weight: 600;
+      padding: 9px 24px; border-radius: 25px; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-skip-rest:hover { border-color: rgba(255,255,255,0.4); color: white; }
+
+    .btn-start-timer {
+      background: rgba(114,184,50,0.15); border: 2px solid rgba(114,184,50,0.5);
+      color: #72b832; font-weight: 700; font-size: 0.95rem;
+      padding: 12px 30px; border-radius: 25px; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px;
+    }
+    .btn-start-timer:hover { background: rgba(114,184,50,0.25); }
+    .btn-start-timer.running { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.4); color: #ef4444; }
+
+    /* ── Weight override ── */
+    .weight-override {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      margin-bottom: 22px; padding: 12px 16px;
+      background: rgba(15,23,42,0.5); border: 1px solid rgba(80,184,240,0.2);
+      border-radius: 12px;
+    }
+    .weight-override label {
+      font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.4px; color: rgba(255,255,255,0.4);
+      white-space: nowrap; display: flex; align-items: center; gap: 5px;
+    }
+    .weight-input {
+      background: rgba(15,23,42,0.8); border: 1px solid rgba(80,184,240,0.3);
+      color: white; border-radius: 8px; padding: 7px 12px;
+      font-size: 1rem; font-weight: 700; width: 110px; text-align: center;
+      outline: none;
+    }
+    .weight-input:focus { border-color: #50b8f0; box-shadow: 0 0 0 2px rgba(80,184,240,0.15); }
+    .weight-input::placeholder { color: rgba(255,255,255,0.25); font-weight: 400; }
+
+    /* ── Completion screen ── */
+    .complete-screen {
+      display: none; text-align: center; padding: 60px 20px;
+    }
+    .complete-screen.active { display: block; }
+    .complete-icon {
+      font-size: 4rem; color: #72b832;
+      animation: pop 0.4s ease-out;
+      display: block; margin-bottom: 20px;
+    }
+    @keyframes pop { 0% { transform: scale(0); } 80% { transform: scale(1.15); } 100% { transform: scale(1); } }
+    .complete-screen h2 {
+      font-size: 1.8rem; font-weight: 800;
+      background: linear-gradient(135deg, #72b832, #a0d060);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    .complete-screen p { color: rgba(255,255,255,0.5); font-size: 0.95rem; margin-bottom: 28px; }
+    .btn-finish {
+      background: #72b832; border: none; color: white; font-weight: 700;
+      padding: 14px 36px; border-radius: 30px; font-size: 1rem;
+      cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(114,184,50,0.3);
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-finish:hover { background: #5a9528; transform: translateY(-2px); }
+
+    .loading-overlay {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; font-size: 1.1rem; color: rgba(255,255,255,0.5); gap: 12px;
+    }
+
+    @media (max-width: 575px) {
+      .workout-panel { padding: 28px 18px; }
+      .rep-value { font-size: 4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <i class="fa-solid fa-spinner fa-spin"></i> Loading…
+</div>
+
+<nav class="top-nav">
+  <a id="backBtn" href="workouts.html" class="btn-back">
+    <i class="fa-solid fa-arrow-left"></i> Back to Workouts
+  </a>
+  <div id="setCounterNav" style="font-size:0.85rem;color:rgba(255,255,255,0.4);font-weight:600;"></div>
+</nav>
+
+<div class="container" style="max-width:560px;">
+
+  <!-- Exercise header -->
+  <div class="ex-header">
+    <h1 id="exName">—</h1>
+    <div class="ex-meta" id="exMeta"></div>
+    <div id="trainerNote" class="trainer-note" style="display:none;"></div>
+    <div id="videoLinkWrap" style="display:none;">
+      <a id="videoLink" href="#" target="_blank" rel="noopener noreferrer" class="btn-video">
+        <i class="fa-solid fa-video"></i> Instructional Video
+      </a>
+    </div>
+  </div>
+
+  <!-- Set progress dots -->
+  <div class="set-dots" id="setDots"></div>
+  <div class="set-label" id="setLabel">Set 1 of —</div>
+
+  <!-- Main workout panel -->
+  <div class="workout-panel" id="workoutPanel">
+
+    <!-- Weight override -->
+    <div class="weight-override" id="weightOverrideRow">
+      <label><i class="fa-solid fa-weight-hanging"></i> Weight Used</label>
+      <input type="text" class="weight-input" id="weightOverride" placeholder="e.g. 135 lbs" />
+    </div>
+
+    <!-- REP mode -->
+    <div id="repMode">
+      <div class="rep-counter-label" id="repModeLabel">Reps Completed</div>
+      <div class="rep-counter">
+        <button class="rep-btn" id="btnMinus">−</button>
+        <div class="rep-value" id="repValue">0</div>
+        <button class="rep-btn" id="btnPlus">+</button>
+      </div>
+    </div>
+
+    <!-- TIMED mode (set timer) -->
+    <div id="timedMode" style="display:none;">
+      <div class="rep-counter-label">Set Timer</div>
+      <div class="set-timer-ring">
+        <svg width="180" height="180" viewBox="0 0 180 180">
+          <circle class="track" cx="90" cy="90" r="80"/>
+          <circle class="fill" id="setTimerArc" cx="90" cy="90" r="80"
+            stroke-dasharray="502" stroke-dashoffset="0"/>
+        </svg>
+        <div class="set-timer-number">
+          <div class="big" id="setTimerDisplay">—</div>
+          <div class="unit">seconds</div>
+        </div>
+      </div>
+      <button class="btn-start-timer" id="btnStartSetTimer" onclick="toggleSetTimer()">
+        <i class="fa-solid fa-play" id="setTimerIcon"></i>
+        <span id="setTimerBtnLabel">Start Timer</span>
+      </button>
+    </div>
+
+    <!-- REST overlay (shown after set is marked done) -->
+    <div class="rest-overlay" id="restOverlay">
+      <div class="rest-label"><i class="fa-solid fa-moon me-1"></i> Rest Period</div>
+      <div class="rest-ring">
+        <svg width="200" height="200" viewBox="0 0 200 200">
+          <circle class="track" cx="100" cy="100" r="88"/>
+          <circle class="fill" id="restArc" cx="100" cy="100" r="88"
+            stroke-dasharray="553" stroke-dashoffset="0"/>
+        </svg>
+        <div class="rest-number">
+          <div class="big" id="restDisplay">—</div>
+          <div class="unit">seconds</div>
+        </div>
+      </div>
+      <div class="rest-next-label" id="restNextLabel"></div>
+      <button class="btn-skip-rest" onclick="skipRest()">
+        <i class="fa-solid fa-forward"></i> Skip Rest
+      </button>
+    </div>
+
+    <!-- Done with set button -->
+    <button class="btn-done-set" id="btnDoneSet" onclick="doneSet()">
+      <i class="fa-solid fa-check"></i> Done with Set
+    </button>
+
+  </div>
+
+  <!-- Completion screen -->
+  <div class="complete-screen" id="completeScreen">
+    <i class="fa-solid fa-trophy complete-icon"></i>
+    <h2>Exercise Complete!</h2>
+    <p id="completeSummary">All sets done. Great work!</p>
+    <button class="btn-finish" onclick="goBack()">
+      <i class="fa-solid fa-arrow-left"></i> Back to Workout
+    </button>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDnaS5J_-KkmFZcE3FtjjxV54cZkbWcop8",
+    authDomain: "coachsync-7e07e.firebaseapp.com",
+    projectId: "coachsync-7e07e",
+    storageBucket: "coachsync-7e07e.firebasestorage.app",
+    messagingSenderId: "774513797996",
+    appId: "1:774513797996:web:e38f47773c5b487982e149"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db   = firebase.firestore();
+
+  const params      = new URLSearchParams(window.location.search);
+  const programName = params.get('program');
+  const exIndex     = parseInt(params.get('ex') || '0');
+  const returnUrl   = params.get('returnTo') || 'workouts.html';
+  const paramWeek   = parseInt(params.get('week') || '1');
+  const paramDay    = parseInt(params.get('day')  || '1');
+  const paramLogId  = params.get('logId') || '';
+
+  let currentUser   = null;
+  let ex            = null;   // exercise object
+  let totalSets     = 0;
+  let currentSet    = 1;
+  let repsThisSet   = 0;
+  let setsLog       = [];     // { setNum, reps/time/cals, weight } per completed set
+  let restTimer     = null;
+  let restRemaining = 0;
+  let restTotal     = 0;
+  let setTimerInt   = null;
+  let setTimerRemaining = 0;
+  let setTimerTotal     = 0;
+  let setTimerRunning   = false;
+  const todayKey    = new Date().toISOString().split('T')[0];
+
+  document.getElementById('backBtn').href = returnUrl;
+
+  // ── Auth ──
+  auth.onAuthStateChanged(async user => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    currentUser = user;
+    if (!programName) { window.location.href = returnUrl; return; }
+
+    const snap = await db.collection('programs').where('name', '==', programName).get();
+    if (snap.empty) { window.location.href = returnUrl; return; }
+
+    const program = snap.docs[0].data();
+    ex = (program.exercises || [])[exIndex];
+    if (!ex) { window.location.href = returnUrl; return; }
+
+    document.getElementById('loadingOverlay').style.display = 'none';
+    initExercise();
+  });
+
+  function initExercise() {
+    totalSets   = parseInt(ex.sets) || 3;
+    currentSet  = 1;
+    repsThisSet = parseInt(ex.value || ex.reps || 0) || 0;
+    setsLog     = [];
+
+    // Header
+    document.getElementById('exName').textContent = ex.name || 'Exercise';
+
+    const metricVal  = ex.value || ex.reps || '';
+    const metricUnit = ex.type === 'Timed' ? 'sec' : ex.type === 'Cals' ? 'cals' : 'reps';
+    const metricIcon = ex.type === 'Timed' ? 'fa-stopwatch' : ex.type === 'Cals' ? 'fa-fire' : 'fa-repeat';
+
+    const meta = document.getElementById('exMeta');
+    meta.innerHTML = '';
+    if (ex.sets)     addPill(meta, 'fa-layer-group',    ex.sets + ' sets');
+    if (metricVal)   addPill(meta, metricIcon,           metricVal + ' ' + metricUnit);
+    if (ex.weight)   addPill(meta, 'fa-weight-hanging',  ex.weight);
+    if (ex.rest)     addPill(meta, 'fa-clock',           ex.rest + 's rest');
+
+    // Pre-fill weight override with prescribed weight
+    if (ex.weight) document.getElementById('weightOverride').value = ex.weight;
+    // Hide weight row if no weight relevant (bodyweight exercises OK to leave)
+
+    if (ex.notes) {
+      const n = document.getElementById('trainerNote');
+      n.innerHTML = `<i class="fa-solid fa-whistle" style="font-size:0.7rem;"></i> ${esc(ex.notes)}`;
+      n.style.display = 'flex';
+    }
+
+    if (ex.videoUrl) {
+      document.getElementById('videoLink').href = ex.videoUrl;
+      document.getElementById('videoLinkWrap').style.display = 'block';
+    }
+
+    // Show rep or timed mode
+    if (ex.type === 'Timed') {
+      document.getElementById('timedMode').style.display = 'block';
+      document.getElementById('repMode').style.display   = 'none';
+      setTimerTotal = parseInt(ex.value || ex.reps || 30);
+      resetSetTimer();
+    } else {
+      // Pre-fill target reps as starting value
+      repsThisSet = parseInt(metricVal) || 0;
+      document.getElementById('repValue').textContent = repsThisSet;
+      document.getElementById('repModeLabel').textContent =
+        ex.type === 'Cals' ? 'Calories Completed' : 'Reps Completed';
+    }
+
+    // Rep +/- buttons
+    document.getElementById('btnPlus').addEventListener('click', () => {
+      repsThisSet++;
+      document.getElementById('repValue').textContent = repsThisSet;
+    });
+    document.getElementById('btnMinus').addEventListener('click', () => {
+      if (repsThisSet > 0) repsThisSet--;
+      document.getElementById('repValue').textContent = repsThisSet;
+    });
+
+    renderDots();
+    updateSetLabel();
+  }
+
+  function addPill(container, icon, text) {
+    const span = document.createElement('span');
+    span.className = 'meta-pill';
+    span.innerHTML = `<i class="fa-solid ${icon}"></i> ${esc(String(text))}`;
+    container.appendChild(span);
+  }
+
+  // ── Set dots ──
+  function renderDots() {
+    const dots = document.getElementById('setDots');
+    dots.innerHTML = '';
+    for (let i = 1; i <= totalSets; i++) {
+      const d = document.createElement('div');
+      d.className = 'set-dot' + (i < currentSet ? ' done' : i === currentSet ? ' current' : '');
+      d.innerHTML = i < currentSet ? '<i class="fa-solid fa-check" style="font-size:0.8rem;"></i>' : i;
+      dots.appendChild(d);
+    }
+    document.getElementById('setCounterNav').textContent = `Set ${currentSet} of ${totalSets}`;
+  }
+
+  function updateSetLabel() {
+    document.getElementById('setLabel').textContent = `Set ${currentSet} of ${totalSets}`;
+  }
+
+  // ── Timed set timer ──
+  function resetSetTimer() {
+    clearInterval(setTimerInt);
+    setTimerRunning   = false;
+    setTimerRemaining = setTimerTotal;
+    updateSetTimerDisplay();
+    const btn = document.getElementById('btnStartSetTimer');
+    btn.classList.remove('running');
+    btn.innerHTML = '<i class="fa-solid fa-play"></i> <span>Start Timer</span>';
+  }
+
+  function toggleSetTimer() {
+    if (setTimerRunning) {
+      clearInterval(setTimerInt);
+      setTimerRunning = false;
+      const btn = document.getElementById('btnStartSetTimer');
+      btn.classList.remove('running');
+      btn.innerHTML = '<i class="fa-solid fa-play"></i> <span>Resume Timer</span>';
+    } else {
+      setTimerRunning = true;
+      const btn = document.getElementById('btnStartSetTimer');
+      btn.classList.add('running');
+      btn.innerHTML = '<i class="fa-solid fa-pause"></i> <span>Pause</span>';
+      setTimerInt = setInterval(() => {
+        setTimerRemaining--;
+        updateSetTimerDisplay();
+        if (setTimerRemaining <= 0) {
+          clearInterval(setTimerInt);
+          setTimerRunning = false;
+          doneSet();
+        }
+      }, 1000);
+    }
+  }
+
+  function updateSetTimerDisplay() {
+    document.getElementById('setTimerDisplay').textContent = setTimerRemaining;
+    const circ = 502;
+    const pct  = setTimerTotal > 0 ? setTimerRemaining / setTimerTotal : 1;
+    document.getElementById('setTimerArc').style.strokeDashoffset = circ * (1 - pct);
+  }
+
+  // ── Done with set ──
+  function doneSet() {
+    clearInterval(setTimerInt);
+    setTimerRunning = false;
+
+    const weightUsed = document.getElementById('weightOverride').value.trim();
+    const logged = {
+      setNum: currentSet,
+      weight: weightUsed || null,
+      completedAt: new Date().toISOString(),
+    };
+    if (ex.type === 'Timed') {
+      logged.timeSec = setTimerTotal - setTimerRemaining || setTimerTotal;
+    } else if (ex.type === 'Cals') {
+      logged.cals = repsThisSet;
+    } else {
+      logged.reps = repsThisSet;
+    }
+    setsLog.push(logged);
+
+    if (currentSet >= totalSets) {
+      showComplete();
+      return;
+    }
+
+    // Start rest if configured
+    const restSec = parseInt(ex.rest) || 0;
+    if (restSec > 0) {
+      startRest(restSec);
+    } else {
+      advanceSet();
+    }
+  }
+
+  // ── Rest countdown ──
+  function startRest(seconds) {
+    document.getElementById('btnDoneSet').style.display = 'none';
+    document.getElementById('repMode').style.display    = 'none';
+    document.getElementById('timedMode').style.display  = 'none';
+    document.getElementById('restOverlay').classList.add('active');
+
+    const nextSet = currentSet + 1;
+    document.getElementById('restNextLabel').textContent =
+      nextSet <= totalSets ? `Next: Set ${nextSet} of ${totalSets}` : '';
+
+    restTotal     = seconds;
+    restRemaining = seconds;
+    updateRestDisplay();
+
+    restTimer = setInterval(() => {
+      restRemaining--;
+      updateRestDisplay();
+      if (restRemaining <= 0) {
+        clearInterval(restTimer);
+        advanceSet();
+      }
+    }, 1000);
+  }
+
+  function updateRestDisplay() {
+    document.getElementById('restDisplay').textContent = restRemaining;
+    const circ = 553;
+    const pct  = restTotal > 0 ? restRemaining / restTotal : 1;
+    document.getElementById('restArc').style.strokeDashoffset = circ * (1 - pct);
+  }
+
+  function skipRest() {
+    clearInterval(restTimer);
+    advanceSet();
+  }
+
+  // ── Advance to next set ──
+  function advanceSet() {
+    currentSet++;
+    // repsThisSet intentionally NOT reset — counter holds last set's value
+
+    document.getElementById('restOverlay').classList.remove('active');
+    document.getElementById('btnDoneSet').style.display = '';
+
+    if (ex.type === 'Timed') {
+      document.getElementById('timedMode').style.display = 'block';
+      resetSetTimer();
+    } else {
+      document.getElementById('repMode').style.display = 'block';
+      document.getElementById('repValue').textContent  = repsThisSet;
+    }
+
+    renderDots();
+    updateSetLabel();
+  }
+
+  // ── Completion ──
+  async function showComplete() {
+    document.getElementById('workoutPanel').style.display   = 'none';
+    document.getElementById('setLabel').style.display       = 'none';
+    document.getElementById('setCounterNav').textContent    = 'Done!';
+    document.getElementById('completeScreen').classList.add('active');
+
+    // Mark all dots done
+    const dots = document.getElementById('setDots');
+    dots.style.display = 'flex';
+    [...dots.children].forEach(d => { d.className = 'set-dot done'; d.innerHTML = '<i class="fa-solid fa-check" style="font-size:0.8rem;"></i>'; });
+
+    // Build summary text
+    const summary = setsLog.map(s => {
+      let str = `Set ${s.setNum}: `;
+      if (s.timeSec !== undefined) str += s.timeSec + 's';
+      else if (s.cals !== undefined) str += s.cals + ' cals';
+      else str += s.reps + ' reps';
+      if (s.weight) str += ' @ ' + s.weight;
+      return str;
+    }).join(' · ');
+    document.getElementById('completeSummary').textContent = summary || `${totalSets} sets completed!`;
+
+    // Save to Firestore
+    await saveExerciseLog();
+    await markWorkoutExerciseComplete();
+  }
+
+  async function markWorkoutExerciseComplete() {
+    if (!currentUser) return;
+    const key      = exIndex.toString();
+    const todayKey = new Date().toISOString().split('T')[0];
+    try {
+      if (paramLogId) {
+        // Log doc already exists — add this exercise to completedExercises
+        await db.collection('workoutLogs').doc(paramLogId).update({
+          completedExercises: firebase.firestore.FieldValue.arrayUnion(key),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      } else {
+        // No log yet — check if one exists for this week/day, create if not
+        const snap = await db.collection('workoutLogs')
+          .where('athleteId', '==', currentUser.uid)
+          .where('programName', '==', programName)
+          .where('week', '==', paramWeek)
+          .where('day',  '==', paramDay)
+          .get();
+        if (!snap.empty) {
+          await db.collection('workoutLogs').doc(snap.docs[0].id).update({
+            completedExercises: firebase.firestore.FieldValue.arrayUnion(key),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          });
+        } else {
+          await db.collection('workoutLogs').add({
+            athleteId:          currentUser.uid,
+            programName:        programName,
+            week:               paramWeek,
+            day:                paramDay,
+            date:               todayKey,
+            completedExercises: [key],
+            exerciseNotes:      {},
+            totalExercises:     0,
+            createdAt:          firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt:          firebase.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+      }
+    } catch(e) {
+      console.error('Error marking exercise complete:', e);
+    }
+  }
+
+  async function saveExerciseLog() {
+    if (!currentUser) return;
+    try {
+      await db.collection('exerciseLogs').add({
+        athleteId:    currentUser.uid,
+        programName:  programName,
+        exerciseName: ex.name,
+        exerciseIndex: exIndex,
+        type:         ex.type || 'Reps',
+        prescribed: {
+          sets:   ex.sets   || null,
+          value:  ex.value  || ex.reps || null,
+          weight: ex.weight || null,
+          rest:   ex.rest   || null,
+        },
+        sets:         setsLog,
+        totalSets:    totalSets,
+        date:         todayKey,
+        completedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    } catch(e) {
+      console.error('Error saving exercise log:', e);
+    }
+  }
+
+  function goBack() {
+    window.location.href = returnUrl;
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>

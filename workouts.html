@@ -54,6 +54,18 @@
     }
     .main-tab:hover:not(.active) { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.8); }
 
+    /* ── Program selector ── */
+    .program-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .program-selector-btn {
+      background: rgba(30,41,59,0.8); border: 1px solid rgba(114,184,50,0.2);
+      color: rgba(255,255,255,0.55); font-size: 0.85rem; font-weight: 600;
+      padding: 8px 18px; border-radius: 25px; cursor: pointer; transition: all 0.2s;
+    }
+    .program-selector-btn.active {
+      background: rgba(114,184,50,0.15); border-color: rgba(114,184,50,0.5); color: #72b832;
+    }
+    .program-selector-btn:hover:not(.active) { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.8); }
+
     /* ── Program banner ── */
     .program-banner {
       background: rgba(30,41,59,0.85); border: 1px solid rgba(114,184,50,0.25);
@@ -135,6 +147,13 @@
       display: inline-flex; align-items: center; gap: 4px;
     }
     .trainer-note { font-size: 0.78rem; color: rgba(255,255,255,0.3); margin-top: 4px; font-style: italic; }
+    .btn-video {
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+      color: #ef4444; font-size: 0.75rem; font-weight: 600;
+      padding: 3px 10px; border-radius: 15px; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 5px; text-decoration: none; flex-shrink: 0;
+    }
+    .btn-video:hover { background: rgba(239,68,68,0.2); border-color: #ef4444; color: #ef4444; }
 
     /* Note button & inline editor */
     .btn-note {
@@ -201,6 +220,31 @@
     .empty-state { text-align: center; padding: 70px 20px; }
     .empty-state i { font-size: 3rem; color: rgba(114,184,50,0.2); display: block; margin-bottom: 16px; }
     .empty-state p { color: rgba(255,255,255,0.35); font-size: 0.95rem; }
+
+    /* ── RPE modal ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.8); z-index: 9999;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1px solid rgba(114,184,50,0.3); border-radius: 20px;
+      padding: 36px 28px; width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    }
+    .rpe-btn {
+      width: 48px; height: 48px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.6); font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .rpe-btn:hover { border-color: #72b832; color: #72b832; background: rgba(114,184,50,0.1); }
+    .rpe-btn.selected { background: #72b832; border-color: #72b832; color: white; transform: scale(1.15); }
+    .rpe-btn.selected.hard { background: #f59e0b; border-color: #f59e0b; }
+    .rpe-btn.selected.max  { background: #ef4444; border-color: #ef4444; }
 
     .toast {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
@@ -271,10 +315,16 @@
     </div>
 
     <div id="programContent" style="display:none;">
+      <!-- Program selector (shown when athlete has multiple programs) -->
+      <div class="program-selector" id="programSelector" style="display:none;"></div>
+
       <!-- Program banner -->
       <div class="program-banner">
         <div class="program-banner-icon"><i class="fa-solid fa-clipboard-list"></i></div>
-        <div>
+        <div style="flex:1;">
+          <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.35);margin-bottom:4px;">
+            <i class="fa-solid fa-circle" style="font-size:6px;color:#72b832;margin-right:4px;vertical-align:middle;"></i> Current Program
+          </div>
           <div class="program-banner-name" id="programName">—</div>
           <div class="program-banner-meta" id="programMeta"></div>
         </div>
@@ -283,7 +333,12 @@
       <!-- Week / Day header -->
       <div id="weekDayHeader" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
         <div style="font-size:1.1rem;font-weight:800;color:#72b832;" id="weekDayLabel">Week 1 · Day 1</div>
-        <div class="day-tabs" id="dayTabs" style="margin-bottom:0;"></div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div class="day-tabs" id="dayTabs" style="margin-bottom:0;"></div>
+          <button onclick="resetWorkout()" style="background:none;border:1px solid rgba(239,68,68,0.3);color:rgba(239,68,68,0.6);font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:5px;" onmouseover="this.style.borderColor='#ef4444';this.style.color='#ef4444'" onmouseout="this.style.borderColor='rgba(239,68,68,0.3)';this.style.color='rgba(239,68,68,0.6)'">
+            <i class="fa-solid fa-rotate-left"></i> Reset
+          </button>
+        </div>
       </div>
 
       <!-- Progress -->
@@ -302,6 +357,20 @@
       <div id="exerciseList"></div>
 
       <button class="btn-log" id="btnLog" onclick="logWorkout()">
+        <i class="fa-solid fa-circle-check"></i> Log Workout
+      </button>
+    </div>
+  </div>
+
+  <!-- RPE Rating Modal -->
+  <div class="modal-overlay" id="rpeModal">
+    <div class="modal-box" style="max-width:420px;text-align:center;">
+      <div style="font-size:2rem;margin-bottom:10px;">💪</div>
+      <h2 style="font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,#72b832,#a0d060);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;">How hard was that?</h2>
+      <p style="color:rgba(255,255,255,0.45);font-size:0.88rem;margin-bottom:24px;">Rate your effort — 1 is easy, 10 is max effort.</p>
+      <div id="rpeButtons" style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:28px;"></div>
+      <div id="rpeLabel" style="font-size:0.85rem;color:rgba(255,255,255,0.4);min-height:20px;margin-bottom:20px;"></div>
+      <button class="btn-log" id="btnConfirmLog" onclick="confirmLog()" disabled style="width:100%;margin:0;opacity:0.4;">
         <i class="fa-solid fa-circle-check"></i> Log Workout
       </button>
     </div>
@@ -336,15 +405,16 @@
   const auth = firebase.auth();
   const db   = firebase.firestore();
 
-  let currentUser   = null;
-  let athleteData   = null;
-  let programData   = null;
-  let currentWeek   = 1;
-  let currentDay    = 1;
-  let completed     = new Set();
-  let exerciseNotes = {};
-  let todayLogId    = null;
-  const todayKey    = new Date().toISOString().split('T')[0];
+  let currentUser    = null;
+  let athleteData    = null;
+  let programData    = null;
+  let allAssigned    = []; // all program names assigned to athlete
+  let currentWeek    = 1;
+  let currentDay     = 1;
+  let completed      = new Set();
+  let exerciseNotes  = {};
+  let todayLogId     = null;
+  const todayKey     = new Date().toISOString().split('T')[0];
 
   // Compute week + day from programStartDate and daysPerWeek
   function computeWeekDay(startDateMs, daysPerWeek) {
@@ -379,32 +449,84 @@
     if (tab === 'history') loadHistory();
   }
 
-  // ── Load program ──
+  // ── Load program(s) ──
   async function loadProgram() {
-    const progName = athleteData.assignedProgram;
-    if (!progName) {
+    const all = athleteData.assignedPrograms
+      ? athleteData.assignedPrograms
+      : (athleteData.assignedProgram ? [athleteData.assignedProgram] : []);
+
+    // Only show programs that have been started
+    allAssigned = all.filter(name => {
+      const perProgram = athleteData.programStartDates && athleteData.programStartDates[name];
+      // Legacy single-date only counts if this is the only assigned program
+      const legacy = all.length === 1 ? athleteData.programStartDate : null;
+      return !!(perProgram || legacy);
+    });
+
+    if (allAssigned.length === 0) {
       document.getElementById('noProgramState').style.display = 'block';
+      // Update message to be more helpful
+      document.querySelector('#noProgramState p').innerHTML =
+        all.length > 0
+          ? 'No programs started yet.<br><a href="schedule.html" style="color:#72b832;font-weight:700;">Go to Schedule</a> to start a program.'
+          : 'No program assigned yet.<br>Your trainer will assign one soon.';
       return;
+    }
+
+    // Build program selector if more than one active program
+    const selectorEl = document.getElementById('programSelector');
+    if (allAssigned.length > 1) {
+      selectorEl.style.display = 'flex';
+      selectorEl.innerHTML = '';
+      allAssigned.forEach((name, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'program-selector-btn' + (i === 0 ? ' active' : '');
+        btn.dataset.program = name;
+        btn.textContent = name;
+        btn.addEventListener('click', () => switchProgram(name, btn));
+        selectorEl.appendChild(btn);
+      });
+    }
+
+    await switchProgram(allAssigned[0], null);
+  }
+
+  async function switchProgram(progName, btnEl) {
+    // Update active button
+    if (btnEl) {
+      document.querySelectorAll('.program-selector-btn').forEach(b => b.classList.remove('active'));
+      btnEl.classList.add('active');
     }
 
     const snap = await db.collection('programs').where('name', '==', progName).get();
     if (snap.empty) {
       document.getElementById('noProgramState').style.display = 'block';
+      document.getElementById('programContent').style.display = 'none';
       return;
     }
 
     programData = { id: snap.docs[0].id, ...snap.docs[0].data() };
 
-    // Check start date — required to know which week/day we're on
-    if (!athleteData.programStartDate) {
+    const startDate = (athleteData.programStartDates && athleteData.programStartDates[progName])
+      || (allAssigned.length === 1 ? athleteData.programStartDate : null)
+      || null;
+
+    if (!startDate) {
       document.getElementById('noStartDateState').style.display = 'block';
+      document.getElementById('programContent').style.display = 'none';
       return;
     }
 
+    document.getElementById('noStartDateState').style.display = 'none';
+    document.getElementById('noProgramState').style.display = 'none';
+
     const numDays = parseInt(programData.daysPerWeek) || 1;
-    const pos     = computeWeekDay(athleteData.programStartDate, numDays);
+    const pos     = computeWeekDay(startDate, numDays);
     currentWeek   = pos.week;
     currentDay    = pos.day;
+    completed     = new Set();
+    exerciseNotes = {};
+    todayLogId    = null;
 
     await loadDayLog();
     renderProgram();
@@ -436,10 +558,11 @@
     document.getElementById('programName').textContent = programData.name;
 
     document.getElementById('programMeta').innerHTML = [
-      programData.difficulty  ? `<span class="meta-pill"><i class="fa-solid fa-signal"></i>${esc(programData.difficulty)}</span>` : '',
-      programData.duration    ? `<span class="meta-pill"><i class="fa-regular fa-clock"></i>${esc(programData.duration)}</span>` : '',
-      programData.daysPerWeek ? `<span class="meta-pill"><i class="fa-solid fa-calendar-days"></i>${esc(programData.daysPerWeek)} days/week</span>` : '',
-      programData.goal        ? `<span class="meta-pill"><i class="fa-solid fa-bullseye"></i>${esc(programData.goal)}</span>` : '',
+      programData.difficulty     ? `<span class="meta-pill"><i class="fa-solid fa-signal"></i>${esc(programData.difficulty)}</span>` : '',
+      programData.duration       ? `<span class="meta-pill"><i class="fa-regular fa-clock"></i>${esc(programData.duration)}</span>` : '',
+      programData.daysPerWeek    ? `<span class="meta-pill"><i class="fa-solid fa-calendar-days"></i>${esc(programData.daysPerWeek)} days/week</span>` : '',
+      programData.goal           ? `<span class="meta-pill"><i class="fa-solid fa-bullseye"></i>${esc(programData.goal)}</span>` : '',
+      programData.estWorkoutTime ? `<span class="meta-pill"><i class="fa-solid fa-stopwatch"></i>${esc(programData.estWorkoutTime)}</span>` : '',
     ].join('');
 
     renderDayTabs();
@@ -487,37 +610,108 @@
     list.innerHTML = '';
 
     dayExercises.forEach(ex => {
-      const gi   = ex.globalIndex;
-      const key  = gi.toString();
-      const done = completed.has(key);
+      const gi      = ex.globalIndex;
+      const key     = gi.toString();
+      const done    = completed.has(key);
       const noteKey = `${currentDay}_${gi}`;
-      const note = exerciseNotes[noteKey] || '';
+      const note    = exerciseNotes[noteKey] || '';
 
-      list.insertAdjacentHTML('beforeend', `
-        <div class="exercise-card ${done ? 'completed' : ''}" id="ex-${gi}">
-          <div class="exercise-card-top">
-            <div class="exercise-checkbox" onclick="toggleExercise(${gi})">
-              <i class="fa-solid fa-check"></i>
-            </div>
-            <div class="exercise-info">
-              <div class="exercise-name">${esc(ex.name)}</div>
-              <div class="exercise-details">
-                ${ex.sets ? `<span><i class="fa-solid fa-layer-group"></i> ${esc(ex.sets)} sets</span>` : ''}
-                ${ex.reps ? `<span><i class="fa-solid fa-repeat"></i> ${esc(ex.reps)} reps</span>` : ''}
-                ${ex.rest ? `<span><i class="fa-regular fa-clock"></i> ${esc(ex.rest)}s rest</span>` : ''}
-              </div>
-              ${ex.notes ? `<div class="trainer-note"><i class="fa-solid fa-whistle" style="font-size:0.7rem;margin-right:3px;"></i>${esc(ex.notes)}</div>` : ''}
-              ${note ? `<div class="athlete-note-display" id="note-display-${gi}"><i class="fa-solid fa-pen-to-square" style="font-size:0.7rem;margin-top:2px;"></i>${esc(note)}</div>` : `<div class="athlete-note-display" id="note-display-${gi}" style="display:none;"></div>`}
-            </div>
-            <button class="btn-note ${note ? 'has-note' : ''}" id="note-btn-${gi}" onclick="toggleNote(${gi})">
-              <i class="fa-solid fa-pen-to-square"></i>${note ? 'Edit' : 'Note'}
-            </button>
-          </div>
-          <div class="note-editor" id="note-editor-${gi}">
-            <textarea class="note-textarea" id="note-ta-${gi}" placeholder="Add your note (e.g. felt strong, increased weight…)"
-              onblur="saveNote(${gi})">${esc(note)}</textarea>
-          </div>
-        </div>`);
+      // Build metric string based on type
+      const metricVal  = ex.value || ex.reps || '';
+      const metricUnit = ex.type === 'Timed' ? 'sec' : ex.type === 'Cals' ? 'cals' : 'reps';
+      const metricIcon = ex.type === 'Timed' ? 'fa-stopwatch' : ex.type === 'Cals' ? 'fa-fire' : 'fa-repeat';
+
+      const card = document.createElement('div');
+      card.className = 'exercise-card' + (done ? ' completed' : '');
+      card.id = 'ex-' + gi;
+      card.style.cursor = 'pointer';
+      card.title = 'Tap to start guided exercise';
+      card.addEventListener('click', () => {
+        const url = `exercise.html?program=${encodeURIComponent(programData.name)}&ex=${gi}&week=${currentWeek}&day=${currentDay}&logId=${todayLogId || ''}&returnTo=workouts.html`;
+        window.location.href = url;
+      });
+
+      // Top row
+      const topRow = document.createElement('div');
+      topRow.className = 'exercise-card-top';
+
+      const checkbox = document.createElement('div');
+      checkbox.className = 'exercise-checkbox';
+      checkbox.innerHTML = '<i class="fa-solid fa-check"></i>';
+      checkbox.addEventListener('click', () => toggleExercise(gi));
+
+      const info = document.createElement('div');
+      info.className = 'exercise-info';
+
+      const nameEl = document.createElement('div');
+      nameEl.className = 'exercise-name';
+      nameEl.textContent = ex.name;
+
+      const details = document.createElement('div');
+      details.className = 'exercise-details';
+      if (ex.sets)     details.innerHTML += `<span><i class="fa-solid fa-layer-group"></i> ${esc(ex.sets)} sets</span>`;
+      if (metricVal)   details.innerHTML += `<span><i class="fa-solid ${metricIcon}"></i> ${esc(metricVal)} ${metricUnit}</span>`;
+      if (ex.weight)   details.innerHTML += `<span><i class="fa-solid fa-weight-hanging"></i> ${esc(ex.weight)}</span>`;
+      if (ex.rest)     details.innerHTML += `<span><i class="fa-regular fa-clock"></i> ${esc(ex.rest)}s rest</span>`;
+
+      info.appendChild(nameEl);
+      info.appendChild(details);
+
+      if (ex.notes) {
+        const trainerNote = document.createElement('div');
+        trainerNote.className = 'trainer-note';
+        trainerNote.innerHTML = `<i class="fa-solid fa-whistle" style="font-size:0.7rem;margin-right:3px;"></i>${esc(ex.notes)}`;
+        info.appendChild(trainerNote);
+      }
+
+      const noteDisplay = document.createElement('div');
+      noteDisplay.className = 'athlete-note-display';
+      noteDisplay.id = 'note-display-' + gi;
+      if (note) {
+        noteDisplay.innerHTML = `<i class="fa-solid fa-pen-to-square" style="font-size:0.7rem;margin-top:2px;"></i>${esc(note)}`;
+      } else {
+        noteDisplay.style.display = 'none';
+      }
+      info.appendChild(noteDisplay);
+
+      // Right-side buttons
+      const rightBtns = document.createElement('div');
+      rightBtns.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;';
+
+      if (ex.videoUrl) {
+        const vidBtn = document.createElement('a');
+        vidBtn.href = ex.videoUrl;
+        vidBtn.target = '_blank';
+        vidBtn.rel = 'noopener noreferrer';
+        vidBtn.className = 'btn-video';
+        vidBtn.innerHTML = '<i class="fa-solid fa-video"></i> Video';
+        vidBtn.addEventListener('click', e => e.stopPropagation());
+        rightBtns.appendChild(vidBtn);
+      }
+
+      const noteBtn = document.createElement('button');
+      noteBtn.className = 'btn-note' + (note ? ' has-note' : '');
+      noteBtn.id = 'note-btn-' + gi;
+      noteBtn.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>${note ? 'Edit' : 'Note'}`;
+      noteBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleNote(gi); });
+      rightBtns.appendChild(noteBtn);
+
+      topRow.append(checkbox, info, rightBtns);
+
+      // Note editor
+      const noteEditor = document.createElement('div');
+      noteEditor.className = 'note-editor';
+      noteEditor.id = 'note-editor-' + gi;
+      const noteTa = document.createElement('textarea');
+      noteTa.className = 'note-textarea';
+      noteTa.id = 'note-ta-' + gi;
+      noteTa.placeholder = 'Add your note (e.g. felt strong, increased weight…)';
+      noteTa.value = note;
+      noteTa.addEventListener('blur', () => saveNote(gi));
+      noteEditor.appendChild(noteTa);
+
+      card.append(topRow, noteEditor);
+      list.appendChild(card);
     });
 
     updateProgress();
@@ -576,7 +770,7 @@
   }
 
   // ── Save progress to Firestore ──
-  async function saveProgress() {
+  async function saveProgress(rpe = null) {
     const dayExercises = getDayExercises();
     try {
       const data = {
@@ -591,6 +785,7 @@
         totalExercises:     dayExercises.length,
         updatedAt:          firebase.firestore.FieldValue.serverTimestamp()
       };
+      if (rpe !== null) data.rpe = rpe;
 
       if (todayLogId) {
         await db.collection('workoutLogs').doc(todayLogId).update(data);
@@ -604,27 +799,94 @@
     }
   }
 
-  // ── Log today's workout ──
-  async function logWorkout() {
+  // ── Log today's workout — open RPE modal first ──
+  let selectedRpe = null;
+
+  const rpeLabels = {
+    1: 'Very easy — barely any effort',
+    2: 'Easy — comfortable pace',
+    3: 'Light — could do this all day',
+    4: 'Moderate — breathing harder',
+    5: 'Somewhat hard — challenging',
+    6: 'Hard — pushing yourself',
+    7: 'Very hard — difficult to maintain',
+    8: 'Very hard — near your limit',
+    9: 'Extremely hard — barely managed',
+    10: 'Max effort — absolute limit 🔥',
+  };
+
+  function logWorkout() {
     if (completed.size === 0) return;
+    selectedRpe = null;
+
+    // Build number buttons
+    const wrap = document.getElementById('rpeButtons');
+    wrap.innerHTML = '';
+    for (let i = 1; i <= 10; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'rpe-btn';
+      btn.textContent = i;
+      btn.addEventListener('click', () => selectRpe(i, btn));
+      wrap.appendChild(btn);
+    }
+    document.getElementById('rpeLabel').textContent = '';
+    document.getElementById('btnConfirmLog').disabled = true;
+    document.getElementById('btnConfirmLog').style.opacity = '0.4';
+    document.getElementById('rpeModal').classList.add('open');
+  }
+
+  function selectRpe(val, btn) {
+    selectedRpe = val;
+    document.querySelectorAll('.rpe-btn').forEach(b => {
+      b.classList.remove('selected', 'hard', 'max');
+    });
+    btn.classList.add('selected');
+    if (val >= 8) btn.classList.add(val === 10 ? 'max' : 'hard');
+    document.getElementById('rpeLabel').textContent = rpeLabels[val] || '';
+    document.getElementById('btnConfirmLog').disabled = false;
+    document.getElementById('btnConfirmLog').style.opacity = '1';
+  }
+
+  async function confirmLog() {
+    if (!selectedRpe) return;
+    document.getElementById('rpeModal').classList.remove('open');
+
     const total = getDayExercises().length;
     const btn   = document.getElementById('btnLog');
     btn.disabled  = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
 
     try {
-      await saveProgress();
+      await saveProgress(selectedRpe);
       await db.collection('users').doc(currentUser.uid).update({
         sessionsCompleted: firebase.firestore.FieldValue.increment(1),
         lastWorkout:       firebase.firestore.FieldValue.serverTimestamp()
       });
-      showToast(`Week ${currentWeek} · Day ${currentDay} logged! ${completed.size} of ${total} completed.`);
+      showToast(`Week ${currentWeek} · Day ${currentDay} logged! RPE: ${selectedRpe}/10`);
       btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Workout Logged!';
     } catch(e) {
       showToast('Error saving workout.', true);
       btn.disabled  = false;
       btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Log Workout';
     }
+  }
+
+  // ── Reset workout ──
+  async function resetWorkout() {
+    if (!confirm('Reset this workout? All completed exercises will be cleared.')) return;
+    completed     = new Set();
+    exerciseNotes = {};
+    if (todayLogId) {
+      try {
+        await db.collection('workoutLogs').doc(todayLogId).delete();
+      } catch(e) { console.error('Reset error:', e); }
+      todayLogId = null;
+    }
+    const btn = document.getElementById('btnLog');
+    btn.disabled  = false;
+    btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Log Workout';
+    renderExercises();
+    showToast('Workout reset — starting fresh!');
   }
 
   // ── Load history ──

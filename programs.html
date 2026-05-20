@@ -79,19 +79,13 @@
       padding: 5px 12px; border-radius: 20px; cursor: pointer; transition: all 0.2s;
     }
     .btn-danger:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.08); }
-    .btn-edit {
-      background: none; border: 1px solid rgba(30,143,224,0.35);
-      color: rgba(30,143,224,0.75); font-size: 0.82rem; font-weight: 600;
-      padding: 5px 12px; border-radius: 20px; cursor: pointer; transition: all 0.2s;
-    }
-    .btn-edit:hover { border-color: #1e8fe0; color: #1e8fe0; background: rgba(30,143,224,0.08); }
-
     /* ── Program cards ── */
     .programs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-bottom: 48px; }
     .program-card {
       background: rgba(30,41,59,0.85); border: 1px solid rgba(80,184,240,0.2);
       border-radius: 15px; padding: 24px;
       box-shadow: 0 8px 20px rgba(0,0,0,0.4); transition: all 0.3s ease;
+      cursor: pointer;
     }
     .program-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.5); border-color: rgba(80,184,240,0.4); }
     .program-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
@@ -114,7 +108,14 @@
     .exercise-row:last-child { border-bottom: none; }
     .exercise-name { color: rgba(255,255,255,0.85); font-weight: 500; }
     .exercise-detail { color: rgba(255,255,255,0.4); font-size: 0.8rem; }
-    .program-card-footer { display: flex; gap: 8px; }
+    .program-card-footer { display: flex; gap: 8px; margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px; }
+    .btn-edit {
+      background: rgba(80,184,240,0.12); border: 1px solid rgba(80,184,240,0.35);
+      color: #50b8f0; font-size: 0.82rem; font-weight: 600;
+      padding: 6px 14px; border-radius: 20px; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .btn-edit:hover { background: rgba(80,184,240,0.25); border-color: #50b8f0; }
     .no-programs {
       grid-column: 1/-1; text-align: center; padding: 60px 20px;
       color: rgba(255,255,255,0.3);
@@ -173,7 +174,7 @@
       font-size: 1rem; cursor: pointer; padding: 0; line-height: 1;
     }
     .exercise-builder-row .remove-ex:hover { color: #ef4444; }
-    .ex-grid { display: grid; grid-template-columns: 1fr 60px 60px 80px; gap: 10px; align-items: end; }
+    .ex-grid { display: grid; grid-template-columns: 1fr 52px 110px 80px 80px 80px; gap: 10px; align-items: end; }
     .ex-grid-full { grid-column: 1 / -1; }
     .ex-mini-label {
       color: rgba(255,255,255,0.5); font-size: 0.75rem; font-weight: 600;
@@ -223,7 +224,7 @@
 
     @media (max-width: 575px) {
       .modal-box { padding: 24px 18px; }
-      .ex-grid { grid-template-columns: 1fr 55px 55px 70px; gap: 8px; }
+      .ex-grid { grid-template-columns: 1fr 52px 90px 70px 70px 70px; gap: 6px; }
       .page-header { flex-direction: column; align-items: flex-start; }
     }
   </style>
@@ -251,6 +252,26 @@
 
 <!-- Main -->
 <div class="container" style="max-width:1100px;">
+
+  <!-- Athlete context banner (shown when arriving from my-athletes) -->
+  <div id="athleteContextBanner" style="display:none; background:rgba(80,184,240,0.08); border:1px solid rgba(80,184,240,0.3); border-radius:14px; padding:16px 22px; margin-top:28px; display:none; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <i class="fa-solid fa-wand-magic-sparkles" style="color:#50b8f0; font-size:1.2rem;"></i>
+      <div>
+        <div style="font-weight:700; color:rgba(255,255,255,0.9);">Creating a custom program for <span id="bannerAthleteName" style="color:#50b8f0;"></span></div>
+        <div style="font-size:0.82rem; color:rgba(255,255,255,0.45);">After saving, this program will be automatically assigned to this athlete.</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-shrink:0;">
+      <button class="btn-primary-app" onclick="openModal()" style="padding:9px 18px;font-size:0.88rem;">
+        <i class="fa-solid fa-plus"></i> Create Program
+      </button>
+      <a href="my-athletes.html" style="color:rgba(255,255,255,0.45); font-size:0.85rem; text-decoration:none; white-space:nowrap;">
+        <i class="fa-solid fa-arrow-left me-1"></i> Back
+      </a>
+    </div>
+  </div>
+
   <div class="page-header">
     <div>
       <h1><i class="fa-solid fa-clipboard-list me-2" style="font-size:1.5rem;"></i>Programs</h1>
@@ -329,6 +350,27 @@
           <option>General Fitness</option>
         </select>
       </div>
+      <div class="col-md-6">
+        <label class="field-label">Start Date</label>
+        <input type="date" class="field-input" id="progStartDate" style="margin-bottom:0;" />
+      </div>
+      <div class="col-md-6">
+        <label class="field-label">Est. Workout Time</label>
+        <select class="field-select" id="progEstTime" style="margin-bottom:0;">
+          <option value="">— Select —</option>
+          <option>5 min</option>
+          <option>10 min</option>
+          <option>15 min</option>
+          <option>20 min</option>
+          <option>25 min</option>
+          <option>30 min</option>
+          <option>45 min</option>
+          <option>60 min</option>
+          <option>75 min</option>
+          <option>90 min</option>
+          <option>90+ min</option>
+        </select>
+      </div>
       <div class="col-12">
         <label class="field-label">Description</label>
         <textarea class="field-textarea" id="progDesc" placeholder="Brief overview of this program — what to expect, who it's for…"></textarea>
@@ -378,10 +420,20 @@
   const auth = firebase.auth();
   const db   = firebase.firestore();
 
-  let currentUser  = null;
-  let allPrograms  = [];
-  let activeFilter = 'all';
-  let editingId    = null;
+  let currentUser    = null;
+  let allPrograms    = [];
+  let allAthletes    = [];
+  let activeFilter   = 'all';
+  let editingId      = null;
+  const programMap   = new Map(); // id → program object
+
+  // URL params
+  const _params       = new URLSearchParams(window.location.search);
+  const athleteUid    = _params.get('athlete');
+  const athleteName   = _params.get('name');
+  const editProgramId   = _params.get('editId');
+  const editProgramName = _params.get('editName');
+  const returnTo        = _params.get('returnTo'); // e.g. 'my-athletes'
 
   // ── Auth guard ──
   auth.onAuthStateChanged(async user => {
@@ -392,7 +444,25 @@
     }
     currentUser = user;
     loadPrograms();
+    loadAthletes();
+
+    // Athlete context setup
+    if (athleteUid && athleteName) {
+      const banner = document.getElementById('athleteContextBanner');
+      banner.style.display = 'flex';
+      document.getElementById('bannerAthleteName').textContent = athleteName;
+    }
   });
+
+  // ── Load athletes ──
+  function loadAthletes() {
+    db.collection('users')
+      .where('trainerId', '==', currentUser.uid)
+      .onSnapshot(snap => {
+        allAthletes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderPrograms();
+      });
+  }
 
   // ── Load programs ──
   function loadPrograms() {
@@ -400,10 +470,17 @@
       .where('trainerId', '==', currentUser.uid)
       .onSnapshot(snap => {
         allPrograms = snap.docs
-          .map(d => ({ id: d.id, ...d.data() }))
+          .map(d => ({ id: d.id, ...d.data(), id: d.id }))
           .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        programMap.clear();
+        allPrograms.forEach(p => programMap.set(p.id, p));
         renderPrograms();
         document.getElementById('loadingOverlay').style.display = 'none';
+        if (editProgramId || editProgramName) {
+          const target = allPrograms.find(p => p.id === editProgramId)
+                      || allPrograms.find(p => p.name === editProgramName);
+          if (target) loadProgramIntoModal(target);
+        }
       }, err => {
         console.error(err);
         document.getElementById('loadingOverlay').style.display = 'none';
@@ -418,7 +495,6 @@
       ? allPrograms
       : allPrograms.filter(p => p.difficulty === activeFilter);
 
-    // Remove existing cards (keep emptyState node)
     [...grid.querySelectorAll('.program-card')].forEach(c => c.remove());
 
     if (filtered.length === 0) {
@@ -427,39 +503,154 @@
     }
     empty.style.display = 'none';
 
-    filtered.forEach(p => {
+    filtered.forEach(prog => {
+      const p = prog; // capture for closures
       const diffColor = { Beginner: 'green', Intermediate: 'amber', Advanced: 'blue' }[p.difficulty] || '';
-      const exRows = (p.exercises || []).slice(0, 4).map(ex => `
-        <div class="exercise-row">
-          <span class="exercise-name">${esc(ex.name)}</span>
-          <span class="exercise-detail">${esc(ex.sets)} sets &times; ${esc(ex.reps)} reps${ex.rest ? ' &nbsp;|&nbsp; ' + esc(ex.rest) + 's rest' : ''}</span>
-        </div>`).join('');
-      const moreCount = (p.exercises || []).length - 4;
 
-      grid.insertAdjacentHTML('beforeend', `
-        <div class="program-card" id="card-${p.id}">
-          <div class="program-card-header">
-            <div>
-              <h3 class="program-card-title">${esc(p.name)}</h3>
-            </div>
-          </div>
-          <div class="program-card-meta">
-            <span class="badge-pill ${diffColor}">${esc(p.difficulty)}</span>
-            <span class="badge-pill"><i class="fa-regular fa-clock me-1"></i>${esc(p.duration)}</span>
-            <span class="badge-pill"><i class="fa-solid fa-calendar-days me-1"></i>${esc(p.daysPerWeek)}</span>
-            <span class="badge-pill"><i class="fa-solid fa-bullseye me-1"></i>${esc(p.goal)}</span>
-          </div>
-          ${p.description ? `<p class="program-card-desc">${esc(p.description)}</p>` : ''}
-          ${p.exercises && p.exercises.length > 0 ? `
-            <div class="program-card-exercises">
-              ${exRows}
-              ${moreCount > 0 ? `<p style="color:rgba(255,255,255,0.35);font-size:0.8rem;margin:8px 0 0;text-align:center;">+${moreCount} more exercise${moreCount>1?'s':''}</p>` : ''}
-            </div>` : ''}
-          <div class="program-card-footer">
-            <button class="btn-edit" onclick="editProgram('${p.id}')"><i class="fa-solid fa-pen me-1"></i>Edit</button>
-            <button class="btn-danger" onclick="deleteProgram('${p.id}', '${esc(p.name)}')"><i class="fa-solid fa-trash me-1"></i>Delete</button>
-          </div>
-        </div>`);
+      const card = document.createElement('div');
+      card.className = 'program-card';
+
+      // Header
+      const header = document.createElement('div');
+      header.className = 'program-card-header';
+      const title = document.createElement('h3');
+      title.className = 'program-card-title';
+      title.textContent = p.name || '';
+      header.appendChild(title);
+      card.appendChild(header);
+
+      // Meta badges
+      const meta = document.createElement('div');
+      meta.className = 'program-card-meta';
+      const startDateStr = p.startDate
+        ? new Date(p.startDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : null;
+      const badges = [
+        { cls: diffColor, html: esc(p.difficulty) },
+        { cls: '', html: '<i class="fa-regular fa-clock me-1"></i>' + esc(p.duration) },
+        { cls: '', html: '<i class="fa-solid fa-calendar-days me-1"></i>' + esc(p.daysPerWeek) },
+        { cls: '', html: '<i class="fa-solid fa-bullseye me-1"></i>' + esc(p.goal) },
+        ...(p.estWorkoutTime ? [{ cls: 'amber', html: '<i class="fa-solid fa-stopwatch me-1"></i>' + esc(p.estWorkoutTime) }] : []),
+        ...(startDateStr ? [{ cls: 'green', html: '<i class="fa-solid fa-calendar-check me-1"></i>Starts ' + startDateStr }] : []),
+      ];
+      badges.forEach(b => {
+        const span = document.createElement('span');
+        span.className = 'badge-pill' + (b.cls ? ' ' + b.cls : '');
+        span.innerHTML = b.html;
+        meta.appendChild(span);
+      });
+      card.appendChild(meta);
+
+      // Description
+      if (p.description) {
+        const desc = document.createElement('p');
+        desc.className = 'program-card-desc';
+        desc.textContent = p.description;
+        card.appendChild(desc);
+      }
+
+      // Exercises
+      const exList = p.exercises || [];
+      if (exList.length > 0) {
+        const exSection = document.createElement('div');
+        exSection.className = 'program-card-exercises';
+        exList.slice(0, 4).forEach(ex => {
+          const row = document.createElement('div');
+          row.className = 'exercise-row';
+          const nameSpan = document.createElement('span');
+          nameSpan.className = 'exercise-name';
+          nameSpan.textContent = ex.name;
+          const detailSpan = document.createElement('span');
+          detailSpan.className = 'exercise-detail';
+          const metricVal = ex.value || ex.reps || '';
+          const metricUnit = ex.type === 'Timed' ? 'sec' : ex.type === 'Cals' ? 'cals' : 'reps';
+          const metricStr = metricVal ? ex.sets + ' × ' + metricVal + ' ' + metricUnit : ex.sets + ' sets';
+          const weightStr = ex.weight ? ' @ ' + ex.weight : '';
+          const restStr   = ex.rest   ? ' | ' + ex.rest + 's rest' : '';
+          detailSpan.textContent = metricStr + weightStr + restStr;
+          row.appendChild(nameSpan);
+          const rightCol = document.createElement('div');
+          rightCol.style.cssText = 'display:flex;align-items:center;gap:8px;';
+          rightCol.appendChild(detailSpan);
+          if (ex.videoUrl) {
+            const vidLink = document.createElement('a');
+            vidLink.href = ex.videoUrl;
+            vidLink.target = '_blank';
+            vidLink.rel = 'noopener noreferrer';
+            vidLink.title = 'Watch video';
+            vidLink.innerHTML = '<i class="fa-brands fa-youtube" style="font-size:1rem;color:#ef4444;"></i>';
+            vidLink.style.cssText = 'text-decoration:none;line-height:1;flex-shrink:0;';
+            vidLink.addEventListener('click', e => e.stopPropagation());
+            rightCol.appendChild(vidLink);
+          }
+          row.appendChild(rightCol);
+          exSection.appendChild(row);
+        });
+        const moreCount = exList.length - 4;
+        if (moreCount > 0) {
+          const more = document.createElement('p');
+          more.style.cssText = 'color:rgba(255,255,255,0.35);font-size:0.8rem;margin:8px 0 0;text-align:center;';
+          more.textContent = '+' + moreCount + ' more exercise' + (moreCount > 1 ? 's' : '');
+          exSection.appendChild(more);
+        }
+        card.appendChild(exSection);
+      }
+
+      // Athletes assigned to this program
+      const assignedAthletes = allAthletes.filter(a => {
+        const list = a.assignedPrograms || (a.assignedProgram ? [a.assignedProgram] : []);
+        return list.includes(p.name);
+      });
+      const athleteSection = document.createElement('div');
+      athleteSection.style.cssText = 'border-top:1px solid rgba(255,255,255,0.08);padding-top:12px;margin-bottom:14px;';
+      const athleteLabel = document.createElement('div');
+      athleteLabel.style.cssText = 'color:rgba(255,255,255,0.4);font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px;';
+      athleteLabel.textContent = 'Assigned Athletes';
+      athleteSection.appendChild(athleteLabel);
+      if (assignedAthletes.length === 0) {
+        const none = document.createElement('div');
+        none.style.cssText = 'color:rgba(255,255,255,0.25);font-size:0.82rem;';
+        none.textContent = 'No athletes assigned';
+        athleteSection.appendChild(none);
+      } else {
+        const chips = document.createElement('div');
+        chips.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;';
+        assignedAthletes.forEach(a => {
+          const chip = document.createElement('div');
+          chip.style.cssText = 'display:inline-flex;align-items:center;gap:5px;background:rgba(114,184,50,0.12);border:1px solid rgba(114,184,50,0.3);border-radius:20px;padding:3px 10px;font-size:0.78rem;color:#72b832;font-weight:600;';
+          const initials = getInitials(a.displayName || a.email || '?');
+          chip.innerHTML = `<span style="width:18px;height:18px;border-radius:50%;background:rgba(114,184,50,0.25);display:inline-flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:800;">${initials}</span>${a.displayName || a.email}`;
+          chips.appendChild(chip);
+        });
+        athleteSection.appendChild(chips);
+      }
+      card.appendChild(athleteSection);
+
+      // Footer with buttons
+      const footer = document.createElement('div');
+      footer.className = 'program-card-footer';
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'btn-edit';
+      editBtn.innerHTML = '<i class="fa-solid fa-pen me-1"></i>Edit';
+      editBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        loadProgramIntoModal(p);
+      });
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn-danger';
+      deleteBtn.innerHTML = '<i class="fa-solid fa-trash me-1"></i>Delete';
+      deleteBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        deleteProgram(p.id, p.name);
+      });
+
+      footer.appendChild(editBtn);
+      footer.appendChild(deleteBtn);
+      card.appendChild(footer);
+
+      grid.appendChild(card);
     });
   }
 
@@ -477,13 +668,16 @@
   function openModal(reset = true) {
     if (reset) {
       editingId = null;
-      document.getElementById('modalTitle').textContent = 'New Program';
+      document.getElementById('modalTitle').textContent =
+        athleteUid && athleteName ? `New Program for ${athleteName}` : 'New Program';
       document.getElementById('progName').value = '';
       document.getElementById('progDifficulty').value = 'Intermediate';
       document.getElementById('progDuration').value = '8 weeks';
       document.getElementById('progDays').value = '4 days';
       document.getElementById('progGoal').value = 'Strength';
-      document.getElementById('progDesc').value = '';
+      document.getElementById('progDesc').value      = '';
+      document.getElementById('progStartDate').value = '';
+      document.getElementById('progEstTime').value   = '';
       document.getElementById('exercisesList').innerHTML = '';
       exerciseCount = 0;
       updateExerciseHint();
@@ -500,7 +694,11 @@
   function addExerciseRow(data = {}) {
     exerciseCount++;
     document.getElementById('noExercisesHint').style.display = 'none';
-    const idx = exerciseCount;
+    const idx  = exerciseCount;
+    const type = data.type || 'Reps';
+    const valueLabel = type === 'Timed' ? 'Time (sec)' : type === 'Cals' ? 'Calories' : 'Reps';
+    const valuePlaceholder = type === 'Timed' ? '45' : type === 'Cals' ? '20' : '8';
+
     document.getElementById('exercisesList').insertAdjacentHTML('beforeend', `
       <div class="exercise-builder-row" id="ex-${idx}">
         <button class="remove-ex" onclick="removeExercise(${idx})" title="Remove"><i class="fa-solid fa-xmark"></i></button>
@@ -514,8 +712,20 @@
             <input class="ex-input" id="ex-sets-${idx}" placeholder="3" value="${esc(data.sets||'')}" style="text-align:center;" />
           </div>
           <div>
-            <span class="ex-mini-label">Reps</span>
-            <input class="ex-input" id="ex-reps-${idx}" placeholder="8" value="${esc(data.reps||'')}" style="text-align:center;" />
+            <span class="ex-mini-label">Type</span>
+            <select class="ex-input" id="ex-type-${idx}" onchange="updateExValueLabel(${idx})" style="padding:7px 6px;">
+              <option value="Reps"${type==='Reps'?' selected':''}>Reps</option>
+              <option value="Timed"${type==='Timed'?' selected':''}>Timed</option>
+              <option value="Cals"${type==='Cals'?' selected':''}>Cals</option>
+            </select>
+          </div>
+          <div>
+            <span class="ex-mini-label" id="ex-value-label-${idx}">${valueLabel}</span>
+            <input class="ex-input" id="ex-value-${idx}" placeholder="${valuePlaceholder}" value="${esc(data.value||data.reps||'')}" style="text-align:center;" />
+          </div>
+          <div>
+            <span class="ex-mini-label">Weight</span>
+            <input class="ex-input" id="ex-weight-${idx}" placeholder="lbs" value="${esc(data.weight||'')}" style="text-align:center;" />
           </div>
           <div>
             <span class="ex-mini-label">Rest (sec)</span>
@@ -525,8 +735,28 @@
             <span class="ex-mini-label">Notes / Cues</span>
             <input class="ex-input" id="ex-notes-${idx}" placeholder="e.g. Keep chest up, drive knees out" value="${esc(data.notes||'')}" />
           </div>
+          <div class="ex-notes" style="margin-top:6px;">
+            <div style="display:grid;grid-template-columns:1fr 120px;gap:10px;align-items:end;">
+              <div>
+                <span class="ex-mini-label"><i class="fa-solid fa-video" style="color:#50b8f0;margin-right:4px;"></i>Instructional Video Link</span>
+                <input class="ex-input" id="ex-video-${idx}" placeholder="https://youtube.com/watch?v=..." value="${esc(data.videoUrl||'')}" />
+              </div>
+              <div>
+                <span class="ex-mini-label"><i class="fa-regular fa-clock" style="margin-right:3px;"></i>Est. Time (min)</span>
+                <input class="ex-input" id="ex-esttime-${idx}" placeholder="5" value="${esc(data.estTime||'')}" style="text-align:center;" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>`);
+  }
+
+  function updateExValueLabel(idx) {
+    const type = document.getElementById('ex-type-' + idx).value;
+    const label = type === 'Timed' ? 'Time (sec)' : type === 'Cals' ? 'Calories' : 'Reps';
+    const placeholder = type === 'Timed' ? '45' : type === 'Cals' ? '20' : '8';
+    document.getElementById('ex-value-label-' + idx).textContent = label;
+    document.getElementById('ex-value-' + idx).placeholder = placeholder;
   }
 
   function removeExercise(idx) {
@@ -544,11 +774,15 @@
     return [...rows].map(row => {
       const idx = row.id.split('-')[1];
       return {
-        name:  document.getElementById('ex-name-'  + idx).value.trim(),
-        sets:  document.getElementById('ex-sets-'  + idx).value.trim(),
-        reps:  document.getElementById('ex-reps-'  + idx).value.trim(),
-        rest:  document.getElementById('ex-rest-'  + idx).value.trim(),
-        notes: document.getElementById('ex-notes-' + idx).value.trim(),
+        name:     document.getElementById('ex-name-'   + idx).value.trim(),
+        sets:     document.getElementById('ex-sets-'   + idx).value.trim(),
+        type:     document.getElementById('ex-type-'   + idx).value,
+        value:    document.getElementById('ex-value-'  + idx).value.trim(),
+        weight:   document.getElementById('ex-weight-' + idx).value.trim(),
+        rest:     document.getElementById('ex-rest-'   + idx).value.trim(),
+        notes:    document.getElementById('ex-notes-'  + idx).value.trim(),
+        videoUrl: document.getElementById('ex-video-'    + idx).value.trim(),
+        estTime:  document.getElementById('ex-esttime-'  + idx).value.trim(),
       };
     }).filter(ex => ex.name);
   }
@@ -569,6 +803,8 @@
       daysPerWeek: document.getElementById('progDays').value,
       goal:        document.getElementById('progGoal').value,
       description: document.getElementById('progDesc').value.trim(),
+      startDate:   document.getElementById('progStartDate').value || null,
+      estWorkoutTime: document.getElementById('progEstTime').value || null,
       exercises:   collectExercises(),
       trainerId:   currentUser.uid,
     };
@@ -577,12 +813,25 @@
       if (editingId) {
         await db.collection('programs').doc(editingId).update({ ...data, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
         showToast('Program updated!', 'success');
+        if (returnTo === 'my-athletes') {
+          setTimeout(() => { window.location.href = 'my-athletes.html'; }, 900);
+        } else {
+          closeModal();
+        }
       } else {
         data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
         await db.collection('programs').add(data);
-        showToast('Program created!', 'success');
+
+        if (athleteUid) {
+          // Auto-assign this program to the athlete and go back
+          await db.collection('users').doc(athleteUid).update({ assignedPrograms: firebase.firestore.FieldValue.arrayUnion(name) });
+          showToast(`Program created & assigned to ${athleteName}!`, 'success');
+          setTimeout(() => { window.location.href = 'my-athletes.html'; }, 1200);
+        } else {
+          showToast('Program created!', 'success');
+          closeModal();
+        }
       }
-      closeModal();
     } catch (e) {
       showToast('Error saving program: ' + e.message, 'error');
       btn.disabled = false;
@@ -591,17 +840,17 @@
   }
 
   // ── Edit ──
-  function editProgram(id) {
-    const p = allPrograms.find(x => x.id === id);
-    if (!p) return;
-    editingId = id;
+  function loadProgramIntoModal(p) {
+    editingId = p.id;
     document.getElementById('modalTitle').textContent = 'Edit Program';
     document.getElementById('progName').value       = p.name || '';
     document.getElementById('progDifficulty').value = p.difficulty || 'Intermediate';
     document.getElementById('progDuration').value   = p.duration || '8 weeks';
     document.getElementById('progDays').value       = p.daysPerWeek || '4 days';
     document.getElementById('progGoal').value       = p.goal || 'Strength';
-    document.getElementById('progDesc').value       = p.description || '';
+    document.getElementById('progDesc').value      = p.description || '';
+    document.getElementById('progStartDate').value = p.startDate   || '';
+    document.getElementById('progEstTime').value   = p.estWorkoutTime || '';
     document.getElementById('exercisesList').innerHTML = '';
     exerciseCount = 0;
     (p.exercises || []).forEach(ex => addExerciseRow(ex));
@@ -631,6 +880,14 @@
   // ── Sign out ──
   async function doSignOut() { await auth.signOut(); window.location.href = 'index.html'; }
 
+  // ── Helpers ──
+  function getInitials(name) {
+    const parts = String(name).trim().split(' ');
+    return parts.length >= 2
+      ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+      : String(name).slice(0, 2).toUpperCase();
+  }
+
   // ── Escape HTML ──
   function esc(str) {
     if (!str) return '';
@@ -641,6 +898,8 @@
   document.getElementById('programModal').addEventListener('click', function(e) {
     if (e.target === this) closeModal();
   });
+
+
 
   // Active filter style
   const style = document.createElement('style');

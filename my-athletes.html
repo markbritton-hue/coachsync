@@ -159,18 +159,32 @@
     }
     .btn-primary-app:hover { background: #1070c0; transform: translateY(-2px); }
     .btn-assign {
-      background: rgba(30,143,224,0.12); border: 1px solid rgba(30,143,224,0.3);
-      color: #1e8fe0; font-size: 0.82rem; font-weight: 600;
-      padding: 6px 14px; border-radius: 20px; cursor: pointer; transition: all 0.2s;
-      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(30,143,224,0.18); border: 1px solid rgba(30,143,224,0.5);
+      color: #50b8f0; font-size: 0.85rem; font-weight: 700;
+      padding: 9px 18px; border-radius: 20px; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 6px; width: 100%; justify-content: center;
     }
-    .btn-assign:hover { background: rgba(30,143,224,0.22); }
+    .btn-assign:hover { background: rgba(30,143,224,0.32); border-color: #50b8f0; }
     .btn-remove {
       background: none; border: 1px solid rgba(239,68,68,0.3);
       color: rgba(239,68,68,0.7); font-size: 0.82rem; font-weight: 600;
       padding: 6px 14px; border-radius: 20px; cursor: pointer; transition: all 0.2s;
     }
     .btn-remove:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.08); }
+    .program-mini-card {
+      background: rgba(15,23,42,0.5); border: 1px solid rgba(80,184,240,0.2);
+      border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .program-mini-card:hover {
+      border-color: rgba(80,184,240,0.5); background: rgba(80,184,240,0.07);
+    }
+    .btn-remove-prog {
+      background: none; border: none; color: rgba(239,68,68,0.45);
+      font-size: 0.8rem; cursor: pointer; padding: 2px 5px; line-height: 1;
+      transition: color 0.2s; flex-shrink: 0;
+    }
+    .btn-remove-prog:hover { color: #ef4444; }
 
     /* ── Empty / loading ── */
     .empty-state {
@@ -297,9 +311,13 @@
     <p style="color:rgba(255,255,255,0.5); font-size:0.88rem; margin-bottom:20px;">
       Assigning to: <strong id="assignAthleteNameLabel" style="color:rgba(255,255,255,0.8);"></strong>
     </p>
-    <label class="field-label">Select Program</label>
+    <label class="field-label">Add an Existing Program</label>
     <select class="field-select" id="programSelect"></select>
-    <div class="modal-footer">
+    <div style="text-align:center; margin: -6px 0 20px; color:rgba(255,255,255,0.3); font-size:0.82rem;">— or —</div>
+    <a id="btnCreateCustom" href="#" class="btn-assign" style="display:flex;justify-content:center;align-items:center;gap:8px;padding:12px;border-radius:12px;font-size:0.9rem;margin-bottom:4px;">
+      <i class="fa-solid fa-wand-magic-sparkles"></i> Create Custom Program for This Athlete
+    </a>
+    <div class="modal-footer" style="margin-top:20px;">
       <button class="btn-cancel" onclick="closeAssignModal()">Cancel</button>
       <button class="btn-save" id="btnAssign" onclick="doAssign()">
         <i class="fa-solid fa-check me-1"></i> Assign
@@ -402,113 +420,182 @@
     empty.style.display = 'none';
 
     filtered.forEach(a => {
-      const initials = getInitials(a.displayName || a.email || '?');
-      const prog     = allPrograms.find(p => p.name === a.assignedProgram);
+      const assignedPrograms = a.assignedPrograms
+        ? a.assignedPrograms
+        : (a.assignedProgram ? [a.assignedProgram] : []);
 
-      // Week/Day progress
-      let weekDayHtml = '', progressBarHtml = '', lastWorkoutHtml = '', statusBadge = '';
+      // ── Card shell ──
+      const card = document.createElement('div');
+      card.className = 'athlete-card';
 
-      if (prog && a.programStartDate) {
-        const numDays   = parseInt(prog.daysPerWeek) || 1;
-        const totalWeeks = parseInt(prog.duration) || 0; // e.g. "8 weeks" → parseInt gives 8
-        const pos       = computeWeekDay(a.programStartDate, numDays);
-        const pct       = totalWeeks ? Math.min(100, Math.round((pos.week - 1) / totalWeeks * 100)) : null;
+      // ── Clickable top (navigates to detail) ──
+      const top = document.createElement('div');
+      top.style.cursor = 'pointer';
+      top.addEventListener('click', () => window.location.href = 'athlete-detail.html?id=' + a.id);
 
-        weekDayHtml = `<span style="font-size:0.8rem;color:rgba(255,255,255,0.55);">Week ${pos.week} · Day ${pos.day}</span>`;
+      // Avatar + name
+      const cardTop = document.createElement('div');
+      cardTop.className = 'athlete-card-top';
+      const avatar = document.createElement('div');
+      avatar.className = 'athlete-avatar';
+      avatar.textContent = getInitials(a.displayName || a.email || '?');
+      const nameBlock = document.createElement('div');
+      nameBlock.style.flex = '1';
+      const nameEl = document.createElement('div');
+      nameEl.className = 'athlete-name';
+      nameEl.textContent = a.displayName || 'Unnamed';
+      const emailEl = document.createElement('div');
+      emailEl.className = 'athlete-email';
+      emailEl.textContent = a.email || '';
+      const chevron = document.createElement('i');
+      chevron.className = 'fa-solid fa-chevron-right';
+      chevron.style.cssText = 'color:rgba(255,255,255,0.2);font-size:0.8rem;';
+      nameBlock.append(nameEl, emailEl);
+      cardTop.append(avatar, nameBlock, chevron);
 
-        progressBarHtml = `
-          <div class="progress-row" style="margin-top:8px;">
-            <span class="progress-week-label">Week ${pos.week}${totalWeeks ? ' of ' + totalWeeks : ''}</span>
-            ${pct !== null ? `<span class="progress-pct-label">${pct}%</span>` : ''}
-          </div>
-          <div class="prog-bar-track">
-            <div class="prog-bar-fill" style="width:${pct !== null ? pct : 0}%"></div>
-          </div>`;
+      // Stats
+      const stats = document.createElement('div');
+      stats.className = 'athlete-stats';
+      const joinedDate = a.createdAt
+        ? new Date(a.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+        : '—';
+      stats.innerHTML = `
+        <div class="stat-box"><div class="stat-value">${a.sessionsCompleted || 0}</div><div class="stat-label">Workouts</div></div>
+        <div class="stat-box"><div class="stat-value">${joinedDate}</div><div class="stat-label">Joined</div></div>`;
 
-        // Active = worked out in last 7 days
-        const daysSinceLast = a.lastWorkout
-          ? Math.floor((Date.now() - a.lastWorkout.seconds * 1000) / 86400000)
-          : null;
+      // Programs section
+      const progSection = document.createElement('div');
+      progSection.className = 'athlete-program';
+      progSection.style.marginBottom = '0';
+      const progLabel = document.createElement('div');
+      progLabel.className = 'athlete-program-label';
+      progLabel.style.marginBottom = '8px';
+      progLabel.textContent = 'Programs';
+      progSection.appendChild(progLabel);
 
-        if (daysSinceLast !== null && daysSinceLast <= 7) {
-          statusBadge = `<span class="status-badge status-active"><i class="fa-solid fa-circle" style="font-size:6px;"></i> Active</span>`;
-        } else if (daysSinceLast !== null) {
-          statusBadge = `<span class="status-badge status-inactive"><i class="fa-solid fa-circle" style="font-size:6px;"></i> Inactive</span>`;
+      if (assignedPrograms.length === 0) {
+        const none = document.createElement('div');
+        none.style.cssText = 'color:rgba(255,255,255,0.3);font-size:0.85rem;padding:4px 0;';
+        none.textContent = 'None assigned';
+        progSection.appendChild(none);
+      } else {
+        assignedPrograms.forEach(pName => {
+          const prog = allPrograms.find(p => p.name === pName);
+
+          // Status badge
+          let badgeClass = 'status-nostart', badgeText = 'Not started', badgeIcon = 'fa-clock';
+          if (a.programStartDate && prog) {
+            const daysSinceLast = a.lastWorkout
+              ? Math.floor((Date.now() - a.lastWorkout.seconds * 1000) / 86400000)
+              : null;
+            if (daysSinceLast !== null && daysSinceLast <= 7) {
+              badgeClass = 'status-active'; badgeText = 'Active'; badgeIcon = 'fa-circle';
+            } else {
+              badgeClass = 'status-inactive'; badgeText = 'Inactive'; badgeIcon = 'fa-circle';
+            }
+          }
+
+          // Mini program card — clicking anywhere on it opens the edit page
+          const miniCard = document.createElement('div');
+          miniCard.className = 'program-mini-card';
+          miniCard.style.cursor = 'pointer';
+          miniCard.addEventListener('click', (e) => {
+            e.stopPropagation();
+            let url = 'programs.html?returnTo=my-athletes&editName=' + encodeURIComponent(pName);
+            if (prog) url += '&editId=' + encodeURIComponent(prog.id);
+            window.location.href = url;
+          });
+
+          // Top row: name + action buttons
+          const miniTop = document.createElement('div');
+          miniTop.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;';
+
+          const nameSpan = document.createElement('div');
+          nameSpan.className = 'athlete-program-name';
+          nameSpan.style.margin = '0';
+          nameSpan.textContent = pName;
+
+          const actions = document.createElement('div');
+          actions.style.cssText = 'display:flex;align-items:center;gap:6px;';
+
+          const editBtn = document.createElement('button');
+          editBtn.className = 'btn-remove-prog';
+          editBtn.title = 'Edit program';
+          editBtn.style.color = 'rgba(80,184,240,0.6)';
+          editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+          editBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            let url = 'programs.html?returnTo=my-athletes&editName=' + encodeURIComponent(pName);
+            if (prog) url += '&editId=' + encodeURIComponent(prog.id);
+            window.location.href = url;
+          });
+
+          const removeBtn = document.createElement('button');
+          removeBtn.className = 'btn-remove-prog';
+          removeBtn.title = 'Remove program';
+          removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+          removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeProgram(a.id, pName);
+          });
+
+          actions.append(editBtn, removeBtn);
+          miniTop.append(nameSpan, actions);
+
+          // Status badge row
+          const badge = document.createElement('span');
+          badge.className = 'status-badge ' + badgeClass;
+          badge.innerHTML = `<i class="fa-solid ${badgeIcon}" style="font-size:6px;"></i> ${badgeText}`;
+
+          miniCard.append(miniTop, badge);
+          progSection.appendChild(miniCard);
+        });
+
+        // Last workout
+        if (a.lastWorkout) {
+          const days = Math.floor((Date.now() - a.lastWorkout.seconds * 1000) / 86400000);
+          const lbl  = days === 0 ? 'Today' : days === 1 ? 'Yesterday' : `${days} days ago`;
+          const lwRow = document.createElement('div');
+          lwRow.className = 'last-workout-row';
+          lwRow.style.marginTop = '8px';
+          lwRow.innerHTML = `<i class="fa-solid fa-dumbbell"></i> Last workout: ${lbl}`;
+          progSection.appendChild(lwRow);
         }
-      } else if (a.assignedProgram && !a.programStartDate) {
-        statusBadge = `<span class="status-badge status-nostart"><i class="fa-solid fa-clock"></i> Not started</span>`;
       }
 
-      if (a.lastWorkout) {
-        const days = Math.floor((Date.now() - a.lastWorkout.seconds * 1000) / 86400000);
-        const lbl  = days === 0 ? 'Today' : days === 1 ? 'Yesterday' : `${days} days ago`;
-        lastWorkoutHtml = `<div class="last-workout-row"><i class="fa-solid fa-dumbbell"></i> Last workout: ${lbl}</div>`;
-      }
+      top.append(cardTop, stats);
 
-      const progSection = a.assignedProgram ? `
-        <div class="athlete-program">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
-            <div>
-              <div class="athlete-program-label">Program</div>
-              <div class="athlete-program-name">${esc(a.assignedProgram)}</div>
-            </div>
-            ${statusBadge}
-          </div>
-          ${weekDayHtml}
-          ${progressBarHtml}
-          ${lastWorkoutHtml}
-        </div>` : `
-        <div class="athlete-program">
-          <div class="athlete-program-label">Program</div>
-          <div style="color:rgba(255,255,255,0.3);font-size:0.85rem;">None assigned</div>
-        </div>`;
+      // ── Footer: Assign button ──
+      const footer = document.createElement('div');
+      footer.className = 'athlete-card-footer';
+      const assignBtn = document.createElement('button');
+      assignBtn.className = 'btn-assign';
+      assignBtn.innerHTML = '<i class="fa-solid fa-clipboard-list"></i> Assign a Program';
+      assignBtn.addEventListener('click', () => openAssignModal(a.id, a.displayName || a.email));
+      footer.appendChild(assignBtn);
 
-      grid.insertAdjacentHTML('beforeend', `
-        <div class="athlete-card" id="ac-${a.id}" onclick="goToAthlete('${a.id}', event)">
-          <div class="athlete-card-top">
-            <div class="athlete-avatar">${initials}</div>
-            <div style="flex:1;">
-              <div class="athlete-name">${esc(a.displayName || 'Unnamed')}</div>
-              <div class="athlete-email">${esc(a.email || '')}</div>
-            </div>
-          </div>
-          <div class="athlete-stats">
-            <div class="stat-box">
-              <div class="stat-value">${a.sessionsCompleted || 0}</div>
-              <div class="stat-label">Workouts</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-value">${a.createdAt ? new Date(a.createdAt.seconds*1000).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '—'}</div>
-              <div class="stat-label">Joined</div>
-            </div>
-          </div>
-          ${progSection}
-          <div class="athlete-card-footer">
-            <button class="btn-assign" onclick="openAssignModal('${a.id}','${esc(a.displayName||a.email)}')">
-              <i class="fa-solid fa-clipboard-list"></i> ${a.assignedProgram ? 'Change Program' : 'Assign Program'}
-            </button>
-          </div>
-        </div>`);
+      card.append(top, progSection, footer);
+      grid.appendChild(card);
     });
-  }
-
-  // ── Navigate to athlete detail ──
-  function goToAthlete(uid, event) {
-    if (event.target.closest('button')) return; // don't navigate when clicking buttons
-    window.location.href = 'athlete-detail.html?id=' + uid;
   }
 
   // ── Assign program modal ──
   function openAssignModal(uid, name) {
     assigningUid = uid;
-    document.getElementById('assignAthleteNameLabel').textContent = name;
-    const sel = document.getElementById('programSelect');
-    sel.innerHTML = '<option value="">— No Program —</option>' +
-      allPrograms.map(p => `<option value="${esc(p.name)}">${esc(p.name)} (${esc(p.difficulty)}, ${esc(p.duration)})</option>`).join('');
+    document.getElementById('assignAthleteNameLabel').textContent = name || '';
 
-    // Pre-select current program
     const athlete = allAthletes.find(a => a.id === uid);
-    if (athlete?.assignedProgram) sel.value = athlete.assignedProgram;
+    const current = athlete?.assignedPrograms || (athlete?.assignedProgram ? [athlete.assignedProgram] : []);
+
+    // Only show programs not already assigned
+    const available = allPrograms.filter(p => !current.includes(p.name));
+    const sel = document.getElementById('programSelect');
+    sel.innerHTML = '<option value="">— Select a program —</option>' +
+      available.map(p => `<option value="${esc(p.name)}">${esc(p.name)} (${esc(p.difficulty)}, ${esc(p.duration)})</option>`).join('');
+
+    // Wire custom program link
+    document.getElementById('btnCreateCustom').href =
+      `programs.html?athlete=${encodeURIComponent(uid)}&name=${encodeURIComponent(name)}`;
 
     document.getElementById('assignModal').classList.add('open');
   }
@@ -521,20 +608,33 @@
   async function doAssign() {
     if (!assigningUid) return;
     const progName = document.getElementById('programSelect').value;
+    if (!progName) { showToast('Please select a program.', 'error'); return; }
     const btn = document.getElementById('btnAssign');
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>';
     try {
       await db.collection('users').doc(assigningUid).update({
-        assignedProgram: progName || firebase.firestore.FieldValue.delete()
+        assignedPrograms: firebase.firestore.FieldValue.arrayUnion(progName)
       });
-      showToast(progName ? `Program assigned!` : 'Program removed.', 'success');
+      showToast('Program assigned!', 'success');
       closeAssignModal();
     } catch(e) {
       showToast('Error: ' + e.message, 'error');
     } finally {
       btn.disabled = false;
       btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Assign';
+    }
+  }
+
+  // ── Remove a single program from an athlete ──
+  async function removeProgram(uid, progName) {
+    try {
+      await db.collection('users').doc(uid).update({
+        assignedPrograms: firebase.firestore.FieldValue.arrayRemove(progName)
+      });
+      showToast(`"${progName}" removed.`, 'success');
+    } catch(e) {
+      showToast('Error removing program.', 'error');
     }
   }
 

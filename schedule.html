@@ -349,12 +349,13 @@
   const auth = firebase.auth();
   const db   = firebase.firestore();
 
-  let currentUser  = null;
-  let allSessions  = [];
-  let activeTab    = 'upcoming';
-  let athleteData  = null;
-  let programData  = null;
-  const today      = new Date(); today.setHours(0,0,0,0);
+  let currentUser    = null;
+  let allSessions    = [];
+  let activeTab      = 'upcoming';
+  let athleteData    = null;
+  let allPrograms    = [];  // [{id, ...data}] for each assigned program
+  let editingProgram = null; // name of program being started/edited
+  const today        = new Date(); today.setHours(0,0,0,0);
 
   // ── Auth guard ──
   auth.onAuthStateChanged(async user => {
@@ -379,66 +380,106 @@
     }
   });
 
-  // ── Load assigned program ──
+  // ── Load assigned programs ──
   async function loadProgram() {
-    const progName = athleteData.assignedProgram;
-    if (!progName) return;
+    const names = athleteData.assignedPrograms
+      ? athleteData.assignedPrograms
+      : (athleteData.assignedProgram ? [athleteData.assignedProgram] : []);
 
-    const snap = await db.collection('programs').where('name', '==', progName).get();
-    if (snap.empty) return;
-    programData = { id: snap.docs[0].id, ...snap.docs[0].data() };
-    renderProgramBanner();
+    if (names.length === 0) return;
+
+    const snaps = await Promise.all(names.map(n => db.collection('programs').where('name', '==', n).get()));
+    allPrograms = snaps
+      .map((s, i) => s.empty ? null : { id: s.docs[0].id, ...s.docs[0].data() })
+      .filter(Boolean);
+
+    renderProgramBanners();
   }
 
-  function renderProgramBanner() {
-    if (!programData) return;
-    const section  = document.getElementById('programSection');
-    const banner   = document.getElementById('programBanner');
-    const started  = athleteData.programStartDate;
-    const startStr = started ? new Date(started).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null;
+  function getStartDate(progName) {
+    const dates = athleteData.programStartDates || {};
+    // fall back to legacy single field for the first program
+    return dates[progName] || (progName === (athleteData.assignedProgram) ? athleteData.programStartDate : null);
+  }
 
+  function renderProgramBanners() {
+    const section = document.getElementById('programSection');
+    const banner  = document.getElementById('programBanner');
+    if (allPrograms.length === 0) return;
     section.style.display = 'block';
-    banner.innerHTML = `
-      <div class="program-banner-left">
-        <div class="program-banner-icon"><i class="fa-solid fa-clipboard-list"></i></div>
-        <div>
-          <div class="program-banner-label">Assigned Program</div>
-          <div class="program-banner-name">${esc(programData.name)}</div>
-          <div class="program-banner-meta">
-            <span><i class="fa-solid fa-signal me-1"></i>${esc(programData.difficulty)}</span>
-            <span><i class="fa-regular fa-clock me-1"></i>${esc(programData.duration)}</span>
-            <span><i class="fa-solid fa-calendar-days me-1"></i>${esc(programData.daysPerWeek)}</span>
-            ${started ? `<span><i class="fa-solid fa-play me-1"></i>Started ${startStr}</span>` : ''}
+    banner.innerHTML = '';
+
+    allPrograms.forEach((p, i) => {
+      const started  = getStartDate(p.name);
+      const startStr = started ? new Date(started).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null;
+
+      const wrap = document.createElement('div');
+      wrap.style.cssText = i < allPrograms.length - 1
+        ? 'display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.07);'
+        : 'display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;';
+
+      wrap.innerHTML = `
+        <div class="program-banner-left">
+          <div class="program-banner-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+          <div>
+            <div class="program-banner-label">Assigned Program</div>
+            <div class="program-banner-name">${esc(p.name)}</div>
+            <div class="program-banner-meta">
+              ${p.difficulty  ? `<span><i class="fa-solid fa-signal me-1"></i>${esc(p.difficulty)}</span>` : ''}
+              ${p.duration    ? `<span><i class="fa-regular fa-clock me-1"></i>${esc(p.duration)}</span>` : ''}
+              ${p.daysPerWeek ? `<span><i class="fa-solid fa-calendar-days me-1"></i>${esc(p.daysPerWeek)}</span>` : ''}
+              ${started ? `<span><i class="fa-solid fa-play me-1"></i>Started ${startStr}</span>` : ''}
+            </div>
           </div>
         </div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        ${started ? `<span class="program-started-badge"><i class="fa-solid fa-circle-check me-1"></i>Active</span>
-          <button class="btn-change-date" onclick="openStartModal()"><i class="fa-solid fa-pen me-1"></i>Change Start Date</button>` :
-          `<button class="btn-start-program" onclick="openStartModal()"><i class="fa-solid fa-play"></i> Start Program</button>`}
-      </div>`;
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          ${started
+            ? `<span class="program-started-badge"><i class="fa-solid fa-circle-check me-1"></i>Active</span>
+               <button class="btn-change-date" data-prog="${esc(p.name)}"><i class="fa-solid fa-pen me-1"></i>Change Date</button>`
+            : `<button class="btn-start-program" data-prog="${esc(p.name)}"><i class="fa-solid fa-play"></i> Start Program</button>`}
+        </div>`;
+
+      // Attach click handlers via JS (no inline onclick needed)
+      const actionBtn = wrap.querySelector('[data-prog]');
+      if (actionBtn) actionBtn.addEventListener('click', () => openStartModal(p.name, started));
+
+      banner.appendChild(wrap);
+    });
   }
 
-  function openStartModal() {
-    document.getElementById('startProgName').textContent = programData?.name || '';
-    if (athleteData.programStartDate) {
-      document.getElementById('startDate').value = new Date(athleteData.programStartDate).toISOString().split('T')[0];
-    }
+  function openStartModal(progName, currentStart) {
+    editingProgram = progName;
+    document.getElementById('startProgName').textContent = progName;
+    document.getElementById('startDate').value = currentStart
+      ? new Date(currentStart).toISOString().split('T')[0]
+      : today.toISOString().split('T')[0];
     document.getElementById('startProgramModal').classList.add('open');
   }
-  function closeStartModal() { document.getElementById('startProgramModal').classList.remove('open'); }
+  function closeStartModal() {
+    document.getElementById('startProgramModal').classList.remove('open');
+    editingProgram = null;
+  }
 
   async function doStartProgram() {
     const dateVal = document.getElementById('startDate').value;
-    if (!dateVal) { showToast('Please pick a start date.', 'error'); return; }
+    if (!dateVal || !editingProgram) { showToast('Please pick a start date.', 'error'); return; }
     const btn = document.getElementById('btnStart');
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>';
     try {
-      const ms = new Date(dateVal).getTime();
-      await db.collection('users').doc(currentUser.uid).update({ programStartDate: ms });
-      athleteData.programStartDate = ms;
-      renderProgramBanner();
+      const ms = new Date(dateVal + 'T12:00:00').getTime();
+      // Store per-program start dates as a map
+      const update = {};
+      update[`programStartDates.${editingProgram}`] = ms;
+      // Also keep legacy field in sync for first/only program
+      if (!athleteData.assignedPrograms || athleteData.assignedPrograms[0] === editingProgram) {
+        update.programStartDate = ms;
+      }
+      await db.collection('users').doc(currentUser.uid).update(update);
+      if (!athleteData.programStartDates) athleteData.programStartDates = {};
+      athleteData.programStartDates[editingProgram] = ms;
+      if (update.programStartDate) athleteData.programStartDate = ms;
+      renderProgramBanners();
       showToast('Program started!', 'success');
       closeStartModal();
     } catch(e) {
