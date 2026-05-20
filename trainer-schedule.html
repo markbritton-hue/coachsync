@@ -500,6 +500,16 @@
       if (programs.length === 1) update.programStartDate = ms;
 
       await db.collection('users').doc(editingAthleteId).update(update);
+
+      // Update local state immediately so the card moves without waiting for onSnapshot
+      const idx = allAthletes.findIndex(a => a.id === editingAthleteId);
+      if (idx !== -1) {
+        if (!allAthletes[idx].programStartDates) allAthletes[idx].programStartDates = {};
+        allAthletes[idx].programStartDates[editingProgName] = ms;
+        if (programs.length === 1) allAthletes[idx].programStartDate = ms;
+      }
+      render();
+
       showToast('Start date updated!', 'success');
       closeEditModal();
     } catch(e) {
