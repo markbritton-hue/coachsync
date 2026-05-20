@@ -179,6 +179,12 @@
     .program-mini-card:hover {
       border-color: rgba(80,184,240,0.5); background: rgba(80,184,240,0.07);
     }
+    .program-mini-card.started {
+      background: rgba(16,185,129,0.07); border-color: rgba(16,185,129,0.3);
+    }
+    .program-mini-card.started:hover {
+      background: rgba(16,185,129,0.13); border-color: rgba(16,185,129,0.5);
+    }
     .btn-remove-prog {
       background: none; border: none; color: rgba(239,68,68,0.45);
       font-size: 0.8rem; cursor: pointer; padding: 2px 5px; line-height: 1;
@@ -641,7 +647,7 @@
 
           // Mini program card — clicking opens athlete progress for this program
           const miniCard = document.createElement('div');
-          miniCard.className = 'program-mini-card';
+          miniCard.className = 'program-mini-card' + (isStarted(pName) ? ' started' : '');
           miniCard.style.cursor = 'pointer';
           miniCard.addEventListener('click', (e) => {
             e.stopPropagation();
