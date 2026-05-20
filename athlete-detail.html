@@ -434,6 +434,21 @@
       </div>`;
     }
 
+    if (logData && logData.rpe) {
+      const rpeLabels = {1:'Very easy',2:'Easy',3:'Moderate',4:'Somewhat hard',5:'Hard',6:'Hard+',7:'Very hard',8:'Very hard+',9:'Extremely hard',10:'Max effort'};
+      const rpeColor  = logData.rpe <= 6 ? '#10b981' : logData.rpe <= 9 ? '#f59e0b' : '#ef4444';
+      const blocks    = Array.from({length:10},(_,i) => {
+        const n = i+1, lit = n <= logData.rpe;
+        const c = n <= 6 ? '#10b981' : n <= 9 ? '#f59e0b' : '#ef4444';
+        return `<div style="flex:1;height:22px;border-radius:4px;background:${lit?c:'rgba(255,255,255,0.06)'};display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:${lit?'white':'transparent'};">${n}</div>`;
+      }).join('');
+      html += `<div style="background:rgba(30,41,59,0.8);border:1px solid rgba(80,184,240,0.15);border-radius:12px;padding:16px 18px;margin-bottom:20px;">
+        <div style="font-size:0.7rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px;"><i class="fa-solid fa-fire-flame-curved" style="margin-right:4px;"></i>Effort Rating (RPE)</div>
+        <div style="display:flex;gap:3px;margin-bottom:6px;">${blocks}</div>
+        <div style="font-size:0.82rem;"><span style="color:${rpeColor};font-weight:700;">${logData.rpe}/10</span> <span style="color:rgba(255,255,255,0.45);">— ${rpeLabels[logData.rpe]||''}</span></div>
+      </div>`;
+    }
+
     if (exs.length === 0) {
       html += `<div class="empty-state"><i class="fa-solid fa-list"></i><p>No exercises in this program.</p></div>`;
     } else {
