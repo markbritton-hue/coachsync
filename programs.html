@@ -351,10 +351,6 @@
         </select>
       </div>
       <div class="col-md-6">
-        <label class="field-label">Start Date</label>
-        <input type="date" class="field-input" id="progStartDate" style="margin-bottom:0;" />
-      </div>
-      <div class="col-md-6">
         <label class="field-label">Est. Workout Time</label>
         <select class="field-select" id="progEstTime" style="margin-bottom:0;">
           <option value="">— Select —</option>
@@ -676,7 +672,6 @@
       document.getElementById('progDays').value = '4 days';
       document.getElementById('progGoal').value = 'Strength';
       document.getElementById('progDesc').value      = '';
-      document.getElementById('progStartDate').value = '';
       document.getElementById('progEstTime').value   = '';
       document.getElementById('exercisesList').innerHTML = '';
       exerciseCount = 0;
@@ -741,10 +736,6 @@
                 <span class="ex-mini-label"><i class="fa-solid fa-video" style="color:#50b8f0;margin-right:4px;"></i>Instructional Video Link</span>
                 <input class="ex-input" id="ex-video-${idx}" placeholder="https://youtube.com/watch?v=..." value="${esc(data.videoUrl||'')}" />
               </div>
-              <div>
-                <span class="ex-mini-label"><i class="fa-regular fa-clock" style="margin-right:3px;"></i>Est. Time (min)</span>
-                <input class="ex-input" id="ex-esttime-${idx}" placeholder="5" value="${esc(data.estTime||'')}" style="text-align:center;" />
-              </div>
             </div>
           </div>
         </div>
@@ -782,7 +773,6 @@
         rest:     document.getElementById('ex-rest-'   + idx).value.trim(),
         notes:    document.getElementById('ex-notes-'  + idx).value.trim(),
         videoUrl: document.getElementById('ex-video-'    + idx).value.trim(),
-        estTime:  document.getElementById('ex-esttime-'  + idx).value.trim(),
       };
     }).filter(ex => ex.name);
   }
@@ -803,7 +793,6 @@
       daysPerWeek: document.getElementById('progDays').value,
       goal:        document.getElementById('progGoal').value,
       description: document.getElementById('progDesc').value.trim(),
-      startDate:   document.getElementById('progStartDate').value || null,
       estWorkoutTime: document.getElementById('progEstTime').value || null,
       exercises:   collectExercises(),
       trainerId:   currentUser.uid,
@@ -849,7 +838,6 @@
     document.getElementById('progDays').value       = p.daysPerWeek || '4 days';
     document.getElementById('progGoal').value       = p.goal || 'Strength';
     document.getElementById('progDesc').value      = p.description || '';
-    document.getElementById('progStartDate').value = p.startDate   || '';
     document.getElementById('progEstTime').value   = p.estWorkoutTime || '';
     document.getElementById('exercisesList').innerHTML = '';
     exerciseCount = 0;
