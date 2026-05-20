@@ -409,6 +409,8 @@
     </p>
     <label class="field-label">Add an Existing Program</label>
     <select class="field-select" id="programSelect"></select>
+    <label class="field-label">Start Date <span style="color:rgba(255,255,255,0.3);font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+    <input type="date" class="field-select" id="assignStartDate" style="margin-bottom:20px;" />
     <div style="text-align:center; margin: -6px 0 20px; color:rgba(255,255,255,0.3); font-size:0.82rem;">— or —</div>
     <a id="btnCreateCustom" href="#" class="btn-assign" style="display:flex;justify-content:center;align-items:center;gap:8px;padding:12px;border-radius:12px;font-size:0.9rem;margin-bottom:4px;">
       <i class="fa-solid fa-wand-magic-sparkles"></i> Create Custom Program for This Athlete
@@ -441,6 +443,24 @@
     </div>
     <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;" id="detailExLabel"></div>
     <div class="ex-list" id="detailExList"></div>
+  </div>
+</div>
+
+<!-- Edit Start Date Modal -->
+<div class="modal-overlay" id="editDateModal" onclick="if(event.target===this)closeEditDateModal()">
+  <div class="modal-box">
+    <h2 class="modal-title"><i class="fa-solid fa-calendar-pen me-2"></i>Set Start Date</h2>
+    <p style="color:rgba(255,255,255,0.5);font-size:0.88rem;margin-bottom:20px;">
+      Program: <strong id="editDateProgName" style="color:#50b8f0;"></strong>
+    </p>
+    <label class="field-label">Start Date</label>
+    <input type="date" class="field-select" id="editDateInput" style="margin-bottom:20px;" />
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeEditDateModal()">Cancel</button>
+      <button class="btn-save" id="btnSaveDate" onclick="saveEditDate()">
+        <i class="fa-solid fa-check me-1"></i> Save
+      </button>
+    </div>
   </div>
 </div>
 
@@ -666,6 +686,16 @@
           const actions = document.createElement('div');
           actions.style.cssText = 'display:flex;align-items:center;gap:6px;';
 
+          const calBtn = document.createElement('button');
+          calBtn.className = 'btn-remove-prog';
+          calBtn.title = 'Set start date';
+          calBtn.style.color = 'rgba(16,185,129,0.6)';
+          calBtn.innerHTML = '<i class="fa-solid fa-calendar-day"></i>';
+          calBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openEditDateModal(a.id, pName);
+          });
+
           const editBtn = document.createElement('button');
           editBtn.className = 'btn-remove-prog';
           editBtn.title = 'Edit program';
@@ -687,7 +717,7 @@
             removeProgram(a.id, pName);
           });
 
-          actions.append(editBtn, removeBtn);
+          actions.append(calBtn, editBtn, removeBtn);
           miniTop.append(nameSpan, actions);
 
           // Status badge row
@@ -786,6 +816,7 @@
     document.getElementById('btnCreateCustom').href =
       `programs.html?athlete=${encodeURIComponent(uid)}&name=${encodeURIComponent(name)}`;
 
+    document.getElementById('assignStartDate').value = '';
     document.getElementById('assignModal').classList.add('open');
   }
 
@@ -796,15 +827,23 @@
 
   async function doAssign() {
     if (!assigningUid) return;
-    const progName = document.getElementById('programSelect').value;
+    const progName   = document.getElementById('programSelect').value;
+    const startDateVal = document.getElementById('assignStartDate').value;
     if (!progName) { showToast('Please select a program.', 'error'); return; }
     const btn = document.getElementById('btnAssign');
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>';
     try {
-      await db.collection('users').doc(assigningUid).update({
-        assignedPrograms: firebase.firestore.FieldValue.arrayUnion(progName)
-      });
+      const update = { assignedPrograms: firebase.firestore.FieldValue.arrayUnion(progName) };
+      if (startDateVal) {
+        const ms = new Date(startDateVal + 'T12:00:00').getTime();
+        update[`programStartDates.${progName}`] = ms;
+        // Keep legacy field in sync for first assignment
+        const athlete = allAthletes.find(a => a.id === assigningUid);
+        const existing = athlete?.assignedPrograms || [];
+        if (existing.length === 0) update.programStartDate = ms;
+      }
+      await db.collection('users').doc(assigningUid).update(update);
       showToast('Program assigned!', 'success');
       closeAssignModal();
     } catch(e) {
@@ -936,6 +975,55 @@
   function closeDetailModal(e) {
     if (e && e.target !== document.getElementById('detailModal')) return;
     document.getElementById('detailModal').classList.remove('open');
+  }
+
+  // ── Edit start date modal ──
+  let editDateAthleteId = null;
+  let editDateProgName  = null;
+
+  function openEditDateModal(athleteId, progName) {
+    editDateAthleteId = athleteId;
+    editDateProgName  = progName;
+    document.getElementById('editDateProgName').textContent = progName;
+    const athlete   = allAthletes.find(a => a.id === athleteId);
+    const currentMs = (athlete?.programStartDates && athlete.programStartDates[progName])
+      || (athlete?.assignedPrograms?.length === 1 ? athlete.programStartDate : null)
+      || null;
+    document.getElementById('editDateInput').value = currentMs
+      ? new Date(currentMs).toISOString().split('T')[0]
+      : new Date().toISOString().split('T')[0];
+    document.getElementById('btnSaveDate').disabled = false;
+    document.getElementById('btnSaveDate').innerHTML = '<i class="fa-solid fa-check me-1"></i> Save';
+    document.getElementById('editDateModal').classList.add('open');
+  }
+
+  function closeEditDateModal() {
+    document.getElementById('editDateModal').classList.remove('open');
+    editDateAthleteId = null;
+    editDateProgName  = null;
+  }
+
+  async function saveEditDate() {
+    const dateVal = document.getElementById('editDateInput').value;
+    if (!dateVal || !editDateAthleteId || !editDateProgName) return;
+    const btn = document.getElementById('btnSaveDate');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>';
+    try {
+      const ms = new Date(dateVal + 'T12:00:00').getTime();
+      const update = {};
+      update[`programStartDates.${editDateProgName}`] = ms;
+      const athlete  = allAthletes.find(a => a.id === editDateAthleteId);
+      const programs = athlete?.assignedPrograms || (athlete?.assignedProgram ? [athlete.assignedProgram] : []);
+      if (programs.length === 1) update.programStartDate = ms;
+      await db.collection('users').doc(editDateAthleteId).update(update);
+      showToast('Start date saved!', 'success');
+      closeEditDateModal();
+    } catch(e) {
+      showToast('Error: ' + e.message, 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save';
+    }
   }
 
   async function doSignOut() { await auth.signOut(); window.location.href = 'index.html'; }

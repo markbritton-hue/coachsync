@@ -123,54 +123,6 @@
     .empty-state i { font-size: 2.5rem; color: rgba(114,184,50,0.2); margin-bottom: 14px; display: block; }
     .empty-state p { color: rgba(255,255,255,0.35); font-size: 0.9rem; }
 
-    .btn-edit-date {
-      background: none; border: 1px solid rgba(114,184,50,0.3);
-      color: rgba(114,184,50,0.7); font-size: 0.78rem; font-weight: 600;
-      padding: 5px 12px; border-radius: 18px; cursor: pointer; transition: all 0.2s;
-      display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; white-space: nowrap;
-    }
-    .btn-edit-date:hover { border-color: #72b832; color: #72b832; background: rgba(114,184,50,0.08); }
-
-    .modal-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.8); z-index: 9999;
-      align-items: center; justify-content: center; padding: 20px;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal-box {
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      border: 1px solid rgba(114,184,50,0.3); border-radius: 20px;
-      padding: 36px; width: 100%; max-width: 460px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-    }
-    .modal-title {
-      font-size: 1.2rem; font-weight: 800;
-      background: linear-gradient(135deg, #72b832, #a0d060);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 16px;
-    }
-    .field-label {
-      color: rgba(255,255,255,0.6); font-size: 0.82rem; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block;
-    }
-    .field-input {
-      background: rgba(15,23,42,0.7); border: 2px solid rgba(114,184,50,0.25);
-      color: white; border-radius: 8px; padding: 11px 14px;
-      width: 100%; font-size: 0.95rem; margin-bottom: 20px; outline: none; box-sizing: border-box;
-    }
-    .field-input:focus { border-color: #72b832; }
-    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; }
-    .btn-cancel-modal {
-      background: none; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6);
-      font-weight: 600; padding: 10px 22px; border-radius: 25px; cursor: pointer; transition: all 0.2s;
-    }
-    .btn-cancel-modal:hover { border-color: rgba(255,255,255,0.4); color: white; }
-    .btn-save {
-      background: #72b832; border: none; color: white; font-weight: 700;
-      padding: 10px 26px; border-radius: 25px; cursor: pointer; transition: all 0.2s;
-      box-shadow: 0 4px 12px rgba(114,184,50,0.3);
-    }
-    .btn-save:hover { background: #5a9528; }
-    .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
     .toast {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
       background: #1e293b; border: 1px solid rgba(114,184,50,0.4);
@@ -221,27 +173,6 @@
   </div>
 
   <div id="scheduleContent"></div>
-</div>
-
-<!-- Edit Start Date Modal -->
-<div class="modal-overlay" id="editDateModal" onclick="if(event.target===this)closeEditModal()">
-  <div class="modal-box">
-    <h2 class="modal-title"><i class="fa-solid fa-calendar-pen me-2"></i>Update Start Date</h2>
-    <p style="color:rgba(255,255,255,0.5);font-size:0.88rem;margin-bottom:4px;">
-      Athlete: <strong id="editAthleteName" style="color:rgba(255,255,255,0.85);"></strong>
-    </p>
-    <p style="color:rgba(255,255,255,0.5);font-size:0.88rem;margin-bottom:20px;">
-      Program: <strong id="editProgName" style="color:#72b832;"></strong>
-    </p>
-    <label class="field-label">Start Date</label>
-    <input type="date" class="field-input" id="editStartDate" />
-    <div class="modal-footer">
-      <button class="btn-cancel-modal" onclick="closeEditModal()">Cancel</button>
-      <button class="btn-save" id="btnSaveDate" onclick="saveStartDate()">
-        <i class="fa-solid fa-check me-1"></i> Save
-      </button>
-    </div>
-  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -441,83 +372,10 @@
       badge.innerHTML = '<i class="fa-solid fa-clock" style="margin-right:4px;"></i> Not Started';
     }
 
-    // Edit date button (only when a program is assigned)
-    if (progName) {
-      const editBtn = document.createElement('button');
-      editBtn.className = 'btn-edit-date';
-      editBtn.innerHTML = '<i class="fa-solid fa-pen"></i> Edit Date';
-      editBtn.addEventListener('click', e => {
-        e.stopPropagation();
-        openEditModal(a, progName, startMs);
-      });
-      card.append(dateBlock, avatar, info, badge, editBtn);
-    } else {
-      card.append(dateBlock, avatar, info, badge);
-    }
+    card.append(dateBlock, avatar, info, badge);
     return card;
   }
 
-  // ── Edit start date modal ──
-  let editingAthleteId = null;
-  let editingProgName  = null;
-
-  function openEditModal(athlete, progName, currentStartMs) {
-    editingAthleteId = athlete.id;
-    editingProgName  = progName;
-    document.getElementById('editAthleteName').textContent = athlete.displayName || athlete.email || 'Athlete';
-    document.getElementById('editProgName').textContent    = progName;
-    const todayStr = new Date().toISOString().split('T')[0];
-    document.getElementById('editStartDate').value = currentStartMs
-      ? new Date(currentStartMs).toISOString().split('T')[0]
-      : todayStr;
-    document.getElementById('btnSaveDate').disabled = false;
-    document.getElementById('btnSaveDate').innerHTML = '<i class="fa-solid fa-check me-1"></i> Save';
-    document.getElementById('editDateModal').classList.add('open');
-  }
-
-  function closeEditModal() {
-    document.getElementById('editDateModal').classList.remove('open');
-    editingAthleteId = null;
-    editingProgName  = null;
-  }
-
-  async function saveStartDate() {
-    const dateVal = document.getElementById('editStartDate').value;
-    if (!dateVal || !editingAthleteId || !editingProgName) return;
-
-    const btn = document.getElementById('btnSaveDate');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>';
-
-    try {
-      const ms = new Date(dateVal + 'T12:00:00').getTime();
-      const update = {};
-      update[`programStartDates.${editingProgName}`] = ms;
-
-      // Keep legacy field in sync for single-program athletes
-      const athlete = allAthletes.find(a => a.id === editingAthleteId);
-      const programs = athlete?.assignedPrograms || (athlete?.assignedProgram ? [athlete.assignedProgram] : []);
-      if (programs.length === 1) update.programStartDate = ms;
-
-      await db.collection('users').doc(editingAthleteId).update(update);
-
-      // Update local state immediately so the card moves without waiting for onSnapshot
-      const idx = allAthletes.findIndex(a => a.id === editingAthleteId);
-      if (idx !== -1) {
-        if (!allAthletes[idx].programStartDates) allAthletes[idx].programStartDates = {};
-        allAthletes[idx].programStartDates[editingProgName] = ms;
-        if (programs.length === 1) allAthletes[idx].programStartDate = ms;
-      }
-      render();
-
-      showToast('Start date updated!', 'success');
-      closeEditModal();
-    } catch(e) {
-      showToast('Error: ' + e.message, 'error');
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save';
-    }
-  }
 
   function esc(str) {
     if (!str) return '';
