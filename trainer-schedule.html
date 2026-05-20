@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Schedule — CoachSync</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .top-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 24px; border-bottom: 1px solid rgba(114,184,50,0.15);
+      background: rgba(15,23,42,0.6);
+    }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .btn-back {
+      background: none; border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.6); font-size: 0.85rem; font-weight: 600;
+      padding: 6px 16px; border-radius: 25px; cursor: pointer;
+      text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-back:hover { border-color: #72b832; color: #72b832; }
+    .btn-logout {
+      background: none; border: 1px solid rgba(239,68,68,0.4);
+      color: rgba(239,68,68,0.8); font-size: 0.85rem; font-weight: 600;
+      padding: 6px 16px; border-radius: 25px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-logout:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.08); }
+
+    .page-header {
+      padding: 40px 0 28px;
+    }
+    .page-header h1 {
+      font-size: 1.8rem; font-weight: 800;
+      background: linear-gradient(135deg, #72b832, #a0d060);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0;
+    }
+    .page-header p { color: rgba(255,255,255,0.5); font-size: 0.9rem; margin: 4px 0 0; }
+
+    /* ── Section headers ── */
+    .section-header {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.6px; color: rgba(255,255,255,0.35);
+      margin: 28px 0 14px; padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .section-header .dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .dot-green  { background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.6); }
+    .dot-blue   { background: #50b8f0; box-shadow: 0 0 6px rgba(80,184,240,0.5); }
+    .dot-amber  { background: #f59e0b; }
+    .dot-muted  { background: rgba(255,255,255,0.2); }
+
+    /* ── Program start card ── */
+    .start-card {
+      background: rgba(30,41,59,0.85); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px; padding: 18px 20px;
+      display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+      margin-bottom: 10px; cursor: pointer;
+      transition: all 0.25s;
+    }
+    .start-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+    .start-card.active  { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
+    .start-card.active:hover { border-color: rgba(16,185,129,0.5); }
+    .start-card.upcoming { border-color: rgba(80,184,240,0.25); }
+    .start-card.upcoming:hover { border-color: rgba(80,184,240,0.45); }
+    .start-card.unset   { border-color: rgba(255,255,255,0.06); opacity: 0.7; }
+
+    /* Date block */
+    .date-block {
+      border-radius: 10px; padding: 10px 14px; text-align: center;
+      flex-shrink: 0; min-width: 58px;
+    }
+    .date-block.active   { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); }
+    .date-block.upcoming { background: rgba(80,184,240,0.1);  border: 1px solid rgba(80,184,240,0.25); }
+    .date-block.unset    { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+    .date-month { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .date-day   { font-size: 1.5rem; font-weight: 800; color: white; line-height: 1.1; }
+    .date-year  { font-size: 0.68rem; color: rgba(255,255,255,0.4); }
+    .date-block.active .date-month   { color: #10b981; }
+    .date-block.upcoming .date-month { color: #50b8f0; }
+    .date-block.unset .date-month    { color: rgba(255,255,255,0.3); }
+
+    /* Athlete info */
+    .athlete-avatar {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #1e8fe0, #50b8f0);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.95rem; font-weight: 800; color: white; text-transform: uppercase;
+    }
+    .card-info { flex: 1; min-width: 140px; }
+    .card-athlete { font-size: 0.95rem; font-weight: 700; color: rgba(255,255,255,0.9); margin-bottom: 2px; }
+    .card-program { font-size: 0.82rem; color: rgba(255,255,255,0.45); margin-bottom: 6px; }
+    .card-meta    { display: flex; flex-wrap: wrap; gap: 8px; }
+    .meta-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 12px;
+    }
+    .pill-green  { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); color: #10b981; }
+    .pill-blue   { background: rgba(80,184,240,0.1);  border: 1px solid rgba(80,184,240,0.2);  color: #50b8f0; }
+    .pill-amber  { background: rgba(245,158,11,0.1);  border: 1px solid rgba(245,158,11,0.2);  color: #f59e0b; }
+    .pill-muted  { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.4); }
+
+    .status-badge {
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+      padding: 4px 12px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+    }
+    .badge-active   { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); color: #10b981; }
+    .badge-upcoming { background: rgba(80,184,240,0.1);  border: 1px solid rgba(80,184,240,0.3);  color: #50b8f0; }
+    .badge-unset    { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.35); }
+
+    .empty-state { text-align: center; padding: 50px 20px; }
+    .empty-state i { font-size: 2.5rem; color: rgba(114,184,50,0.2); margin-bottom: 14px; display: block; }
+    .empty-state p { color: rgba(255,255,255,0.35); font-size: 0.9rem; }
+
+    .loading-overlay {
+      position: fixed; inset: 0; background: linear-gradient(135deg, #0f172a, #1e293b);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; font-size: 1.1rem; color: rgba(255,255,255,0.5); gap: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .top-nav { padding: 14px 16px; }
+      .start-card { gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <i class="fa-solid fa-spinner fa-spin"></i> Loading…
+</div>
+
+<nav class="top-nav">
+  <a href="trainer-dashboard.html">
+    <img src="CoachSyncLogo.png" alt="CoachSync" style="height:72px;">
+  </a>
+  <div class="nav-right">
+    <a href="trainer-dashboard.html" class="btn-back">
+      <i class="fa-solid fa-arrow-left"></i> Dashboard
+    </a>
+    <button class="btn-logout" onclick="doSignOut()">
+      <i class="fa-solid fa-right-from-bracket me-1"></i>Sign Out
+    </button>
+  </div>
+</nav>
+
+<div class="container" style="max-width:860px;">
+  <div class="page-header">
+    <h1><i class="fa-solid fa-calendar-days me-2" style="font-size:1.5rem;"></i>Schedule</h1>
+    <p id="pageSubtitle">Athlete program start dates and activity.</p>
+  </div>
+
+  <div id="scheduleContent"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDnaS5J_-KkmFZcE3FtjjxV54cZkbWcop8",
+    authDomain: "coachsync-7e07e.firebaseapp.com",
+    projectId: "coachsync-7e07e",
+    storageBucket: "coachsync-7e07e.firebasestorage.app",
+    messagingSenderId: "774513797996",
+    appId: "1:774513797996:web:e38f47773c5b487982e149"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db   = firebase.firestore();
+
+  let currentUser = null;
+  let allAthletes = [];
+  const todayMs   = new Date().setHours(0, 0, 0, 0);
+
+  auth.onAuthStateChanged(async user => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    const snap = await db.collection('users').doc(user.uid).get();
+    if (!snap.exists || snap.data().role !== 'trainer') { window.location.href = 'index.html'; return; }
+    currentUser = user;
+    loadAthletes();
+  });
+
+  function loadAthletes() {
+    db.collection('users')
+      .where('trainerId', '==', currentUser.uid)
+      .onSnapshot(snap => {
+        allAthletes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        render();
+        document.getElementById('loadingOverlay').style.display = 'none';
+      });
+  }
+
+  function computeWeekDay(startMs, daysPerWeek) {
+    const dayIndex = Math.max(0, Math.floor((Date.now() - startMs) / 86400000));
+    return { week: Math.floor(dayIndex / daysPerWeek) + 1, day: (dayIndex % daysPerWeek) + 1 };
+  }
+
+  // Expand athletes × programs into a flat list of entries
+  function buildEntries() {
+    const entries = [];
+    allAthletes.forEach(a => {
+      const programs = a.assignedPrograms
+        ? a.assignedPrograms
+        : (a.assignedProgram ? [a.assignedProgram] : []);
+
+      if (programs.length === 0) {
+        entries.push({ athlete: a, progName: null, startMs: null });
+        return;
+      }
+
+      programs.forEach(pName => {
+        const startMs = (a.programStartDates && a.programStartDates[pName])
+          || (programs.length === 1 ? a.programStartDate : null)
+          || null;
+        entries.push({ athlete: a, progName: pName, startMs });
+      });
+    });
+    return entries;
+  }
+
+  function render() {
+    const content = document.getElementById('scheduleContent');
+    content.innerHTML = '';
+
+    if (allAthletes.length === 0) {
+      content.innerHTML = `<div class="empty-state">
+        <i class="fa-solid fa-calendar-days"></i>
+        <p>No athletes connected yet.</p>
+      </div>`;
+      return;
+    }
+
+    const entries = buildEntries();
+
+    // Split into groups
+    const active   = entries.filter(e => e.startMs && e.startMs <= Date.now());
+    const upcoming = entries.filter(e => e.startMs && e.startMs > Date.now());
+    const unset    = entries.filter(e => !e.startMs);
+
+    // Sort active by most recently started first
+    active.sort((a, b) => b.startMs - a.startMs);
+    // Sort upcoming by soonest first
+    upcoming.sort((a, b) => a.startMs - b.startMs);
+
+    if (active.length)   renderSection('Active Programs', 'dot-green',  'active',   active,   content);
+    if (upcoming.length) renderSection('Upcoming Starts', 'dot-blue',   'upcoming', upcoming, content);
+    if (unset.length)    renderSection('Not Started',     'dot-muted',  'unset',    unset,    content);
+
+    document.getElementById('pageSubtitle').textContent =
+      `${allAthletes.length} athlete${allAthletes.length !== 1 ? 's' : ''} · ${active.length} active · ${upcoming.length} upcoming`;
+  }
+
+  function renderSection(label, dotClass, type, entries, container) {
+    const header = document.createElement('div');
+    header.className = 'section-header';
+    header.innerHTML = `<div class="dot ${dotClass}"></div>${label} <span style="margin-left:auto;opacity:0.6;">${entries.length}</span>`;
+    container.appendChild(header);
+
+    entries.forEach(entry => container.appendChild(buildCard(entry, type)));
+  }
+
+  function buildCard(entry, type) {
+    const { athlete: a, progName, startMs } = entry;
+    const name     = a.displayName || a.email || 'Athlete';
+    const initials = name.trim().split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
+
+    const card = document.createElement('div');
+    card.className = `start-card ${type}`;
+    card.addEventListener('click', () => {
+      const url = progName
+        ? `athlete-detail.html?id=${encodeURIComponent(a.id)}&program=${encodeURIComponent(progName)}`
+        : `athlete-detail.html?id=${encodeURIComponent(a.id)}`;
+      window.location.href = url;
+    });
+
+    // Date block
+    const dateBlock = document.createElement('div');
+    dateBlock.className = `date-block ${type}`;
+    if (startMs) {
+      const d = new Date(startMs);
+      const month = d.toLocaleDateString('en-US', { month: 'short' });
+      const day   = d.getDate();
+      const year  = d.getFullYear();
+      dateBlock.innerHTML = `<div class="date-month">${month}</div><div class="date-day">${day}</div><div class="date-year">${year}</div>`;
+    } else {
+      dateBlock.innerHTML = `<div class="date-month">No</div><div class="date-day" style="font-size:1rem;">Date</div>`;
+    }
+
+    // Avatar
+    const avatar = document.createElement('div');
+    avatar.className = 'athlete-avatar';
+    avatar.textContent = initials;
+
+    // Info
+    const info = document.createElement('div');
+    info.className = 'card-info';
+
+    const athleteEl = document.createElement('div');
+    athleteEl.className = 'card-athlete';
+    athleteEl.textContent = name;
+
+    const programEl = document.createElement('div');
+    programEl.className = 'card-program';
+    programEl.innerHTML = progName
+      ? `<i class="fa-solid fa-clipboard-list" style="margin-right:5px;font-size:0.7rem;"></i>${esc(progName)}`
+      : '<span style="color:rgba(255,255,255,0.25);">No program assigned</span>';
+
+    const metaEl = document.createElement('div');
+    metaEl.className = 'card-meta';
+
+    if (startMs && type === 'active') {
+      const daysActive = Math.floor((Date.now() - startMs) / 86400000);
+      metaEl.innerHTML += `<span class="meta-pill pill-green"><i class="fa-solid fa-circle-check"></i> Day ${daysActive + 1} active</span>`;
+
+      if (a.lastWorkout) {
+        const daysAgo = Math.floor((Date.now() - a.lastWorkout.seconds * 1000) / 86400000);
+        const label   = daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : `${daysAgo}d ago`;
+        const cls     = daysAgo <= 3 ? 'pill-green' : daysAgo <= 7 ? 'pill-amber' : 'pill-muted';
+        metaEl.innerHTML += `<span class="meta-pill ${cls}"><i class="fa-solid fa-dumbbell"></i> Last workout: ${label}</span>`;
+      }
+    } else if (startMs && type === 'upcoming') {
+      const daysUntil = Math.ceil((startMs - Date.now()) / 86400000);
+      const label     = daysUntil === 0 ? 'Today' : daysUntil === 1 ? 'Tomorrow' : `In ${daysUntil} days`;
+      metaEl.innerHTML += `<span class="meta-pill pill-blue"><i class="fa-solid fa-hourglass-half"></i> ${label}</span>`;
+    } else if (!startMs && progName) {
+      metaEl.innerHTML += `<span class="meta-pill pill-muted"><i class="fa-solid fa-clock"></i> Awaiting start date</span>`;
+    }
+
+    info.append(athleteEl, programEl, metaEl);
+
+    // Status badge
+    const badge = document.createElement('span');
+    badge.className = 'status-badge';
+    if (type === 'active') {
+      badge.classList.add('badge-active');
+      badge.innerHTML = '<i class="fa-solid fa-circle" style="font-size:6px;margin-right:4px;"></i> Active';
+    } else if (type === 'upcoming') {
+      badge.classList.add('badge-upcoming');
+      badge.innerHTML = '<i class="fa-solid fa-calendar-check" style="margin-right:4px;"></i> Starting Soon';
+    } else {
+      badge.classList.add('badge-unset');
+      badge.innerHTML = '<i class="fa-solid fa-clock" style="margin-right:4px;"></i> Not Started';
+    }
+
+    card.append(dateBlock, avatar, info, badge);
+    return card;
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  async function doSignOut() { await auth.signOut(); window.location.href = 'index.html'; }
+</script>
+</body>
+</html>
