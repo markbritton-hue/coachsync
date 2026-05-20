@@ -194,10 +194,6 @@
   <!-- Stat row -->
   <div class="stat-row" id="statRow" style="display:none;">
     <div class="stat-card">
-      <div class="stat-value" id="statWorkouts">—</div>
-      <div class="stat-label">Workouts Logged</div>
-    </div>
-    <div class="stat-card">
       <div class="stat-value" id="statWeek">—</div>
       <div class="stat-label">Current Week</div>
     </div>
@@ -398,7 +394,6 @@
     const progName  = focusProgram || athleteData.assignedProgram;
     const startDate = (athleteData.programStartDates && athleteData.programStartDates[progName])
       || athleteData.programStartDate || null;
-    document.getElementById('statWorkouts').textContent = athleteData.sessionsCompleted || 0;
     document.getElementById('statWeek').textContent     = startDate ? currentWeek : '—';
     document.getElementById('statDay').textContent      = startDate ? currentDay  : '—';
     document.getElementById('statLast').textContent     = relativeTime(athleteData.lastWorkout);
