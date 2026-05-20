@@ -609,7 +609,6 @@
         ? new Date(a.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
         : '—';
       stats.innerHTML = `
-        <div class="stat-box"><div class="stat-value">${a.sessionsCompleted || 0}</div><div class="stat-label">Workouts</div></div>
         <div class="stat-box"><div class="stat-value">${joinedDate}</div><div class="stat-label">Joined</div></div>`;
 
       // Programs section
