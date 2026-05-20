@@ -565,9 +565,13 @@
     empty.style.display = 'none';
 
     filtered.forEach(a => {
-      const assignedPrograms = a.assignedPrograms
+      const isStarted = pName =>
+        !!(a.programStartDates && a.programStartDates[pName]) || !!a.programStartDate;
+      const assignedPrograms = (a.assignedPrograms
         ? a.assignedPrograms
-        : (a.assignedProgram ? [a.assignedProgram] : []);
+        : (a.assignedProgram ? [a.assignedProgram] : []))
+        .slice()
+        .sort((x, y) => (isStarted(y) ? 1 : 0) - (isStarted(x) ? 1 : 0));
 
       // ── Card shell ──
       const card = document.createElement('div');
