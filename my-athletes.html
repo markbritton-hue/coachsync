@@ -252,6 +252,96 @@
     .toast.success { border-color: rgba(16,185,129,0.5); }
     .toast.error   { border-color: rgba(239,68,68,0.5); color: #ef4444; }
 
+    /* ── Workout log summary on mini-card ── */
+    .workout-log-row {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      margin-top: 8px; padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .log-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.72rem; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+    }
+    .log-pill-week { background: rgba(80,184,240,0.12); border: 1px solid rgba(80,184,240,0.25); color: #50b8f0; }
+    .log-pill-progress { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: #10b981; }
+    .log-pill-rpe { border: 1px solid; }
+    .log-pill-rpe.easy   { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.3); color: #10b981; }
+    .log-pill-rpe.medium { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.3); color: #f59e0b; }
+    .log-pill-rpe.hard   { background: rgba(239,68,68,0.12);  border-color: rgba(239,68,68,0.3);  color: #ef4444; }
+    .log-view-btn {
+      margin-left: auto; background: none; border: none;
+      color: rgba(80,184,240,0.5); font-size: 0.72rem; cursor: pointer;
+      padding: 2px 6px; border-radius: 6px; transition: color 0.2s;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .log-view-btn:hover { color: #50b8f0; }
+
+    /* ── Workout detail modal ── */
+    .detail-modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.82); z-index: 10000;
+      align-items: flex-end; justify-content: center; padding: 0;
+    }
+    .detail-modal-overlay.open { display: flex; }
+    .detail-modal-box {
+      background: linear-gradient(160deg, #1e293b, #0f172a);
+      border: 1px solid rgba(80,184,240,0.25); border-radius: 22px 22px 0 0;
+      width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto;
+      padding: 32px 28px 40px; box-shadow: 0 -20px 60px rgba(0,0,0,0.8);
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(60px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+    .detail-handle {
+      width: 40px; height: 4px; border-radius: 4px;
+      background: rgba(255,255,255,0.15); margin: 0 auto 24px;
+    }
+    .detail-header-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+    .detail-title { font-size: 1.2rem; font-weight: 800; color: white; }
+    .detail-subtitle { font-size: 0.82rem; color: rgba(255,255,255,0.4); margin-top: 3px; }
+    .detail-close {
+      background: rgba(255,255,255,0.08); border: none; color: rgba(255,255,255,0.5);
+      width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 0.9rem;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s;
+    }
+    .detail-close:hover { background: rgba(255,255,255,0.15); color: white; }
+    .detail-meta-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+    .detail-meta-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 0.78rem; font-weight: 700; padding: 5px 12px; border-radius: 20px;
+    }
+    .rpe-display {
+      background: rgba(30,41,59,0.8); border: 1px solid rgba(80,184,240,0.2);
+      border-radius: 14px; padding: 18px 20px; margin-bottom: 20px;
+    }
+    .rpe-display-label { font-size: 0.72rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .rpe-blocks { display: flex; gap: 5px; }
+    .rpe-block {
+      flex: 1; height: 28px; border-radius: 6px;
+      background: rgba(255,255,255,0.06); transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.68rem; font-weight: 700; color: transparent;
+    }
+    .rpe-block.lit { color: white; }
+    .rpe-block.lit.easy   { background: #10b981; }
+    .rpe-block.lit.medium { background: #f59e0b; }
+    .rpe-block.lit.hard   { background: #ef4444; }
+    .rpe-score-line { margin-top: 8px; font-size: 0.82rem; color: rgba(255,255,255,0.5); }
+    .ex-list { display: flex; flex-direction: column; gap: 8px; }
+    .ex-list-item {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(15,23,42,0.5); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px; padding: 12px 14px;
+    }
+    .ex-list-item.done { border-color: rgba(16,185,129,0.25); }
+    .ex-check {
+      width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 0.75rem;
+    }
+    .ex-check.done { background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid rgba(16,185,129,0.4); }
+    .ex-check.pending { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.1); }
+    .ex-list-name { font-size: 0.88rem; font-weight: 600; color: rgba(255,255,255,0.85); }
+    .ex-list-name.done { color: rgba(16,185,129,0.9); }
+
     @media (max-width: 768px) {
       .top-nav { padding: 14px 16px; }
       .invite-card { flex-direction: column; align-items: flex-start; }
@@ -326,6 +416,28 @@
   </div>
 </div>
 
+<!-- Workout Detail Modal -->
+<div class="detail-modal-overlay" id="detailModal" onclick="closeDetailModal(event)">
+  <div class="detail-modal-box">
+    <div class="detail-handle"></div>
+    <div class="detail-header-row">
+      <div>
+        <div class="detail-title" id="detailTitle"></div>
+        <div class="detail-subtitle" id="detailSubtitle"></div>
+      </div>
+      <button class="detail-close" onclick="closeDetailModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="detail-meta-row" id="detailMeta"></div>
+    <div class="rpe-display" id="detailRpeSection" style="display:none;">
+      <div class="rpe-display-label"><i class="fa-solid fa-fire-flame-curved me-1"></i>Effort Rating (RPE)</div>
+      <div class="rpe-blocks" id="detailRpeBlocks"></div>
+      <div class="rpe-score-line" id="detailRpeLabel"></div>
+    </div>
+    <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;" id="detailExLabel"></div>
+    <div class="ex-list" id="detailExList"></div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -349,6 +461,7 @@
   let currentUser  = null;
   let allAthletes  = [];
   let allPrograms  = [];
+  let latestLogs   = {};   // athleteId → { programName → workoutLog doc }
   let assigningUid = null;
 
   function computeWeekDay(startDateMs, daysPerWeek) {
@@ -379,14 +492,46 @@
   function loadAthletes() {
     db.collection('users')
       .where('trainerId', '==', currentUser.uid)
-      .onSnapshot(snap => {
+      .onSnapshot(async snap => {
         allAthletes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        await loadLatestLogs();
         renderAthletes();
         document.getElementById('loadingOverlay').style.display = 'none';
       }, err => {
         console.error('Athletes query error:', err);
         document.getElementById('loadingOverlay').innerHTML = '<span style="color:#ef4444;">Error: ' + err.message + '</span>';
       });
+  }
+
+  // ── Load most recent workoutLog per athlete/program ──
+  async function loadLatestLogs() {
+    if (allAthletes.length === 0) return;
+    const ids = allAthletes.map(a => a.id);
+    // Firestore 'in' supports up to 30 values; chunk if needed
+    const chunks = [];
+    for (let i = 0; i < ids.length; i += 30) chunks.push(ids.slice(i, i + 30));
+    const allDocs = [];
+    await Promise.all(chunks.map(chunk =>
+      db.collection('workoutLogs')
+        .where('athleteId', 'in', chunk)
+        .get()
+        .then(s => s.docs.forEach(d => allDocs.push({ id: d.id, ...d.data() })))
+        .catch(e => console.warn('workoutLogs query:', e))
+    ));
+    // Sort by updatedAt desc so first-seen wins below
+    allDocs.sort((a, b) => {
+      const at = a.updatedAt?.seconds || 0;
+      const bt = b.updatedAt?.seconds || 0;
+      return bt - at;
+    });
+    // Keep the latest log per athleteId+programName pair
+    latestLogs = {};
+    allDocs.forEach(log => {
+      const key = log.athleteId;
+      if (!latestLogs[key]) latestLogs[key] = {};
+      const prog = log.programName || '__unknown__';
+      if (!latestLogs[key][prog]) latestLogs[key][prog] = log;
+    });
   }
 
   // ── Load programs for assign dropdown ──
@@ -547,7 +692,48 @@
           badge.className = 'status-badge ' + badgeClass;
           badge.innerHTML = `<i class="fa-solid ${badgeIcon}" style="font-size:6px;"></i> ${badgeText}`;
 
+          const log = (latestLogs[a.id] || {})[pName];
+
           miniCard.append(miniTop, badge);
+
+          // Workout log summary row
+          if (log) {
+            const logRow = document.createElement('div');
+            logRow.className = 'workout-log-row';
+
+            const weekPill = document.createElement('span');
+            weekPill.className = 'log-pill log-pill-week';
+            weekPill.innerHTML = `<i class="fa-solid fa-calendar-week"></i> Wk ${log.week}, Day ${log.day}`;
+            logRow.appendChild(weekPill);
+
+            if (log.totalExercises > 0) {
+              const done = (log.completedExercises || []).length;
+              const progPill = document.createElement('span');
+              progPill.className = 'log-pill log-pill-progress';
+              progPill.innerHTML = `<i class="fa-solid fa-check"></i> ${done}/${log.totalExercises} done`;
+              logRow.appendChild(progPill);
+            }
+
+            if (log.rpe) {
+              const rpeClass = log.rpe <= 6 ? 'easy' : log.rpe <= 9 ? 'medium' : 'hard';
+              const rpePill = document.createElement('span');
+              rpePill.className = `log-pill log-pill-rpe ${rpeClass}`;
+              rpePill.innerHTML = `<i class="fa-solid fa-fire-flame-curved"></i> RPE ${log.rpe}`;
+              logRow.appendChild(rpePill);
+            }
+
+            const viewBtn = document.createElement('button');
+            viewBtn.className = 'log-view-btn';
+            viewBtn.innerHTML = '<i class="fa-solid fa-chart-bar"></i> Details';
+            viewBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              openDetailModal(a, pName, log);
+            });
+            logRow.appendChild(viewBtn);
+
+            miniCard.appendChild(logRow);
+          }
+
           progSection.appendChild(miniCard);
         });
 
@@ -661,6 +847,92 @@
       ? '<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> '
       : '<i class="fa-solid fa-circle-exclamation"></i> ') + msg;
     setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ── Workout detail modal ──
+  const rpeLabels = {
+    1:'Very easy', 2:'Easy', 3:'Moderate', 4:'Somewhat hard', 5:'Hard',
+    6:'Hard+', 7:'Very hard', 8:'Very hard+', 9:'Extremely hard', 10:'Max effort'
+  };
+
+  function openDetailModal(athlete, progName, log) {
+    document.getElementById('detailTitle').textContent = athlete.displayName || athlete.email || 'Athlete';
+    document.getElementById('detailSubtitle').textContent = progName;
+
+    // Meta pills
+    const metaRow = document.getElementById('detailMeta');
+    metaRow.innerHTML = '';
+    const addMeta = (icon, text, cls) => {
+      const pill = document.createElement('span');
+      pill.className = 'detail-meta-pill ' + cls;
+      pill.innerHTML = `<i class="fa-solid ${icon}"></i> ${text}`;
+      metaRow.appendChild(pill);
+    };
+    addMeta('fa-calendar-week', `Week ${log.week}, Day ${log.day}`,
+      'log-pill log-pill-week');
+    if (log.date) {
+      const d = new Date(log.date);
+      const label = isNaN(d) ? log.date : d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+      addMeta('fa-clock', `Last logged: ${label}`, 'log-pill log-pill-week');
+    }
+
+    // RPE
+    const rpeSection = document.getElementById('detailRpeSection');
+    if (log.rpe) {
+      rpeSection.style.display = 'block';
+      const blocks = document.getElementById('detailRpeBlocks');
+      blocks.innerHTML = '';
+      for (let i = 1; i <= 10; i++) {
+        const b = document.createElement('div');
+        b.className = 'rpe-block';
+        b.textContent = i;
+        if (i <= log.rpe) {
+          const cls = i <= 6 ? 'easy' : i <= 9 ? 'medium' : 'hard';
+          b.classList.add('lit', cls);
+        }
+        blocks.appendChild(b);
+      }
+      const rpeClass = log.rpe <= 6 ? 'easy' : log.rpe <= 9 ? 'medium' : 'hard';
+      const colors = { easy:'#10b981', medium:'#f59e0b', hard:'#ef4444' };
+      document.getElementById('detailRpeLabel').innerHTML =
+        `<span style="color:${colors[rpeClass]};font-weight:700;">${log.rpe}/10</span> — ${rpeLabels[log.rpe] || ''}`;
+    } else {
+      rpeSection.style.display = 'none';
+    }
+
+    // Exercises
+    const exNames = log.exerciseNames || [];
+    const completed = new Set(log.completedExercises || []);
+    const exLabel = document.getElementById('detailExLabel');
+    const exList  = document.getElementById('detailExList');
+    exList.innerHTML = '';
+
+    if (exNames.length > 0) {
+      const doneCount = exNames.filter((_, i) => completed.has(String(i))).length;
+      exLabel.textContent = `Exercises — ${doneCount} of ${exNames.length} completed`;
+      exNames.forEach((name, i) => {
+        const done = completed.has(String(i));
+        const item = document.createElement('div');
+        item.className = 'ex-list-item' + (done ? ' done' : '');
+        const check = document.createElement('div');
+        check.className = 'ex-check ' + (done ? 'done' : 'pending');
+        check.innerHTML = done ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-minus"></i>';
+        const namEl = document.createElement('div');
+        namEl.className = 'ex-list-name' + (done ? ' done' : '');
+        namEl.textContent = name;
+        item.append(check, namEl);
+        exList.appendChild(item);
+      });
+    } else {
+      exLabel.textContent = '';
+    }
+
+    document.getElementById('detailModal').classList.add('open');
+  }
+
+  function closeDetailModal(e) {
+    if (e && e.target !== document.getElementById('detailModal')) return;
+    document.getElementById('detailModal').classList.remove('open');
   }
 
   async function doSignOut() { await auth.signOut(); window.location.href = 'index.html'; }
