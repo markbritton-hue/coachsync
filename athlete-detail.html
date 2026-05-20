@@ -96,6 +96,14 @@
     }
     .tab.active { background: rgba(80,184,240,0.15); border-color: rgba(80,184,240,0.45); color: #50b8f0; }
     .tab:hover:not(.active) { border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.75); }
+    .day-tab {
+      background: none; border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.45); font-size: 0.8rem; font-weight: 600;
+      padding: 6px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s;
+    }
+    .day-tab.active { background: rgba(114,184,50,0.12); border-color: rgba(114,184,50,0.4); color: #72b832; }
+    .day-tab.today  { border-color: rgba(80,184,240,0.3); color: rgba(80,184,240,0.7); }
+    .day-tab.has-log::after { content: '●'; font-size: 6px; margin-left: 5px; vertical-align: middle; color: #10b981; }
 
     /* ── History cards ── */
     .history-card {
@@ -223,14 +231,19 @@
     </div>
   </div>
 
-  <!-- Tabs: Today / History -->
+  <!-- Tabs: Workout / History -->
   <div class="tabs">
     <button class="tab active" id="tabToday"   onclick="setTab('today')">
-      <i class="fa-solid fa-dumbbell me-1"></i> Today's Workout
+      <i class="fa-solid fa-dumbbell me-1"></i> Workout
     </button>
     <button class="tab" id="tabHistory" onclick="setTab('history')">
       <i class="fa-solid fa-clock-rotate-left me-1"></i> History
     </button>
+  </div>
+
+  <!-- Day tabs (shown inside Workout tab) -->
+  <div id="dayTabsRow" style="display:none; margin-bottom:20px;">
+    <div id="dayTabsContainer" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
   </div>
 
   <div id="todayView"></div>
@@ -263,6 +276,8 @@
   let programData = null;
   let currentWeek = 1;
   let currentDay  = 1;
+  let viewingDay  = 1;   // which day tab the trainer is viewing
+  let allDayLogs  = {};  // day → log doc data
 
   function computeWeekDay(startDateMs, daysPerWeek) {
     const msPerDay = 86400000;
@@ -297,6 +312,8 @@
     renderProfile();
     await loadProgram();
     renderStats();
+    await loadAllDayLogs();
+    renderDayTabs();
     renderToday();
     await renderHistory();
 
@@ -388,6 +405,50 @@
     document.getElementById('statRow').style.display    = 'grid';
   }
 
+  // ── Load all logged days for this program/week ──
+  async function loadAllDayLogs() {
+    if (!programData) return;
+    const progFilter = focusProgram || athleteData.assignedProgram;
+    const snap = await db.collection('workoutLogs')
+      .where('athleteId', '==', athleteId)
+      .get();
+    allDayLogs = {};
+    snap.docs.forEach(d => {
+      const data = d.data();
+      if (progFilter && data.programName !== progFilter) return;
+      allDayLogs[data.day] = data;
+    });
+  }
+
+  // ── Day tabs ──
+  function renderDayTabs() {
+    if (!programData) return;
+    const numDays = parseInt(programData.daysPerWeek) || 1;
+    if (numDays <= 1) return; // no tabs needed for single-day programs
+
+    viewingDay = currentDay;
+    const container = document.getElementById('dayTabsContainer');
+    container.innerHTML = '';
+    for (let d = 1; d <= numDays; d++) {
+      const btn = document.createElement('button');
+      btn.className = 'day-tab' + (d === currentDay ? ' today' : '') + (allDayLogs[d] ? ' has-log' : '');
+      if (d === viewingDay) btn.classList.add('active');
+      btn.textContent = 'Day ' + d;
+      if (d === currentDay) btn.title = "Today's day";
+      btn.addEventListener('click', () => switchDay(d));
+      container.appendChild(btn);
+    }
+    document.getElementById('dayTabsRow').style.display = 'block';
+  }
+
+  function switchDay(d) {
+    viewingDay = d;
+    document.querySelectorAll('.day-tab').forEach((btn, i) => {
+      btn.classList.toggle('active', i + 1 === d);
+    });
+    renderToday();
+  }
+
   // ── Today's workout for this athlete ──
   async function renderToday() {
     const view = document.getElementById('todayView');
@@ -403,27 +464,21 @@
       return;
     }
 
-    // Load today's log for this program
-    const logSnap = await db.collection('workoutLogs')
-      .where('athleteId', '==', athleteId)
-      .where('week', '==', currentWeek)
-      .get();
-
-    const logDoc  = logSnap.docs.find(d => {
-      const data = d.data();
-      return data.day === currentDay && (!focusProgram || data.programName === focusProgram);
-    });
-    const logData = logDoc ? logDoc.data() : null;
+    const logData = allDayLogs[viewingDay] || null;
     const doneSet = new Set(logData ? (logData.completedExercises || []) : []);
     const notes   = logData ? (logData.exerciseNotes || {}) : {};
     const exs     = programData.exercises || [];
     const done    = doneSet.size;
     const total   = exs.length;
 
+    const isToday = viewingDay === currentDay;
     let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
-      <div style="font-size:1rem;font-weight:700;color:rgba(255,255,255,0.8);">Week ${currentWeek} · Day ${currentDay}</div>
+      <div style="font-size:1rem;font-weight:700;color:rgba(255,255,255,0.8);">
+        Week ${currentWeek} · Day ${viewingDay}
+        ${isToday ? '<span style="font-size:0.72rem;font-weight:600;background:rgba(80,184,240,0.15);border:1px solid rgba(80,184,240,0.3);color:#50b8f0;padding:2px 8px;border-radius:12px;margin-left:8px;">Today</span>' : ''}
+      </div>
       <div style="font-size:0.85rem;color:${done===total&&total>0?'#10b981':'rgba(255,255,255,0.45)'};">
-        ${logData ? `${done} / ${total} exercises completed` : 'Not started today'}
+        ${logData ? `${done} / ${total} exercises completed` : 'Not logged yet'}
       </div>
     </div>`;
 
