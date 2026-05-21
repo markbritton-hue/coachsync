@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>My Progress — CoachSync</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: rgba(255,255,255,0.9);
+    }
+    .top-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; border-bottom: 1px solid rgba(114,184,50,0.15);
+      background: rgba(15,23,42,0.6);
+    }
+    .btn-back {
+      background: none; border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.6); font-size: 0.8rem; font-weight: 600;
+      padding: 5px 12px; border-radius: 25px; cursor: pointer;
+      text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px;
+    }
+    .btn-back:hover { border-color: #72b832; color: #72b832; }
+    .btn-logout {
+      background: none; border: 1px solid rgba(239,68,68,0.4);
+      color: rgba(239,68,68,0.8); font-size: 0.8rem; font-weight: 600;
+      padding: 5px 12px; border-radius: 25px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-logout:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.08); }
+
+    .page-header { padding: 18px 0 10px; }
+    .page-header h1 {
+      font-size: 1.5rem; font-weight: 800;
+      background: linear-gradient(135deg, #72b832, #a0d060);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0;
+    }
+    .page-header p { color: rgba(255,255,255,0.4); font-size: 0.85rem; margin: 4px 0 0; }
+
+    /* ── Stat cards ── */
+    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+    .stat-card {
+      background: rgba(30,41,59,0.85); border: 1px solid rgba(114,184,50,0.15);
+      border-radius: 12px; padding: 14px 16px; text-align: center;
+    }
+    .stat-card .stat-val {
+      font-size: 2rem; font-weight: 900; line-height: 1;
+      background: linear-gradient(135deg, #72b832, #a0d060);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .stat-card .stat-val.amber { background: linear-gradient(135deg, #f59e0b, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-card .stat-val.blue  { background: linear-gradient(135deg, #50b8f0, #93c5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-card .stat-val.red   { background: linear-gradient(135deg, #ef4444, #f87171); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-card .stat-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.35); margin-top: 4px; }
+    .stat-card .stat-sub { font-size: 0.72rem; color: rgba(255,255,255,0.3); margin-top: 2px; }
+
+    /* ── Section ── */
+    .section { margin-bottom: 22px; }
+    .section-title {
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: rgba(255,255,255,0.35); margin-bottom: 10px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .section-title i { color: #72b832; }
+
+    /* ── Streak calendar ── */
+    .streak-grid {
+      display: flex; flex-wrap: wrap; gap: 4px;
+    }
+    .streak-day {
+      width: 14px; height: 14px; border-radius: 3px;
+      background: rgba(255,255,255,0.06);
+    }
+    .streak-day.done { background: #72b832; }
+    .streak-day.today { outline: 2px solid rgba(114,184,50,0.6); outline-offset: 1px; }
+    .streak-legend { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 0.72rem; color: rgba(255,255,255,0.3); }
+    .streak-legend-box { width: 12px; height: 12px; border-radius: 2px; }
+
+    /* ── RPE chart ── */
+    .rpe-chart { display: flex; align-items: flex-end; gap: 5px; height: 80px; }
+    .rpe-bar-wrap { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 3px; }
+    .rpe-bar {
+      width: 100%; border-radius: 4px 4px 0 0;
+      background: linear-gradient(180deg, #72b832, #a0d060);
+      transition: height 0.4s ease; min-height: 3px;
+    }
+    .rpe-bar.high { background: linear-gradient(180deg, #f59e0b, #fbbf24); }
+    .rpe-bar.max  { background: linear-gradient(180deg, #ef4444, #f87171); }
+    .rpe-bar-label { font-size: 0.6rem; color: rgba(255,255,255,0.3); white-space: nowrap; }
+    .rpe-bar-val { font-size: 0.65rem; color: rgba(255,255,255,0.5); font-weight: 700; }
+
+    /* ── Weekly completion ── */
+    .week-chart { display: flex; align-items: flex-end; gap: 5px; height: 80px; }
+    .week-bar-wrap { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 3px; }
+    .week-bar {
+      width: 100%; border-radius: 4px 4px 0 0;
+      background: linear-gradient(180deg, #50b8f0, #93c5fd);
+      transition: height 0.4s ease; min-height: 3px;
+    }
+    .week-bar-label { font-size: 0.6rem; color: rgba(255,255,255,0.3); }
+    .week-bar-val { font-size: 0.65rem; color: rgba(255,255,255,0.5); font-weight: 700; }
+
+    /* ── Exercise progress ── */
+    .ex-prog-card {
+      background: rgba(30,41,59,0.85); border: 1px solid rgba(114,184,50,0.12);
+      border-radius: 11px; padding: 12px 14px; margin-bottom: 8px;
+    }
+    .ex-prog-name { font-size: 0.88rem; font-weight: 700; color: rgba(255,255,255,0.85); margin-bottom: 8px; }
+    .ex-prog-dots { display: flex; align-items: flex-end; gap: 4px; height: 48px; }
+    .ex-dot-wrap { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 2px; }
+    .ex-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #72b832; flex-shrink: 0;
+    }
+    .ex-dot-val { font-size: 0.58rem; color: rgba(255,255,255,0.4); }
+    .ex-dot-label { font-size: 0.55rem; color: rgba(255,255,255,0.25); }
+    .ex-prog-trend { display: flex; align-items: center; gap: 5px; margin-top: 6px; font-size: 0.75rem; }
+    .trend-up   { color: #72b832; }
+    .trend-down { color: #ef4444; }
+    .trend-flat { color: rgba(255,255,255,0.3); }
+
+    /* ── History list ── */
+    .history-card {
+      background: rgba(30,41,59,0.85); border: 1px solid rgba(114,184,50,0.12);
+      border-radius: 11px; padding: 12px 14px; margin-bottom: 7px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .history-date-block {
+      text-align: center; flex-shrink: 0; width: 42px;
+    }
+    .history-date-block .day { font-size: 1.3rem; font-weight: 900; color: #72b832; line-height: 1; }
+    .history-date-block .mon { font-size: 0.65rem; color: rgba(255,255,255,0.35); text-transform: uppercase; }
+    .history-info { flex: 1; min-width: 0; }
+    .history-title { font-size: 0.88rem; font-weight: 700; color: rgba(255,255,255,0.85); }
+    .history-sub { font-size: 0.72rem; color: rgba(255,255,255,0.35); margin-top: 2px; }
+    .history-rpe {
+      flex-shrink: 0; font-size: 0.75rem; font-weight: 700;
+      padding: 3px 9px; border-radius: 20px;
+      background: rgba(114,184,50,0.12); border: 1px solid rgba(114,184,50,0.25); color: #72b832;
+    }
+    .history-rpe.high { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.3); color: #f59e0b; }
+    .history-rpe.max  { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.3); color: #ef4444; }
+
+    /* ── Empty ── */
+    .empty-state { text-align: center; padding: 40px 20px; }
+    .empty-state i { font-size: 2.5rem; color: rgba(114,184,50,0.2); display: block; margin-bottom: 12px; }
+    .empty-state p { color: rgba(255,255,255,0.3); font-size: 0.88rem; }
+
+    .loading-overlay {
+      position: fixed; inset: 0; background: linear-gradient(135deg, #0f172a, #1e293b);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; font-size: 1.1rem; color: rgba(255,255,255,0.5); gap: 12px;
+    }
+
+    .panel {
+      background: rgba(30,41,59,0.6); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px; padding: 14px 16px;
+    }
+
+    @media (max-width: 480px) {
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <i class="fa-solid fa-spinner fa-spin"></i> Loading…
+</div>
+
+<nav class="top-nav">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <img src="CoachSyncLogo.png" alt="CoachSync" style="height:44px;">
+  </div>
+  <div style="display:flex;gap:8px;">
+    <a href="athlete-dashboard.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
+    <button class="btn-logout" onclick="doSignOut()"><i class="fa-solid fa-right-from-bracket"></i></button>
+  </div>
+</nav>
+
+<div class="container" style="max-width:700px;">
+  <div class="page-header">
+    <h1><i class="fa-solid fa-chart-line me-2" style="font-size:1.2rem;"></i>My Progress</h1>
+    <p id="programLabel">—</p>
+  </div>
+
+  <!-- ── Stat cards ── -->
+  <div class="stat-grid" id="statGrid">
+    <div class="stat-card"><div class="stat-val" id="statSessions">—</div><div class="stat-label">Total Sessions</div></div>
+    <div class="stat-card"><div class="stat-val amber" id="statStreak">—</div><div class="stat-label">Day Streak</div><div class="stat-sub" id="statStreakSub"></div></div>
+    <div class="stat-card"><div class="stat-val blue" id="statAvgRpe">—</div><div class="stat-label">Avg RPE</div><div class="stat-sub">out of 10</div></div>
+    <div class="stat-card"><div class="stat-val" id="statCompletion">—</div><div class="stat-label">Avg Completion</div><div class="stat-sub">exercises per session</div></div>
+  </div>
+
+  <!-- ── Streak calendar ── -->
+  <div class="section">
+    <div class="section-title"><i class="fa-solid fa-fire"></i> Workout Streak — Last 12 Weeks</div>
+    <div class="panel">
+      <div class="streak-grid" id="streakGrid"></div>
+      <div class="streak-legend">
+        <div class="streak-legend-box" style="background:rgba(255,255,255,0.06);"></div> No workout
+        <div class="streak-legend-box" style="background:#72b832;margin-left:8px;"></div> Worked out
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Weekly completion ── -->
+  <div class="section">
+    <div class="section-title"><i class="fa-solid fa-calendar-check"></i> Weekly Sessions</div>
+    <div class="panel">
+      <div class="week-chart" id="weekChart"></div>
+    </div>
+  </div>
+
+  <!-- ── RPE trend ── -->
+  <div class="section">
+    <div class="section-title"><i class="fa-solid fa-heart-pulse"></i> RPE Trend — Last 12 Sessions</div>
+    <div class="panel">
+      <div class="rpe-chart" id="rpeChart"></div>
+      <div id="rpeAvgLine" style="margin-top:8px;font-size:0.75rem;color:rgba(255,255,255,0.35);"></div>
+    </div>
+  </div>
+
+  <!-- ── Exercise progress ── -->
+  <div class="section">
+    <div class="section-title"><i class="fa-solid fa-dumbbell"></i> Exercise Completion Rate</div>
+    <div id="exProgressList"></div>
+  </div>
+
+  <!-- ── History ── -->
+  <div class="section">
+    <div class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Workout History</div>
+    <div id="historyList"></div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+  firebase.initializeApp({
+    apiKey: "AIzaSyDnaS5J_-KkmFZcE3FtjjxV54cZkbWcop8",
+    authDomain: "coachsync-7e07e.firebaseapp.com",
+    projectId: "coachsync-7e07e",
+    storageBucket: "coachsync-7e07e.firebasestorage.app",
+    messagingSenderId: "774513797996",
+    appId: "1:774513797996:web:e38f47773c5b487982e149"
+  });
+  const auth = firebase.auth();
+  const db   = firebase.firestore();
+
+  let logs = [];
+
+  auth.onAuthStateChanged(async user => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    const snap = await db.collection('users').doc(user.uid).get();
+    if (!snap.exists || snap.data().role === 'trainer') { window.location.href = 'index.html'; return; }
+
+    const logSnap = await db.collection('workoutLogs')
+      .where('athleteId', '==', user.uid)
+      .get();
+
+    logs = logSnap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(l => l.date)
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    // Label with most recent program
+    const lastLog = logs[logs.length - 1];
+    document.getElementById('programLabel').textContent = lastLog ? lastLog.programName || '' : '';
+
+    renderStats();
+    renderStreakCalendar();
+    renderWeeklyChart();
+    renderRpeChart();
+    renderExerciseProgress();
+    renderHistory();
+
+    document.getElementById('loadingOverlay').style.display = 'none';
+  });
+
+  // ── Overall stats ──
+  function renderStats() {
+    const total = logs.length;
+    document.getElementById('statSessions').textContent = total;
+
+    // Streak — consecutive days with a workout up to today
+    const workoutDates = new Set(logs.map(l => l.date));
+    let streak = 0;
+    const today = new Date();
+    for (let i = 0; i < 365; i++) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      const key = d.toISOString().split('T')[0];
+      if (workoutDates.has(key)) { streak++; } else if (i > 0) { break; }
+    }
+    document.getElementById('statStreak').textContent = streak;
+    document.getElementById('statStreakSub').textContent = streak === 1 ? 'day' : 'days';
+
+    // Avg RPE
+    const rpeLogs = logs.filter(l => l.rpe != null);
+    const avgRpe = rpeLogs.length ? (rpeLogs.reduce((s, l) => s + l.rpe, 0) / rpeLogs.length).toFixed(1) : '—';
+    document.getElementById('statAvgRpe').textContent = avgRpe;
+
+    // Avg completion %
+    const withTotals = logs.filter(l => l.totalExercises);
+    const avgComp = withTotals.length
+      ? Math.round(withTotals.reduce((s, l) => s + ((l.completedExercises || []).length / l.totalExercises) * 100, 0) / withTotals.length)
+      : '—';
+    document.getElementById('statCompletion').textContent = avgComp !== '—' ? avgComp + '%' : '—';
+  }
+
+  // ── Streak calendar — 12 weeks of squares ──
+  function renderStreakCalendar() {
+    const grid = document.getElementById('streakGrid');
+    grid.innerHTML = '';
+    const workoutDates = new Set(logs.map(l => l.date));
+    const today = new Date();
+    const todayKey = today.toISOString().split('T')[0];
+    const days = 84; // 12 weeks
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      const key = d.toISOString().split('T')[0];
+      const el = document.createElement('div');
+      el.className = 'streak-day' + (workoutDates.has(key) ? ' done' : '') + (key === todayKey ? ' today' : '');
+      el.title = key;
+      grid.appendChild(el);
+    }
+  }
+
+  // ── Weekly sessions bar chart — last 8 weeks ──
+  function renderWeeklyChart() {
+    const chart = document.getElementById('weekChart');
+    chart.innerHTML = '';
+    const weeks = [];
+    const today = new Date();
+    for (let w = 7; w >= 0; w--) {
+      const start = new Date(today); start.setDate(start.getDate() - today.getDay() - w * 7);
+      const end   = new Date(start); end.setDate(end.getDate() + 6);
+      const startKey = start.toISOString().split('T')[0];
+      const endKey   = end.toISOString().split('T')[0];
+      const count = logs.filter(l => l.date >= startKey && l.date <= endKey).length;
+      weeks.push({ label: 'W' + (8 - w), count });
+    }
+    const maxCount = Math.max(...weeks.map(w => w.count), 1);
+    weeks.forEach(({ label, count }) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'week-bar-wrap';
+      wrap.innerHTML = `
+        <div class="week-bar-val">${count || ''}</div>
+        <div class="week-bar" style="height:${Math.round((count / maxCount) * 60)}px;"></div>
+        <div class="week-bar-label">${label}</div>`;
+      chart.appendChild(wrap);
+    });
+  }
+
+  // ── RPE trend — last 12 sessions ──
+  function renderRpeChart() {
+    const chart = document.getElementById('rpeChart');
+    chart.innerHTML = '';
+    const rpeLogs = logs.filter(l => l.rpe != null).slice(-12);
+    if (rpeLogs.length === 0) {
+      chart.innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:0.8rem;margin:auto;">No RPE data yet</div>';
+      return;
+    }
+    rpeLogs.forEach(l => {
+      const wrap = document.createElement('div');
+      wrap.className = 'rpe-bar-wrap';
+      const cls = l.rpe >= 9 ? 'max' : l.rpe >= 7 ? 'high' : '';
+      const dateShort = l.date ? l.date.slice(5) : '';
+      wrap.innerHTML = `
+        <div class="rpe-bar-val">${l.rpe}</div>
+        <div class="rpe-bar ${cls}" style="height:${Math.round((l.rpe / 10) * 60)}px;"></div>
+        <div class="rpe-bar-label">${dateShort}</div>`;
+      chart.appendChild(wrap);
+    });
+
+    const avg = (rpeLogs.reduce((s, l) => s + l.rpe, 0) / rpeLogs.length).toFixed(1);
+    document.getElementById('rpeAvgLine').textContent = `Average RPE: ${avg} / 10`;
+  }
+
+  // ── Exercise completion rate ──
+  function renderExerciseProgress() {
+    const container = document.getElementById('exProgressList');
+    container.innerHTML = '';
+
+    // Build per-exercise history: name → array of {date, completed, total}
+    const exMap = {};
+    logs.forEach(l => {
+      const names    = l.exerciseNames || [];
+      const done     = new Set(l.completedExercises || []);
+      names.forEach((name, i) => {
+        if (!exMap[name]) exMap[name] = [];
+        exMap[name].push({ date: l.date, done: done.has(i.toString()) });
+      });
+    });
+
+    const exNames = Object.keys(exMap).slice(0, 8); // max 8 exercises
+    if (exNames.length === 0) {
+      container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-dumbbell"></i><p>No exercise data yet.</p></div>';
+      return;
+    }
+
+    exNames.forEach(name => {
+      const history = exMap[name];
+      const recent  = history.slice(-10);
+      const doneCount = recent.filter(h => h.done).length;
+      const rate    = Math.round((doneCount / recent.length) * 100);
+
+      // Trend: compare first half vs second half completion
+      const half = Math.floor(recent.length / 2);
+      const firstRate = half ? recent.slice(0, half).filter(h => h.done).length / half : 0;
+      const lastRate  = half ? recent.slice(half).filter(h => h.done).length / (recent.length - half) : 0;
+      const trendDiff = lastRate - firstRate;
+      const trendHtml = trendDiff > 0.1
+        ? `<span class="trend-up"><i class="fa-solid fa-arrow-trend-up"></i> Improving</span>`
+        : trendDiff < -0.1
+          ? `<span class="trend-down"><i class="fa-solid fa-arrow-trend-down"></i> Declining</span>`
+          : `<span class="trend-flat"><i class="fa-solid fa-minus"></i> Consistent</span>`;
+
+      const card = document.createElement('div');
+      card.className = 'ex-prog-card';
+      card.innerHTML = `
+        <div class="ex-prog-name">${esc(name)}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <div style="flex:1;background:rgba(255,255,255,0.07);border-radius:6px;height:8px;overflow:hidden;">
+            <div style="width:${rate}%;height:100%;border-radius:6px;background:linear-gradient(90deg,#72b832,#a0d060);"></div>
+          </div>
+          <div style="font-size:0.78rem;font-weight:700;color:#72b832;flex-shrink:0;">${rate}%</div>
+        </div>
+        <div class="ex-prog-trend">${trendHtml} <span style="color:rgba(255,255,255,0.2);margin-left:auto;">${recent.length} session${recent.length !== 1 ? 's' : ''}</span></div>`;
+      container.appendChild(card);
+    });
+  }
+
+  // ── History list ──
+  function renderHistory() {
+    const list = document.getElementById('historyList');
+    const reversed = [...logs].reverse();
+    if (reversed.length === 0) {
+      list.innerHTML = '<div class="empty-state"><i class="fa-solid fa-clock-rotate-left"></i><p>No workouts logged yet.</p></div>';
+      return;
+    }
+    reversed.forEach(l => {
+      const d       = new Date(l.date + 'T12:00:00');
+      const dayNum  = d.getDate();
+      const mon     = d.toLocaleDateString('en-US', { month: 'short' });
+      const done    = (l.completedExercises || []).length;
+      const total   = l.totalExercises || '?';
+      const wkDay   = l.week ? `Week ${l.week} · Day ${l.day}` : (l.day ? `Day ${l.day}` : '');
+      const rpe     = l.rpe;
+      const rpeCls  = rpe >= 9 ? 'max' : rpe >= 7 ? 'high' : '';
+      const rpeHtml = rpe != null ? `<div class="history-rpe ${rpeCls}">RPE ${rpe}</div>` : '';
+
+      list.insertAdjacentHTML('beforeend', `
+        <div class="history-card">
+          <div class="history-date-block">
+            <div class="day">${dayNum}</div>
+            <div class="mon">${mon}</div>
+          </div>
+          <div class="history-info">
+            <div class="history-title">${esc(l.programName || 'Workout')}</div>
+            <div class="history-sub">${wkDay ? wkDay + ' · ' : ''}${done}/${total} exercises</div>
+          </div>
+          ${rpeHtml}
+        </div>`);
+    });
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  async function doSignOut() {
+    await auth.signOut();
+    window.location.href = 'index.html';
+  }
+</script>
+</body>
+</html>

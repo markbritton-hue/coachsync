@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Analytics — CoachSync</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: rgba(255,255,255,0.9);
+    }
+    .top-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 20px; border-bottom: 1px solid rgba(114,184,50,0.15);
+      background: rgba(15,23,42,0.6);
+    }
+    .btn-back {
+      background: none; border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.6); font-size: 0.82rem; font-weight: 600;
+      padding: 5px 14px; border-radius: 25px; cursor: pointer;
+      text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-back:hover { border-color: #72b832; color: #72b832; }
+
+    .page-header { padding: 20px 0 14px; }
+    .page-header h1 {
+      font-size: 1.6rem; font-weight: 800;
+      background: linear-gradient(135deg, #72b832, #a0d060);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0;
+    }
+    .page-header p { color: rgba(255,255,255,0.35); font-size: 0.82rem; margin: 4px 0 0; }
+
+    /* ── Summary stat cards ── */
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px; }
+    .stat-card {
+      background: rgba(30,41,59,0.85); border: 1px solid rgba(114,184,50,0.15);
+      border-radius: 12px; padding: 14px 16px; text-align: center;
+    }
+    .stat-val {
+      font-size: 2rem; font-weight: 900; line-height: 1;
+      background: linear-gradient(135deg, #72b832, #a0d060);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .stat-val.amber { background: linear-gradient(135deg,#f59e0b,#fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-val.blue  { background: linear-gradient(135deg,#50b8f0,#93c5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-val.red   { background: linear-gradient(135deg,#ef4444,#f87171); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.3); margin-top: 4px; }
+
+    /* ── Section ── */
+    .section { margin-bottom: 26px; }
+    .section-title {
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: rgba(255,255,255,0.35); margin-bottom: 10px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .section-title i { color: #72b832; }
+    .panel {
+      background: rgba(30,41,59,0.7); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px; padding: 16px;
+    }
+
+    /* ── Activity heatmap ── */
+    .heatmap-grid { display: flex; flex-wrap: wrap; gap: 3px; }
+    .heatmap-day {
+      width: 13px; height: 13px; border-radius: 2px;
+      background: rgba(255,255,255,0.05); cursor: default;
+    }
+    .heatmap-day.l1 { background: rgba(114,184,50,0.25); }
+    .heatmap-day.l2 { background: rgba(114,184,50,0.5); }
+    .heatmap-day.l3 { background: rgba(114,184,50,0.75); }
+    .heatmap-day.l4 { background: #72b832; }
+    .heatmap-legend { display: flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 0.7rem; color: rgba(255,255,255,0.3); }
+    .heatmap-legend-box { width: 11px; height: 11px; border-radius: 2px; }
+
+    /* ── Bar charts ── */
+    .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 100px; }
+    .bar-wrap { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 3px; min-width: 0; }
+    .bar {
+      width: 100%; border-radius: 4px 4px 0 0; transition: height 0.4s ease; min-height: 2px;
+    }
+    .bar.green { background: linear-gradient(180deg, #72b832, #a0d060); }
+    .bar.blue  { background: linear-gradient(180deg, #50b8f0, #93c5fd); }
+    .bar.amber { background: linear-gradient(180deg, #f59e0b, #fbbf24); }
+    .bar-val   { font-size: 0.62rem; color: rgba(255,255,255,0.45); font-weight: 700; }
+    .bar-label { font-size: 0.58rem; color: rgba(255,255,255,0.25); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; text-align: center; }
+
+    /* ── RPE distribution ── */
+    .rpe-dist { display: flex; align-items: flex-end; gap: 4px; height: 80px; }
+    .rpe-col-wrap { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 3px; }
+    .rpe-col { width: 100%; border-radius: 3px 3px 0 0; min-height: 2px; }
+    .rpe-col-label { font-size: 0.62rem; color: rgba(255,255,255,0.3); }
+    .rpe-col-val   { font-size: 0.6rem; color: rgba(255,255,255,0.4); font-weight: 700; }
+
+    /* ── Athlete table ── */
+    .athlete-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .athlete-row:last-child { border-bottom: none; }
+    .athlete-avatar {
+      width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #72b832, #a0d060);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.78rem; font-weight: 800; color: white;
+    }
+    .athlete-name-col { flex: 1; min-width: 0; }
+    .athlete-name-col .name { font-size: 0.88rem; font-weight: 700; color: rgba(255,255,255,0.85); }
+    .athlete-name-col .prog { font-size: 0.72rem; color: rgba(255,255,255,0.35); }
+    .athlete-sessions { text-align: center; min-width: 40px; font-size: 0.88rem; font-weight: 700; color: #72b832; }
+    .athlete-rpe     { text-align: center; min-width: 36px; font-size: 0.82rem; font-weight: 600; color: rgba(255,255,255,0.5); }
+    .athlete-last    { font-size: 0.72rem; color: rgba(255,255,255,0.3); text-align: right; min-width: 70px; }
+    .col-header { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: rgba(255,255,255,0.2); }
+
+    /* ── Program popularity ── */
+    .prog-row { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .prog-row:last-child { border-bottom: none; }
+    .prog-row-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+    .prog-row-name { font-size: 0.85rem; font-weight: 700; color: rgba(255,255,255,0.8); }
+    .prog-row-count { font-size: 0.78rem; color: rgba(255,255,255,0.4); }
+    .prog-bar-track { background: rgba(255,255,255,0.07); border-radius: 6px; height: 6px; overflow: hidden; }
+    .prog-bar-fill  { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #72b832, #a0d060); }
+
+    /* ── Top exercises ── */
+    .ex-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .ex-row:last-child { border-bottom: none; }
+    .ex-rank { width: 20px; font-size: 0.72rem; font-weight: 800; color: rgba(114,184,50,0.6); flex-shrink: 0; text-align: center; }
+    .ex-name { flex: 1; font-size: 0.85rem; color: rgba(255,255,255,0.75); }
+    .ex-count { font-size: 0.78rem; color: rgba(255,255,255,0.4); }
+
+    .loading-overlay {
+      position: fixed; inset: 0; background: linear-gradient(135deg, #0f172a, #1e293b);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; font-size: 1.1rem; color: rgba(255,255,255,0.5); gap: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <i class="fa-solid fa-spinner fa-spin"></i> Loading analytics…
+</div>
+
+<nav class="top-nav">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <img src="CoachSyncLogo.png" alt="CoachSync" style="height:52px;">
+  </div>
+  <a href="trainer-dashboard.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
+</nav>
+
+<div class="container" style="max-width:900px;">
+  <div class="page-header">
+    <h1><i class="fa-solid fa-chart-bar me-2" style="font-size:1.3rem;"></i>Analytics</h1>
+    <p id="dataRange">Loading…</p>
+  </div>
+
+  <!-- ── Summary stats ── -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-val" id="statAthletes">—</div>
+      <div class="stat-label">Active Athletes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val blue" id="statTotalSessions">—</div>
+      <div class="stat-label">Total Sessions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val amber" id="statAvgRpe">—</div>
+      <div class="stat-label">Avg RPE</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="statAvgCompletion">—</div>
+      <div class="stat-label">Avg Completion</div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+
+    <!-- ── Activity heatmap ── -->
+    <div class="col-12">
+      <div class="section">
+        <div class="section-title"><i class="fa-solid fa-fire"></i> Team Activity — Last 16 Weeks</div>
+        <div class="panel">
+          <div class="heatmap-grid" id="heatmapGrid"></div>
+          <div class="heatmap-legend">
+            Less
+            <div class="heatmap-legend-box" style="background:rgba(255,255,255,0.05);"></div>
+            <div class="heatmap-legend-box" style="background:rgba(114,184,50,0.25);"></div>
+            <div class="heatmap-legend-box" style="background:rgba(114,184,50,0.5);"></div>
+            <div class="heatmap-legend-box" style="background:rgba(114,184,50,0.75);"></div>
+            <div class="heatmap-legend-box" style="background:#72b832;"></div>
+            More
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Sessions per week ── -->
+    <div class="col-md-6">
+      <div class="section">
+        <div class="section-title"><i class="fa-solid fa-calendar-week"></i> Sessions Per Week</div>
+        <div class="panel">
+          <div class="bar-chart" id="weeklyChart"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RPE distribution ── -->
+    <div class="col-md-6">
+      <div class="section">
+        <div class="section-title"><i class="fa-solid fa-heart-pulse"></i> RPE Distribution</div>
+        <div class="panel">
+          <div class="rpe-dist" id="rpeDistChart"></div>
+          <div id="rpeDistNote" style="margin-top:8px;font-size:0.72rem;color:rgba(255,255,255,0.3);"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Program popularity ── -->
+    <div class="col-md-6">
+      <div class="section">
+        <div class="section-title"><i class="fa-solid fa-clipboard-list"></i> Program Popularity</div>
+        <div class="panel" id="programPopularity"></div>
+      </div>
+    </div>
+
+    <!-- ── Top exercises ── -->
+    <div class="col-md-6">
+      <div class="section">
+        <div class="section-title"><i class="fa-solid fa-dumbbell"></i> Most Completed Exercises</div>
+        <div class="panel" id="topExercises"></div>
+      </div>
+    </div>
+
+    <!-- ── Per-athlete leaderboard ── -->
+    <div class="col-12">
+      <div class="section">
+        <div class="section-title"><i class="fa-solid fa-ranking-star"></i> Athlete Breakdown</div>
+        <div class="panel">
+          <div style="display:flex;align-items:center;gap:12px;padding:0 0 8px;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:4px;">
+            <div style="width:34px;flex-shrink:0;"></div>
+            <div style="flex:1;" class="col-header">Athlete</div>
+            <div style="min-width:40px;text-align:center;" class="col-header">Sessions</div>
+            <div style="min-width:36px;text-align:center;" class="col-header">Avg RPE</div>
+            <div style="min-width:70px;text-align:right;" class="col-header">Last Workout</div>
+          </div>
+          <div id="athleteTable"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+  firebase.initializeApp({
+    apiKey: "AIzaSyDnaS5J_-KkmFZcE3FtjjxV54cZkbWcop8",
+    authDomain: "coachsync-7e07e.firebaseapp.com",
+    projectId: "coachsync-7e07e",
+    storageBucket: "coachsync-7e07e.firebasestorage.app",
+    messagingSenderId: "774513797996",
+    appId: "1:774513797996:web:e38f47773c5b487982e149"
+  });
+  const auth = firebase.auth();
+  const db   = firebase.firestore();
+
+  auth.onAuthStateChanged(async user => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    const meSnap = await db.collection('users').doc(user.uid).get();
+    if (!meSnap.exists || meSnap.data().role !== 'trainer') { window.location.href = 'index.html'; return; }
+
+    // Load all athletes
+    const athleteSnap = await db.collection('users').where('role', '==', 'athlete').get();
+    const athletes = athleteSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Load all workout logs in chunks of 30
+    const athleteIds = athletes.map(a => a.id);
+    let allLogs = [];
+    for (let i = 0; i < athleteIds.length; i += 30) {
+      const chunk = athleteIds.slice(i, i + 30);
+      const snap  = await db.collection('workoutLogs').where('athleteId', 'in', chunk).get();
+      snap.docs.forEach(d => allLogs.push({ id: d.id, ...d.data() }));
+    }
+    allLogs = allLogs.filter(l => l.date).sort((a, b) => a.date.localeCompare(b.date));
+
+    if (allLogs.length > 0) {
+      const first = allLogs[0].date;
+      const last  = allLogs[allLogs.length - 1].date;
+      document.getElementById('dataRange').textContent =
+        `${allLogs.length} sessions · ${fmt(first)} – ${fmt(last)}`;
+    } else {
+      document.getElementById('dataRange').textContent = 'No workout data yet';
+    }
+
+    renderSummaryStats(athletes, allLogs);
+    renderHeatmap(allLogs);
+    renderWeeklyChart(allLogs);
+    renderRpeDist(allLogs);
+    renderProgramPopularity(athletes);
+    renderTopExercises(allLogs);
+    renderAthleteTable(athletes, allLogs);
+
+    document.getElementById('loadingOverlay').style.display = 'none';
+  });
+
+  // ── Summary stats ──
+  function renderSummaryStats(athletes, logs) {
+    // Active = athletes with at least one log
+    const activeIds = new Set(logs.map(l => l.athleteId));
+    document.getElementById('statAthletes').textContent = activeIds.size;
+    document.getElementById('statTotalSessions').textContent = logs.length;
+
+    const rpeLogs = logs.filter(l => l.rpe != null);
+    const avgRpe = rpeLogs.length
+      ? (rpeLogs.reduce((s, l) => s + l.rpe, 0) / rpeLogs.length).toFixed(1) : '—';
+    document.getElementById('statAvgRpe').textContent = avgRpe;
+
+    const withTotal = logs.filter(l => l.totalExercises);
+    const avgComp = withTotal.length
+      ? Math.round(withTotal.reduce((s, l) => s + ((l.completedExercises || []).length / l.totalExercises) * 100, 0) / withTotal.length) + '%'
+      : '—';
+    document.getElementById('statAvgCompletion').textContent = avgComp;
+  }
+
+  // ── Activity heatmap ──
+  function renderHeatmap(logs) {
+    const grid = document.getElementById('heatmapGrid');
+    const byDate = {};
+    logs.forEach(l => { byDate[l.date] = (byDate[l.date] || 0) + 1; });
+    const maxPerDay = Math.max(...Object.values(byDate), 1);
+
+    const days = 112; // 16 weeks
+    const today = new Date();
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      const key = d.toISOString().split('T')[0];
+      const count = byDate[key] || 0;
+      const level = count === 0 ? '' : count / maxPerDay < 0.25 ? 'l1' : count / maxPerDay < 0.5 ? 'l2' : count / maxPerDay < 0.75 ? 'l3' : 'l4';
+      const el = document.createElement('div');
+      el.className = 'heatmap-day' + (level ? ' ' + level : '');
+      el.title = `${key}: ${count} session${count !== 1 ? 's' : ''}`;
+      grid.appendChild(el);
+    }
+  }
+
+  // ── Sessions per week ──
+  function renderWeeklyChart(logs) {
+    const chart = document.getElementById('weeklyChart');
+    const weeks = [];
+    const today = new Date();
+    for (let w = 11; w >= 0; w--) {
+      const start = new Date(today); start.setDate(start.getDate() - today.getDay() - w * 7);
+      const end   = new Date(start); end.setDate(end.getDate() + 6);
+      const s = start.toISOString().split('T')[0];
+      const e = end.toISOString().split('T')[0];
+      weeks.push({ label: fmtShort(s), count: logs.filter(l => l.date >= s && l.date <= e).length });
+    }
+    const max = Math.max(...weeks.map(w => w.count), 1);
+    weeks.forEach(({ label, count }) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'bar-wrap';
+      wrap.innerHTML = `
+        <div class="bar-val">${count || ''}</div>
+        <div class="bar green" style="height:${Math.round((count / max) * 80)}px;"></div>
+        <div class="bar-label">${label}</div>`;
+      chart.appendChild(wrap);
+    });
+  }
+
+  // ── RPE distribution ──
+  function renderRpeDist(logs) {
+    const chart = document.getElementById('rpeDistChart');
+    const rpeLogs = logs.filter(l => l.rpe != null);
+    if (rpeLogs.length === 0) {
+      chart.innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:0.8rem;margin:auto;">No RPE data</div>';
+      return;
+    }
+    const counts = Array(10).fill(0);
+    rpeLogs.forEach(l => { if (l.rpe >= 1 && l.rpe <= 10) counts[l.rpe - 1]++; });
+    const max = Math.max(...counts, 1);
+    counts.forEach((count, i) => {
+      const rpe = i + 1;
+      const color = rpe >= 9 ? '#ef4444' : rpe >= 7 ? '#f59e0b' : '#72b832';
+      const wrap = document.createElement('div');
+      wrap.className = 'rpe-col-wrap';
+      wrap.innerHTML = `
+        <div class="rpe-col-val">${count || ''}</div>
+        <div class="rpe-col" style="height:${Math.round((count / max) * 60)}px;background:${color};"></div>
+        <div class="rpe-col-label">${rpe}</div>`;
+      chart.appendChild(wrap);
+    });
+    const avg = (rpeLogs.reduce((s, l) => s + l.rpe, 0) / rpeLogs.length).toFixed(1);
+    document.getElementById('rpeDistNote').textContent = `${rpeLogs.length} sessions rated · Average: ${avg}`;
+  }
+
+  // ── Program popularity ──
+  function renderProgramPopularity(athletes) {
+    const container = document.getElementById('programPopularity');
+    const progCount = {};
+    athletes.forEach(a => {
+      const progs = a.assignedPrograms || (a.assignedProgram ? [a.assignedProgram] : []);
+      progs.forEach(p => { progCount[p] = (progCount[p] || 0) + 1; });
+    });
+    const sorted = Object.entries(progCount).sort((a, b) => b[1] - a[1]);
+    if (sorted.length === 0) { container.innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:0.82rem;">No programs assigned yet.</div>'; return; }
+    const max = sorted[0][1];
+    sorted.forEach(([name, count]) => {
+      container.insertAdjacentHTML('beforeend', `
+        <div class="prog-row">
+          <div class="prog-row-top">
+            <div class="prog-row-name">${esc(name)}</div>
+            <div class="prog-row-count">${count} athlete${count !== 1 ? 's' : ''}</div>
+          </div>
+          <div class="prog-bar-track">
+            <div class="prog-bar-fill" style="width:${Math.round((count / max) * 100)}%;"></div>
+          </div>
+        </div>`);
+    });
+  }
+
+  // ── Top exercises ──
+  function renderTopExercises(logs) {
+    const container = document.getElementById('topExercises');
+    const exCount = {};
+    logs.forEach(l => {
+      const names = l.exerciseNames || [];
+      const done  = new Set(l.completedExercises || []);
+      names.forEach((name, i) => {
+        if (done.has(i.toString())) exCount[name] = (exCount[name] || 0) + 1;
+      });
+    });
+    const sorted = Object.entries(exCount).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    if (sorted.length === 0) { container.innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:0.82rem;">No exercise data yet.</div>'; return; }
+    sorted.forEach(([name, count], i) => {
+      container.insertAdjacentHTML('beforeend', `
+        <div class="ex-row">
+          <div class="ex-rank">${i + 1}</div>
+          <div class="ex-name">${esc(name)}</div>
+          <div class="ex-count">${count}×</div>
+        </div>`);
+    });
+  }
+
+  // ── Per-athlete table ──
+  function renderAthleteTable(athletes, logs) {
+    const table = document.getElementById('athleteTable');
+    const byAthlete = {};
+    logs.forEach(l => {
+      if (!byAthlete[l.athleteId]) byAthlete[l.athleteId] = [];
+      byAthlete[l.athleteId].push(l);
+    });
+
+    const rows = athletes
+      .map(a => {
+        const aLogs = byAthlete[a.id] || [];
+        const sessions = aLogs.length;
+        const rpeLogs  = aLogs.filter(l => l.rpe != null);
+        const avgRpe   = rpeLogs.length ? (rpeLogs.reduce((s, l) => s + l.rpe, 0) / rpeLogs.length).toFixed(1) : '—';
+        const lastDate = aLogs.length ? aLogs[aLogs.length - 1].date : null;
+        return { a, sessions, avgRpe, lastDate };
+      })
+      .filter(r => r.sessions > 0)
+      .sort((a, b) => b.sessions - a.sessions);
+
+    if (rows.length === 0) {
+      table.innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:0.82rem;padding:12px 0;">No workout data yet.</div>';
+      return;
+    }
+
+    rows.forEach(({ a, sessions, avgRpe, lastDate }) => {
+      const initials = getInitials(a.displayName || a.email || '?');
+      const progs    = (a.assignedPrograms || (a.assignedProgram ? [a.assignedProgram] : [])).join(', ');
+      const lastStr  = lastDate ? daysAgo(lastDate) : '—';
+      table.insertAdjacentHTML('beforeend', `
+        <div class="athlete-row">
+          <div class="athlete-avatar">${esc(initials)}</div>
+          <div class="athlete-name-col">
+            <div class="name">${esc(a.displayName || a.email || 'Athlete')}</div>
+            <div class="prog">${esc(progs)}</div>
+          </div>
+          <div class="athlete-sessions">${sessions}</div>
+          <div class="athlete-rpe">${avgRpe}</div>
+          <div class="athlete-last">${lastStr}</div>
+        </div>`);
+    });
+  }
+
+  // ── Helpers ──
+  function fmt(dateStr) {
+    return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+  function fmtShort(dateStr) {
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+  function daysAgo(dateStr) {
+    const diff = Math.floor((Date.now() - new Date(dateStr + 'T12:00:00').getTime()) / 86400000);
+    if (diff === 0) return 'Today';
+    if (diff === 1) return 'Yesterday';
+    return `${diff}d ago`;
+  }
+  function getInitials(name) {
+    return name.trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  }
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>
