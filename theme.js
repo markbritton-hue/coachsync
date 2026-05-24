@@ -46,9 +46,11 @@ function updateToggleButton(theme) {
   if (!btn) return;
   if (theme === 'light') {
     btn.innerHTML = '<i class="fa-solid fa-moon theme-icon"></i> Dark';
+    btn.setAttribute('aria-label', 'Switch to dark mode');
     btn.title = 'Switch to dark mode';
   } else {
     btn.innerHTML = '<i class="fa-solid fa-sun theme-icon"></i> Light';
+    btn.setAttribute('aria-label', 'Switch to light mode');
     btn.title = 'Switch to light mode';
   }
 }
@@ -59,11 +61,9 @@ function injectToggleButton() {
 
   const btn = document.createElement('button');
   btn.id        = 'themeToggle';
+  btn.type      = 'button';
   btn.className = 'btn-theme';
   btn.onclick   = toggleTheme;
-
-  const theme = localStorage.getItem('cs-theme') || 'dark';
-  updateToggleButton(theme);
 
   // Try common nav containers in order of preference
   const target =
@@ -79,5 +79,10 @@ function injectToggleButton() {
     } else {
       target.appendChild(btn);
     }
+
+    const theme = localStorage.getItem('cs-theme') || 'dark';
+    updateToggleButton(theme);
+  } else {
+    btn.innerHTML = '<i class="fa-solid fa-sun theme-icon"></i> Light';
   }
 }
