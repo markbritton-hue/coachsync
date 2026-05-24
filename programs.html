@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="CoachSyncLogo.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
   <title>Programs — CoachSync</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="theme.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
     body {
@@ -82,12 +84,20 @@
     /* ── Program cards ── */
     .programs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-bottom: 48px; }
     .program-card {
-      background: rgba(30,41,59,0.85); border: 1px solid rgba(80,184,240,0.2);
+      background: rgba(30,41,59,0.8); border: 1px solid rgba(80,184,240,0.2);
       border-radius: 15px; padding: 24px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.4); transition: all 0.3s ease;
-      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5); transition: all 0.3s ease;
+      cursor: pointer; position: relative; overflow: hidden;
     }
-    .program-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.5); border-color: rgba(80,184,240,0.4); }
+    .program-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-size: 75%; background-repeat: no-repeat;
+      background-position: center 110%;
+      opacity: 0.06; pointer-events: none; filter: grayscale(1);
+    }
+    .program-card:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(0,0,0,0.6); border-color: rgba(80,184,240,0.5); }
+    .program-card:hover::before { opacity: 0.10; }
     .program-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
     .program-card-title { font-size: 1.1rem; font-weight: 700; color: #50b8f0; margin: 0 0 4px; }
     .program-card-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
@@ -155,15 +165,97 @@
       border-color: #50b8f0; box-shadow: 0 0 0 3px rgba(80,184,240,0.15);
     }
     .field-input::placeholder, .field-textarea::placeholder { color: rgba(255,255,255,0.3); }
-    .field-select option { background: #1e293b; }
+    .field-select option { background: #1e293b; color: white; }
+
+    /* Light mode modal inputs */
+    body.light-mode .modal-box .field-select,
+    body.light-mode .modal-box .field-input,
+    body.light-mode .modal-box .field-textarea {
+      background: #f8fafc !important;
+      border-color: rgba(30,143,224,0.3) !important;
+      color: #1e293b !important;
+    }
+    body.light-mode .modal-box .field-select option { background: #ffffff; color: #1e293b; }
+    body.light-mode .modal-box .field-input::placeholder,
+    body.light-mode .modal-box .field-textarea::placeholder { color: #94a3b8 !important; }
+    body.light-mode .modal-box .ex-input {
+      background: #f1f5f9 !important;
+      border-color: rgba(30,143,224,0.25) !important;
+      color: #1e293b !important;
+    }
+    body.light-mode .modal-box .ex-input::placeholder { color: #94a3b8 !important; }
+    body.light-mode .modal-box .ex-input option { background: #ffffff; color: #1e293b; }
+    body.light-mode .modal-box .ex-mini-label { color: #64748b !important; }
+    body.light-mode .modal-box .exercise-builder-row {
+      background: #f0f4f8 !important;
+      border-color: rgba(30,143,224,0.15) !important;
+    }
+    body.light-mode .modal-box select[id^="copy-target-"] {
+      background: rgba(30,143,224,0.08) !important;
+      border-color: rgba(30,143,224,0.35) !important;
+      color: #1e8fe0 !important;
+    }
+    body.light-mode .modal-box .day-tab {
+      background: #f1f5f9 !important;
+      border-color: rgba(0,0,0,0.12) !important;
+      color: #475569 !important;
+    }
+    body.light-mode .modal-box .day-tab.active {
+      background: rgba(30,143,224,0.12) !important;
+      border-color: #1e8fe0 !important;
+      color: #1e8fe0 !important;
+    }
+    body.light-mode .modal-box .day-tabs-row { border-bottom-color: rgba(0,0,0,0.08) !important; }
+    body.light-mode .modal-box .day-panel-label { color: #64748b !important; }
+    body.light-mode .modal-box #noExercisesHint,
+    body.light-mode .modal-box [id^="hint-day-"] { color: #94a3b8 !important; }
+
+    /* ── Copy-to-day dropdown ── */
+    #day-panel-header-0 select,
+    select[id^="copy-target-"] {
+      background: rgba(80,184,240,0.1);
+      border: 1px solid rgba(80,184,240,0.35);
+      color: #50b8f0;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+    select[id^="copy-target-"] option { background: #1e293b; color: white; }
     .field-textarea { resize: vertical; min-height: 80px; font-family: inherit; }
 
-    /* ── Exercise builder ── */
-    .exercises-section { margin-top: 8px; }
-    .exercises-section-label {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 12px;
+    /* ── Day tabs ── */
+    .day-tabs-wrap { margin-top: 8px; }
+    .day-tabs-row {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;
+      border-bottom: 1px solid rgba(80,184,240,0.12); padding-bottom: 10px;
     }
+    .day-tab {
+      background: rgba(15,23,42,0.5); border: 1px solid rgba(80,184,240,0.2);
+      color: rgba(255,255,255,0.55); font-size: 0.8rem; font-weight: 700;
+      padding: 6px 14px; border-radius: 20px; cursor: pointer; transition: all 0.18s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .day-tab:hover { border-color: #50b8f0; color: #50b8f0; }
+    .day-tab.active {
+      background: rgba(80,184,240,0.18); border-color: #50b8f0;
+      color: #50b8f0;
+    }
+    .day-tab .day-count {
+      background: rgba(80,184,240,0.3); color: #50b8f0;
+      font-size: 0.68rem; font-weight: 800; min-width: 16px; height: 16px;
+      border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; padding: 0 4px;
+    }
+    .day-tab.active .day-count { background: #50b8f0; color: white; }
+    .day-panel { display: none; }
+    .day-panel.active { display: block; }
+    .day-panel-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+    }
+    .day-panel-label {
+      font-size: 0.82rem; font-weight: 700; color: rgba(255,255,255,0.5);
+      text-transform: uppercase; letter-spacing: 0.4px;
+    }
+
+    /* ── Exercise builder ── */
     .exercise-builder-row {
       background: rgba(15,23,42,0.5); border: 1px solid rgba(80,184,240,0.15);
       border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; position: relative;
@@ -188,6 +280,15 @@
     .ex-input:focus { border-color: #50b8f0; }
     .ex-input::placeholder { color: rgba(255,255,255,0.25); }
     .ex-notes { grid-column: 1/-1; }
+
+    /* ── Duplicate button ── */
+    .btn-duplicate {
+      background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.35);
+      color: #10b981; font-size: 0.82rem; font-weight: 600;
+      padding: 6px 14px; border-radius: 20px; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .btn-duplicate:hover { background: rgba(16,185,129,0.2); border-color: #10b981; }
 
     .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px; }
     .modal-footer .btn-cancel {
@@ -373,18 +474,11 @@
       </div>
     </div>
 
-    <!-- Exercises -->
-    <div class="exercises-section">
-      <div class="exercises-section-label">
-        <label class="field-label" style="margin:0;">Exercises</label>
-        <button class="btn-secondary" onclick="addExerciseRow()" style="font-size:0.82rem; padding:6px 14px;">
-          <i class="fa-solid fa-plus"></i> Add Exercise
-        </button>
-      </div>
-      <div id="exercisesList"></div>
-      <p id="noExercisesHint" style="color:rgba(255,255,255,0.3); font-size:0.85rem; text-align:center; padding:16px 0;">
-        No exercises added yet. Click <strong style="color:#50b8f0;">+ Add Exercise</strong> above.
-      </p>
+    <!-- Day-based exercises -->
+    <div class="day-tabs-wrap">
+      <label class="field-label" style="margin-bottom:10px;">Exercises by Day</label>
+      <div class="day-tabs-row" id="dayTabsRow"></div>
+      <div id="dayPanelsContainer"></div>
     </div>
 
     <div class="modal-footer">
@@ -545,50 +639,18 @@
         card.appendChild(desc);
       }
 
-      // Exercises
-      const exList = p.exercises || [];
-      if (exList.length > 0) {
+      // Exercise summary — total count only
+      const allEx = (p.days && p.days.length > 0)
+        ? p.days.reduce((sum, d) => sum + (d.exercises?.length || 0), 0)
+        : (p.exercises || []).length;
+
+      if (allEx > 0) {
         const exSection = document.createElement('div');
         exSection.className = 'program-card-exercises';
-        exList.slice(0, 4).forEach(ex => {
-          const row = document.createElement('div');
-          row.className = 'exercise-row';
-          const nameSpan = document.createElement('span');
-          nameSpan.className = 'exercise-name';
-          nameSpan.textContent = ex.name;
-          const detailSpan = document.createElement('span');
-          detailSpan.className = 'exercise-detail';
-          const metricVal = ex.value || ex.reps || '';
-          const metricUnit = ex.type === 'Timed' ? 'sec' : ex.type === 'Cals' ? 'cals' : 'reps';
-          const metricStr = metricVal ? ex.sets + ' × ' + metricVal + ' ' + metricUnit : ex.sets + ' sets';
-          const weightStr = ex.weight ? ' @ ' + ex.weight : '';
-          const restStr   = ex.rest   ? ' | ' + ex.rest + 's rest' : '';
-          detailSpan.textContent = metricStr + weightStr + restStr;
-          row.appendChild(nameSpan);
-          const rightCol = document.createElement('div');
-          rightCol.style.cssText = 'display:flex;align-items:center;gap:8px;';
-          rightCol.appendChild(detailSpan);
-          if (ex.videoUrl) {
-            const vidLink = document.createElement('a');
-            vidLink.href = ex.videoUrl;
-            vidLink.target = '_blank';
-            vidLink.rel = 'noopener noreferrer';
-            vidLink.title = 'Watch video';
-            vidLink.innerHTML = '<i class="fa-brands fa-youtube" style="font-size:1rem;color:#ef4444;"></i>';
-            vidLink.style.cssText = 'text-decoration:none;line-height:1;flex-shrink:0;';
-            vidLink.addEventListener('click', e => e.stopPropagation());
-            rightCol.appendChild(vidLink);
-          }
-          row.appendChild(rightCol);
-          exSection.appendChild(row);
-        });
-        const moreCount = exList.length - 4;
-        if (moreCount > 0) {
-          const more = document.createElement('p');
-          more.style.cssText = 'color:rgba(255,255,255,0.35);font-size:0.8rem;margin:8px 0 0;text-align:center;';
-          more.textContent = '+' + moreCount + ' more exercise' + (moreCount > 1 ? 's' : '');
-          exSection.appendChild(more);
-        }
+        const summary = document.createElement('p');
+        summary.style.cssText = 'color:rgba(255,255,255,0.5);font-size:0.85rem;margin:0;';
+        summary.innerHTML = `<i class="fa-solid fa-dumbbell me-1" style="color:#50b8f0;"></i>${allEx} exercise${allEx !== 1 ? 's' : ''}`;
+        exSection.appendChild(summary);
         card.appendChild(exSection);
       }
 
@@ -659,7 +721,140 @@
   }
 
   // ── Modal ──
-  let exerciseCount = 0;
+  let exCounter   = 0;   // global unique id for each exercise row
+  let activeDayIdx = 0;
+  let dayCount    = 4;
+
+  // Parse "4 days" → 4
+  function parseDayCount(str) {
+    return parseInt(str) || 4;
+  }
+
+  // Build / rebuild the day tabs + panels
+  function buildDayUI(count, existingDays = []) {
+    dayCount    = count;
+    activeDayIdx = 0;
+    const tabsRow  = document.getElementById('dayTabsRow');
+    const container = document.getElementById('dayPanelsContainer');
+    tabsRow.innerHTML = '';
+    container.innerHTML = '';
+
+    for (let d = 0; d < count; d++) {
+      // Tab
+      const tab = document.createElement('button');
+      tab.type = 'button';
+      tab.className = 'day-tab' + (d === 0 ? ' active' : '');
+      tab.id = `day-tab-${d}`;
+      tab.onclick = () => switchDay(d);
+      tab.innerHTML = `Day ${d + 1} <span class="day-count" id="day-count-${d}">0</span>`;
+      tabsRow.appendChild(tab);
+
+      // Panel
+      const panel = document.createElement('div');
+      panel.className = 'day-panel' + (d === 0 ? ' active' : '');
+      panel.id = `day-panel-${d}`;
+
+      const header = document.createElement('div');
+      header.className = 'day-panel-header';
+      header.id = `day-panel-header-${d}`;
+      header.innerHTML = `
+        <span class="day-panel-label">Day ${d + 1} Exercises</span>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:5px;">
+            <button type="button" class="btn-secondary" onclick="copyDayTo(${d})" style="font-size:0.78rem;padding:5px 12px;" title="Copy exercises to another day">
+              <i class="fa-solid fa-copy"></i> Copy to
+            </button>
+            <select id="copy-target-${d}" class="ex-input" style="width:80px;padding:5px 8px;font-size:0.78rem;">
+            </select>
+          </div>
+          <button type="button" class="btn-secondary" onclick="addExerciseRow({}, ${d})" style="font-size:0.82rem;padding:6px 14px;">
+            <i class="fa-solid fa-plus"></i> Add Exercise
+          </button>
+        </div>`;
+      panel.appendChild(header);
+
+      const list = document.createElement('div');
+      list.id = `exercises-day-${d}`;
+      panel.appendChild(list);
+
+      const hint = document.createElement('p');
+      hint.id = `hint-day-${d}`;
+      hint.style.cssText = 'color:rgba(255,255,255,0.3);font-size:0.85rem;text-align:center;padding:16px 0;';
+      hint.innerHTML = `No exercises yet. Click <strong style="color:#50b8f0;">+ Add Exercise</strong> above.`;
+      panel.appendChild(hint);
+
+      container.appendChild(panel);
+
+      // Load existing exercises for this day
+      const dayData = existingDays[d];
+      if (dayData && dayData.exercises) {
+        dayData.exercises.forEach(ex => addExerciseRow(ex, d));
+      }
+      updateDayHint(d);
+    }
+
+    // Populate all copy-target dropdowns (exclude self)
+    for (let d = 0; d < count; d++) {
+      const sel = document.getElementById(`copy-target-${d}`);
+      if (!sel) continue;
+      sel.innerHTML = '';
+      for (let t = 0; t < count; t++) {
+        if (t === d) continue;
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = `Day ${t + 1}`;
+        sel.appendChild(opt);
+      }
+    }
+  }
+
+  function copyDayTo(fromDay) {
+    const sel = document.getElementById(`copy-target-${fromDay}`);
+    if (!sel) return;
+    const toDay = parseInt(sel.value);
+
+    // Collect exercises from the source day
+    const srcList = document.getElementById(`exercises-day-${fromDay}`);
+    if (!srcList) return;
+    const rows = srcList.querySelectorAll('.exercise-builder-row');
+    if (rows.length === 0) { showToast('No exercises on this day to copy.', 'error'); return; }
+
+    const exercises = [...rows].map(row => {
+      const idx = row.id.split('-')[1];
+      return {
+        name:     (document.getElementById('ex-name-'  + idx)?.value  || '').trim(),
+        sets:     (document.getElementById('ex-sets-'  + idx)?.value  || '').trim(),
+        type:      document.getElementById('ex-type-'  + idx)?.value  || 'Reps',
+        value:    (document.getElementById('ex-value-' + idx)?.value  || '').trim(),
+        weight:   (document.getElementById('ex-weight-'+ idx)?.value  || '').trim(),
+        rest:     (document.getElementById('ex-rest-'  + idx)?.value  || '').trim(),
+        notes:    (document.getElementById('ex-notes-' + idx)?.value  || '').trim(),
+        videoUrl: (document.getElementById('ex-video-' + idx)?.value  || '').trim(),
+      };
+    }).filter(ex => ex.name);
+
+    // Add them to the target day
+    exercises.forEach(ex => addExerciseRow(ex, toDay));
+
+    // Switch to the target day so the user can see the result
+    switchDay(toDay);
+    showToast(`Copied ${exercises.length} exercise${exercises.length > 1 ? 's' : ''} to Day ${toDay + 1}.`, 'success');
+  }
+
+  function switchDay(idx) {
+    activeDayIdx = idx;
+    document.querySelectorAll('.day-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+    document.querySelectorAll('.day-panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+  }
+
+  function updateDayHint(dayIdx) {
+    const list  = document.getElementById(`exercises-day-${dayIdx}`);
+    const hint  = document.getElementById(`hint-day-${dayIdx}`);
+    const count = list ? list.querySelectorAll('.exercise-builder-row').length : 0;
+    if (hint) hint.style.display = count === 0 ? 'block' : 'none';
+    const countEl = document.getElementById(`day-count-${dayIdx}`);
+    if (countEl) countEl.textContent = count;
+  }
 
   function openModal(reset = true) {
     if (reset) {
@@ -671,11 +866,10 @@
       document.getElementById('progDuration').value = '8 weeks';
       document.getElementById('progDays').value = '4 days';
       document.getElementById('progGoal').value = 'Strength';
-      document.getElementById('progDesc').value      = '';
-      document.getElementById('progEstTime').value   = '';
-      document.getElementById('exercisesList').innerHTML = '';
-      exerciseCount = 0;
-      updateExerciseHint();
+      document.getElementById('progDesc').value    = '';
+      document.getElementById('progEstTime').value = '';
+      exCounter = 0;
+      buildDayUI(4);
     }
     document.getElementById('programModal').classList.add('open');
     document.getElementById('btnSave').disabled = false;
@@ -686,17 +880,29 @@
     document.getElementById('programModal').classList.remove('open');
   }
 
-  function addExerciseRow(data = {}) {
-    exerciseCount++;
-    document.getElementById('noExercisesHint').style.display = 'none';
-    const idx  = exerciseCount;
-    const type = data.type || 'Reps';
-    const valueLabel = type === 'Timed' ? 'Time (sec)' : type === 'Cals' ? 'Calories' : 'Reps';
-    const valuePlaceholder = type === 'Timed' ? '45' : type === 'Cals' ? '20' : '8';
+  // Rebuild days when "Days / Week" selector changes
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('progDays').addEventListener('change', function() {
+      const n = parseDayCount(this.value);
+      // Collect current data before rebuild
+      const current = collectDays();
+      buildDayUI(n, current);
+    });
+  });
 
-    document.getElementById('exercisesList').insertAdjacentHTML('beforeend', `
-      <div class="exercise-builder-row" id="ex-${idx}">
-        <button class="remove-ex" onclick="removeExercise(${idx})" title="Remove"><i class="fa-solid fa-xmark"></i></button>
+  function addExerciseRow(data = {}, dayIdx = activeDayIdx) {
+    exCounter++;
+    const idx  = exCounter;
+    const type = data.type || 'Reps';
+    const valueLabel       = type === 'Timed' ? 'Time (sec)' : type === 'Cals' ? 'Calories' : 'Reps';
+    const valuePlaceholder = type === 'Timed' ? '45'  : type === 'Cals' ? '20' : '8';
+
+    const container = document.getElementById(`exercises-day-${dayIdx}`);
+    if (!container) return;
+
+    container.insertAdjacentHTML('beforeend', `
+      <div class="exercise-builder-row" id="ex-${idx}" data-day="${dayIdx}">
+        <button class="remove-ex" onclick="removeExercise(${idx}, ${dayIdx})" title="Remove"><i class="fa-solid fa-xmark"></i></button>
         <div class="ex-grid">
           <div>
             <span class="ex-mini-label">Exercise Name</span>
@@ -731,50 +937,56 @@
             <input class="ex-input" id="ex-notes-${idx}" placeholder="e.g. Keep chest up, drive knees out" value="${esc(data.notes||'')}" />
           </div>
           <div class="ex-notes" style="margin-top:6px;">
-            <div style="display:grid;grid-template-columns:1fr 120px;gap:10px;align-items:end;">
-              <div>
-                <span class="ex-mini-label"><i class="fa-solid fa-video" style="color:#50b8f0;margin-right:4px;"></i>Instructional Video Link</span>
-                <input class="ex-input" id="ex-video-${idx}" placeholder="https://youtube.com/watch?v=..." value="${esc(data.videoUrl||'')}" />
-              </div>
-            </div>
+            <span class="ex-mini-label"><i class="fa-solid fa-video" style="color:#50b8f0;margin-right:4px;"></i>Instructional Video Link</span>
+            <input class="ex-input" id="ex-video-${idx}" placeholder="https://youtube.com/watch?v=..." value="${esc(data.videoUrl||'')}" />
           </div>
         </div>
       </div>`);
+
+    updateDayHint(dayIdx);
   }
 
   function updateExValueLabel(idx) {
     const type = document.getElementById('ex-type-' + idx).value;
     const label = type === 'Timed' ? 'Time (sec)' : type === 'Cals' ? 'Calories' : 'Reps';
-    const placeholder = type === 'Timed' ? '45' : type === 'Cals' ? '20' : '8';
+    const ph    = type === 'Timed' ? '45' : type === 'Cals' ? '20' : '8';
     document.getElementById('ex-value-label-' + idx).textContent = label;
-    document.getElementById('ex-value-' + idx).placeholder = placeholder;
+    document.getElementById('ex-value-' + idx).placeholder = ph;
   }
 
-  function removeExercise(idx) {
+  function removeExercise(idx, dayIdx) {
     document.getElementById('ex-' + idx).remove();
-    updateExerciseHint();
+    updateDayHint(dayIdx);
   }
 
-  function updateExerciseHint() {
-    const rows = document.querySelectorAll('.exercise-builder-row');
-    document.getElementById('noExercisesHint').style.display = rows.length === 0 ? 'block' : 'none';
+  // Collect all days as array of { label, exercises }
+  function collectDays() {
+    const result = [];
+    for (let d = 0; d < dayCount; d++) {
+      const list = document.getElementById(`exercises-day-${d}`);
+      if (!list) { result.push({ label: `Day ${d+1}`, exercises: [] }); continue; }
+      const rows = list.querySelectorAll('.exercise-builder-row');
+      const exercises = [...rows].map(row => {
+        const idx = row.id.split('-')[1];
+        return {
+          name:     (document.getElementById('ex-name-'  + idx)?.value  || '').trim(),
+          sets:     (document.getElementById('ex-sets-'  + idx)?.value  || '').trim(),
+          type:      document.getElementById('ex-type-'  + idx)?.value  || 'Reps',
+          value:    (document.getElementById('ex-value-' + idx)?.value  || '').trim(),
+          weight:   (document.getElementById('ex-weight-'+ idx)?.value  || '').trim(),
+          rest:     (document.getElementById('ex-rest-'  + idx)?.value  || '').trim(),
+          notes:    (document.getElementById('ex-notes-' + idx)?.value  || '').trim(),
+          videoUrl: (document.getElementById('ex-video-' + idx)?.value  || '').trim(),
+        };
+      }).filter(ex => ex.name);
+      result.push({ label: `Day ${d + 1}`, exercises });
+    }
+    return result;
   }
 
-  function collectExercises() {
-    const rows = document.querySelectorAll('.exercise-builder-row');
-    return [...rows].map(row => {
-      const idx = row.id.split('-')[1];
-      return {
-        name:     document.getElementById('ex-name-'   + idx).value.trim(),
-        sets:     document.getElementById('ex-sets-'   + idx).value.trim(),
-        type:     document.getElementById('ex-type-'   + idx).value,
-        value:    document.getElementById('ex-value-'  + idx).value.trim(),
-        weight:   document.getElementById('ex-weight-' + idx).value.trim(),
-        rest:     document.getElementById('ex-rest-'   + idx).value.trim(),
-        notes:    document.getElementById('ex-notes-'  + idx).value.trim(),
-        videoUrl: document.getElementById('ex-video-'    + idx).value.trim(),
-      };
-    }).filter(ex => ex.name);
+  // Flatten days to single exercise list for backward compat
+  function flattenDays(days) {
+    return days.flatMap(d => d.exercises || []);
   }
 
   // ── Save ──
@@ -786,6 +998,7 @@
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving…';
 
+    const days = collectDays();
     const data = {
       name,
       difficulty:  document.getElementById('progDifficulty').value,
@@ -794,7 +1007,8 @@
       goal:        document.getElementById('progGoal').value,
       description: document.getElementById('progDesc').value.trim(),
       estWorkoutTime: document.getElementById('progEstTime').value || null,
-      exercises:   collectExercises(),
+      days,
+      exercises:   flattenDays(days), // backward compat for workouts page
       trainerId:   currentUser.uid,
     };
 
@@ -839,11 +1053,38 @@
     document.getElementById('progGoal').value       = p.goal || 'Strength';
     document.getElementById('progDesc').value      = p.description || '';
     document.getElementById('progEstTime').value   = p.estWorkoutTime || '';
-    document.getElementById('exercisesList').innerHTML = '';
-    exerciseCount = 0;
-    (p.exercises || []).forEach(ex => addExerciseRow(ex));
-    updateExerciseHint();
+    exCounter = 0;
+
+    const n = parseDayCount(p.daysPerWeek || '4 days');
+
+    // Support both new format (days array) and old format (flat exercises)
+    let existingDays;
+    if (p.days && p.days.length > 0) {
+      existingDays = p.days;
+    } else if (p.exercises && p.exercises.length > 0) {
+      // Old format — put all exercises on Day 1
+      existingDays = [{ label: 'Day 1', exercises: p.exercises }];
+    } else {
+      existingDays = [];
+    }
+
+    buildDayUI(n, existingDays);
     openModal(false);
+  }
+
+  // ── Duplicate ──
+  async function duplicateProgram(p) {
+    const copy = { ...p };
+    delete copy.id;
+    copy.name = 'Copy of ' + copy.name;
+    copy.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+    delete copy.updatedAt;
+    try {
+      await db.collection('programs').add(copy);
+      showToast(`"${copy.name}" created!`, 'success');
+    } catch(e) {
+      showToast('Error duplicating program.', 'error');
+    }
   }
 
   // ── Delete ──
@@ -893,6 +1134,10 @@
   const style = document.createElement('style');
   style.textContent = '.active-filter { background: rgba(80,184,240,0.2) !important; border-color: rgba(80,184,240,0.5) !important; color: #50b8f0 !important; }';
   document.head.appendChild(style);
+
+  // Init day UI on load so the modal is ready
+  buildDayUI(4);
 </script>
+<script src="theme.js"></script>
 </body>
 </html>

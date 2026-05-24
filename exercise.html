@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="CoachSyncLogo.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
   <title>Exercise — CoachSync</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="theme.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
     body {
@@ -254,6 +256,89 @@
       z-index: 9999; font-size: 1.1rem; color: rgba(255,255,255,0.5); gap: 12px;
     }
 
+    /* ── Video recorder ── */
+    .record-section {
+      max-width: 480px; margin: 0 auto 24px;
+    }
+    .btn-record-toggle {
+      background: none; border: 1px solid rgba(239,68,68,0.35);
+      color: rgba(239,68,68,0.7); font-size: 0.85rem; font-weight: 600;
+      padding: 8px 20px; border-radius: 25px; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 7px; width: 100%; justify-content: center;
+      margin-bottom: 10px;
+    }
+    .btn-record-toggle:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.06); }
+    .btn-record-toggle.open { background: rgba(239,68,68,0.08); border-color: #ef4444; color: #ef4444; }
+
+    .record-panel {
+      display: none;
+      background: rgba(30,41,59,0.9); border: 1px solid rgba(239,68,68,0.2);
+      border-radius: 16px; padding: 16px; text-align: center;
+    }
+    .record-panel.open { display: block; }
+
+    .record-preview {
+      width: 100%; max-height: 260px; border-radius: 10px;
+      background: #000; object-fit: cover; display: none; margin-bottom: 12px;
+    }
+    .record-preview.visible { display: block; }
+
+    .record-controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
+
+    .btn-cam-start {
+      background: #ef4444; border: none; color: white; font-weight: 700;
+      padding: 10px 24px; border-radius: 25px; font-size: 0.9rem;
+      cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 7px;
+      box-shadow: 0 4px 12px rgba(239,68,68,0.35);
+    }
+    .btn-cam-start:hover { background: #dc2626; transform: translateY(-1px); }
+
+    .btn-cam-stop {
+      background: none; border: 2px solid #ef4444; color: #ef4444; font-weight: 700;
+      padding: 10px 24px; border-radius: 25px; font-size: 0.9rem;
+      cursor: pointer; transition: all 0.2s; display: none;
+      align-items: center; gap: 7px;
+    }
+    .btn-cam-stop.visible { display: inline-flex; }
+
+    .record-dot {
+      width: 10px; height: 10px; border-radius: 50%; background: #ef4444;
+      display: inline-block; animation: blink 1s infinite;
+    }
+    @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.2; } }
+
+    .record-timer {
+      font-size: 0.82rem; color: rgba(255,255,255,0.45); margin-bottom: 8px; display: none;
+    }
+    .record-timer.visible { display: block; }
+
+    .record-playback { display: none; margin-top: 10px; }
+    .record-playback.visible { display: block; }
+    .record-playback video {
+      width: 100%; border-radius: 10px; margin-bottom: 10px; background: #000;
+    }
+    .record-playback-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+    .btn-download-clip {
+      background: rgba(114,184,50,0.12); border: 1px solid rgba(114,184,50,0.4);
+      color: #72b832; font-weight: 700; font-size: 0.85rem;
+      padding: 8px 20px; border-radius: 20px; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+    }
+    .btn-download-clip:hover { background: rgba(114,184,50,0.22); color: #72b832; }
+
+    .btn-discard-clip {
+      background: none; border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.45); font-size: 0.85rem; font-weight: 600;
+      padding: 8px 18px; border-radius: 20px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-discard-clip:hover { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.7); }
+
+    .record-hint {
+      font-size: 0.75rem; color: rgba(255,255,255,0.3); margin-top: 8px;
+    }
+
     @media (max-width: 575px) {
       .workout-panel { padding: 14px 12px; }
       .rep-value { font-size: 3.2rem; }
@@ -370,6 +455,47 @@
     </button>
   </div>
 
+  <!-- Record Video section -->
+  <div class="record-section" id="recordSection">
+    <button class="btn-record-toggle" id="btnRecordToggle" onclick="toggleRecordPanel()">
+      <i class="fa-solid fa-video"></i> Record Video
+    </button>
+    <div class="record-panel" id="recordPanel">
+      <!-- Live camera preview -->
+      <video class="record-preview" id="recordPreview" autoplay muted playsinline></video>
+
+      <!-- Status: elapsed time while recording -->
+      <div class="record-timer" id="recordTimer">
+        <span class="record-dot"></span> <span id="recordTimerDisplay">0:00</span>
+      </div>
+
+      <!-- Controls -->
+      <div class="record-controls">
+        <button class="btn-cam-start" id="btnCamStart" onclick="startRecording()">
+          <i class="fa-solid fa-circle"></i> Start Recording
+        </button>
+        <button class="btn-cam-stop" id="btnCamStop" onclick="stopRecording()">
+          <i class="fa-solid fa-stop"></i> Stop
+        </button>
+      </div>
+
+      <!-- Playback after recording -->
+      <div class="record-playback" id="recordPlayback">
+        <video id="playbackVideo" controls playsinline></video>
+        <div class="record-playback-actions">
+          <a class="btn-download-clip" id="btnDownload" download="workout-clip.webm">
+            <i class="fa-solid fa-download"></i> Save Clip
+          </a>
+          <button class="btn-discard-clip" onclick="discardClip()">
+            <i class="fa-solid fa-trash"></i> Discard
+          </button>
+        </div>
+      </div>
+
+      <div class="record-hint" id="recordHint">Camera access required. Clip stays on your device.</div>
+    </div>
+  </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -392,6 +518,7 @@
   const params      = new URLSearchParams(window.location.search);
   const programName = params.get('program');
   const exIndex     = parseInt(params.get('ex') || '0');
+  const completeKey = params.get('completeKey') || exIndex.toString();
   const returnUrl   = params.get('returnTo') || 'workouts.html';
   const paramWeek   = parseInt(params.get('week') || '1');
   const paramDay    = parseInt(params.get('day')  || '1');
@@ -683,7 +810,7 @@
 
   async function markWorkoutExerciseComplete() {
     if (!currentUser) return;
-    const key      = exIndex.toString();
+    const key      = completeKey;
     const todayKey = new Date().toISOString().split('T')[0];
     try {
       if (paramLogId) {
@@ -786,6 +913,146 @@
     if (!str) return '';
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
+
+  // ── Video Recorder ──
+  let mediaStream    = null;
+  let mediaRecorder  = null;
+  let recordedChunks = [];
+  let recordTimerInt = null;
+  let recordSeconds  = 0;
+  let clipBlobUrl    = null;
+
+  function toggleRecordPanel() {
+    const panel = document.getElementById('recordPanel');
+    const btn   = document.getElementById('btnRecordToggle');
+    const isOpen = panel.classList.contains('open');
+    if (isOpen) {
+      // Close — stop stream if active
+      stopStream();
+      panel.classList.remove('open');
+      btn.classList.remove('open');
+      btn.innerHTML = '<i class="fa-solid fa-video"></i> Record Video';
+    } else {
+      panel.classList.add('open');
+      btn.classList.add('open');
+      btn.innerHTML = '<i class="fa-solid fa-chevron-up"></i> Hide Camera';
+      startStream();
+    }
+  }
+
+  async function startStream() {
+    const hint = document.getElementById('recordHint');
+    hint.style.display = 'block';
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      hint.textContent = '⚠️ Camera not supported in this browser or requires HTTPS/localhost.';
+      return;
+    }
+
+    try {
+      mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const preview = document.getElementById('recordPreview');
+      preview.srcObject = mediaStream;
+      preview.classList.add('visible');
+      hint.style.display = 'none';
+    } catch(e) {
+      console.error('Camera error:', e.name, e.message);
+      if (e.name === 'NotAllowedError') {
+        hint.textContent = '⚠️ Camera permission denied. Click the camera icon in your address bar and allow access, then refresh.';
+      } else if (e.name === 'NotFoundError') {
+        hint.textContent = '⚠️ No camera found on this device.';
+      } else if (e.name === 'NotReadableError') {
+        hint.textContent = '⚠️ Camera is in use by another app. Close it and try again.';
+      } else {
+        hint.textContent = '⚠️ Camera error: ' + e.name + ' — ' + e.message;
+      }
+    }
+  }
+
+  function stopStream() {
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(t => t.stop());
+      mediaStream = null;
+    }
+    const preview = document.getElementById('recordPreview');
+    preview.srcObject = null;
+    preview.classList.remove('visible');
+  }
+
+  async function startRecording() {
+    if (!mediaStream) {
+      await startStream();
+      if (!mediaStream) return; // still no permission
+    }
+    recordedChunks = [];
+    recordSeconds  = 0;
+
+    // Hide playback if re-recording
+    discardClip(true);
+
+    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+      ? 'video/webm;codecs=vp9'
+      : MediaRecorder.isTypeSupported('video/webm')
+        ? 'video/webm'
+        : 'video/mp4';
+
+    mediaRecorder = new MediaRecorder(mediaStream, { mimeType });
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+    mediaRecorder.onstop = buildPlayback;
+    mediaRecorder.start(200); // collect in 200ms chunks
+
+    // UI
+    document.getElementById('btnCamStart').style.display = 'none';
+    document.getElementById('btnCamStop').classList.add('visible');
+    document.getElementById('recordTimer').classList.add('visible');
+
+    recordTimerInt = setInterval(() => {
+      recordSeconds++;
+      const m = Math.floor(recordSeconds / 60);
+      const s = recordSeconds % 60;
+      document.getElementById('recordTimerDisplay').textContent = m + ':' + String(s).padStart(2,'0');
+    }, 1000);
+  }
+
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    clearInterval(recordTimerInt);
+
+    document.getElementById('btnCamStop').classList.remove('visible');
+    document.getElementById('btnCamStart').style.display = '';
+    document.getElementById('recordTimer').classList.remove('visible');
+    document.getElementById('recordTimerDisplay').textContent = '0:00';
+  }
+
+  function buildPlayback() {
+    if (!recordedChunks.length) return;
+    const blob = new Blob(recordedChunks, { type: recordedChunks[0].type || 'video/webm' });
+    if (clipBlobUrl) URL.revokeObjectURL(clipBlobUrl);
+    clipBlobUrl = URL.createObjectURL(blob);
+
+    const playback = document.getElementById('recordPlayback');
+    const video    = document.getElementById('playbackVideo');
+    const dl       = document.getElementById('btnDownload');
+
+    video.src  = clipBlobUrl;
+    dl.href    = clipBlobUrl;
+    dl.download = `workout-clip-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.webm`;
+    playback.classList.add('visible');
+  }
+
+  function discardClip(silent) {
+    if (clipBlobUrl) { URL.revokeObjectURL(clipBlobUrl); clipBlobUrl = null; }
+    const playback = document.getElementById('recordPlayback');
+    const video    = document.getElementById('playbackVideo');
+    video.src = '';
+    document.getElementById('btnDownload').href = '#';
+    playback.classList.remove('visible');
+    if (!silent) {
+      document.getElementById('recordHint').textContent = 'Camera access required. Clip stays on your device.';
+      document.getElementById('recordHint').style.display = 'block';
+    }
+  }
 </script>
+<script src="theme.js"></script>
 </body>
 </html>

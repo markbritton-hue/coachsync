@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="CoachSyncLogo.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
   <title>Athlete Dashboard — CoachSync</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="theme.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
     body {
@@ -84,6 +86,28 @@
       margin-bottom: 8px;
     }
     .dash-hero p { color: rgba(255,255,255,0.6); font-size: 1rem; }
+
+    /* Trainer logo on athlete home */
+    .trainer-logo-wrap {
+      display: none;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .trainer-logo-wrap.visible { display: flex; }
+    .trainer-logo-img {
+      max-width: 200px;
+      max-height: 90px;
+      object-fit: contain;
+      border-radius: 10px;
+      filter: drop-shadow(0 4px 16px rgba(0,0,0,0.45));
+    }
+    .trainer-logo-label {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.25);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 8px;
+    }
 
     /* ── Cards ── */
     .section-label {
@@ -289,6 +313,14 @@
 
   <!-- Feature cards -->
   <div class="dash-main">
+    <!-- Trainer logo -->
+    <div class="trainer-logo-wrap" id="trainerLogoWrap">
+      <div>
+        <img id="trainerLogoImg" class="trainer-logo-img" alt="Trainer logo" />
+        <div class="trainer-logo-label" id="trainerLogoLabel"></div>
+      </div>
+    </div>
+
     <p class="section-label">My Dashboard</p>
     <div class="row g-4 mb-4">
       <div class="col-6 col-md-4">
@@ -465,8 +497,30 @@
       document.getElementById('linkModal').classList.add('open');
     } else {
       loadInbox();
+      loadTrainerLogo(snap.data().trainerId, snap.data().trainerName);
     }
   });
+
+  async function loadTrainerLogo(trainerId, trainerName) {
+    try {
+      const trainerSnap = await db.collection('users').doc(trainerId).get();
+      if (!trainerSnap.exists) return;
+      const logoUrl = trainerSnap.data().logoUrl;
+      if (!logoUrl) return;
+
+      const img   = document.getElementById('trainerLogoImg');
+      const wrap  = document.getElementById('trainerLogoWrap');
+      const label = document.getElementById('trainerLogoLabel');
+
+      img.src = logoUrl;
+      img.onload = () => {
+        wrap.classList.add('visible');
+        if (trainerName) label.textContent = 'Coaching by ' + trainerName;
+      };
+    } catch(e) {
+      // silently ignore — logo is optional
+    }
+  }
 
   function loadInbox() {
     db.collection('messages')
@@ -571,5 +625,6 @@
     window.location.href = 'index.html';
   }
 </script>
+<script src="theme.js"></script>
 </body>
 </html>

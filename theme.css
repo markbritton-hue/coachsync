@@ -1,0 +1,375 @@
+/* ═══════════════════════════════════════════════
+   CoachSync — Light / Dark theme variables
+   Default = dark. Add class="light-mode" to <body> for light.
+   ═══════════════════════════════════════════════ */
+
+/* ── Smooth transition for theme switch ── */
+body, body * {
+  transition: background 0.25s ease, background-color 0.25s ease,
+              border-color 0.25s ease, color 0.25s ease,
+              box-shadow 0.25s ease !important;
+}
+
+/* ── Nav — dark grey background across all pages ── */
+.top-nav {
+  background: rgba(5, 11, 25, 0.92) !important;
+  border-bottom-color: rgba(255,255,255,0.07) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── Theme toggle button (shared) ── */
+.btn-theme {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.6);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.btn-theme:hover {
+  border-color: rgba(255,255,255,0.45);
+  color: rgba(255,255,255,0.9);
+}
+.btn-theme .theme-icon { font-size: 0.9rem; }
+
+/* ══════════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+   ══════════════════════════════════════════════ */
+body.light-mode {
+  background: #ffffff !important;
+  color: #1e293b !important;
+}
+
+/* Nav */
+body.light-mode .top-nav {
+  background: rgba(5, 11, 25, 0.92) !important;
+  border-bottom-color: rgba(255,255,255,0.08) !important;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.25) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+body.light-mode .user-name { color: rgba(255,255,255,0.6) !important; }
+
+/* Theme toggle in light mode — nav is dark so keep white text */
+body.light-mode .btn-theme {
+  border-color: rgba(255,255,255,0.22) !important;
+  color: rgba(255,255,255,0.65) !important;
+}
+body.light-mode .btn-theme:hover {
+  border-color: rgba(255,255,255,0.5) !important;
+  color: rgba(255,255,255,0.95) !important;
+}
+
+/* Logout button — keep red on dark nav */
+body.light-mode .btn-logout {
+  border-color: rgba(239,68,68,0.4) !important;
+  color: rgba(239,68,68,0.85) !important;
+}
+body.light-mode .btn-logout:hover {
+  background: rgba(239,68,68,0.1) !important;
+  border-color: #ef4444 !important;
+  color: #ef4444 !important;
+}
+
+/* Back button */
+body.light-mode .btn-back {
+  border-color: rgba(255,255,255,0.22) !important;
+  color: rgba(255,255,255,0.65) !important;
+}
+body.light-mode .btn-back:hover {
+  border-color: #50b8f0 !important;
+  color: #50b8f0 !important;
+}
+
+/* Signup nav button on light mode */
+body.light-mode .btn-signup-nav {
+  border-color: rgba(255,255,255,0.25) !important;
+  color: rgba(255,255,255,0.7) !important;
+}
+body.light-mode .btn-signup-nav:hover {
+  border-color: #50b8f0 !important;
+  color: #50b8f0 !important;
+}
+
+/* Hero text */
+body.light-mode .dash-hero p,
+body.light-mode .hero p { color: #475569 !important; }
+
+/* Section labels */
+body.light-mode .section-label { color: #64748b !important; }
+
+/* ── Cards ── */
+body.light-mode .feature-card {
+  background: #f0f6ff !important;
+  border-color: rgba(30,143,224,0.15) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07) !important;
+  color: #1e293b !important;
+}
+body.light-mode .feature-card:hover {
+  box-shadow: 0 10px 28px rgba(0,0,0,0.12) !important;
+  border-color: rgba(30,143,224,0.35) !important;
+}
+body.light-mode .feature-card p { color: #475569 !important; }
+
+body.light-mode .settings-card {
+  background: #f0f6ff !important;
+  border-color: rgba(30,143,224,0.15) !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06) !important;
+}
+
+body.light-mode .login-card,
+body.light-mode .link-box {
+  background: linear-gradient(135deg, #f0f6ff, #e8f0fb) !important;
+  border-color: rgba(30,143,224,0.25) !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12) !important;
+}
+
+body.light-mode .workout-card,
+body.light-mode .schedule-card,
+body.light-mode .progress-card,
+body.light-mode .stat-card,
+body.light-mode .msg-card {
+  background: #f0f6ff !important;
+  border-color: rgba(30,143,224,0.15) !important;
+}
+
+/* Athlete aside panel */
+body.light-mode .dash-aside {
+  background: rgba(255,255,255,0.95) !important;
+  border-color: rgba(0,0,0,0.09) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08) !important;
+}
+body.light-mode .aside-header { border-bottom-color: rgba(0,0,0,0.07) !important; }
+body.light-mode .aside-title { color: #64748b !important; }
+body.light-mode .aside-footer { border-top-color: rgba(0,0,0,0.07) !important; }
+body.light-mode .msg-item { border-bottom-color: rgba(0,0,0,0.05) !important; }
+body.light-mode .msg-item:hover { background: rgba(30,143,224,0.05) !important; }
+body.light-mode .msg-sender { color: #1e293b !important; }
+body.light-mode .msg-time-sm { color: #94a3b8 !important; }
+body.light-mode .msg-text { color: #64748b !important; }
+body.light-mode .msg-text.unread-text { color: #1e293b !important; }
+body.light-mode .aside-empty { color: #94a3b8 !important; }
+
+/* Inputs */
+body.light-mode input,
+body.light-mode textarea,
+body.light-mode select,
+body.light-mode .link-input {
+  background: #f8fafc !important;
+  border-color: rgba(0,0,0,0.18) !important;
+  color: #1e293b !important;
+}
+body.light-mode input::placeholder,
+body.light-mode textarea::placeholder { color: #94a3b8 !important; }
+body.light-mode input:focus,
+body.light-mode textarea:focus { border-color: #1e8fe0 !important; }
+
+/* Profile card */
+body.light-mode .profile-name { color: #1e293b !important; }
+body.light-mode .profile-email { color: #64748b !important; }
+
+/* Code display */
+body.light-mode .code-hint { color: #64748b !important; }
+body.light-mode .code-label { color: #64748b !important; }
+
+/* Logo upload area */
+body.light-mode .logo-upload-area {
+  border-color: rgba(30,143,224,0.3) !important;
+  background: rgba(30,143,224,0.03) !important;
+}
+body.light-mode .logo-upload-area:hover,
+body.light-mode .logo-upload-area.dragover {
+  border-color: #1e8fe0 !important;
+  background: rgba(30,143,224,0.07) !important;
+}
+body.light-mode .logo-upload-hint { color: #64748b !important; }
+body.light-mode .logo-placeholder-icon { color: rgba(30,143,224,0.45) !important; }
+
+/* Loading overlay */
+body.light-mode .loading-overlay {
+  background: linear-gradient(135deg, #f0f4f8, #dde6f0) !important;
+  color: #475569 !important;
+}
+
+/* Tables / list rows (athlete-detail, my-athletes etc.) */
+body.light-mode .athlete-row,
+body.light-mode .list-row,
+body.light-mode .exercise-row {
+  background: rgba(255,255,255,0.95) !important;
+  border-color: rgba(0,0,0,0.09) !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06) !important;
+}
+
+/* Program cards — match dashboard feature cards exactly */
+body.light-mode .program-card {
+  background: #f0f6ff !important;
+  border-color: rgba(30,143,224,0.15) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07) !important;
+}
+body.light-mode .program-card:hover {
+  box-shadow: 0 10px 28px rgba(0,0,0,0.12) !important;
+  border-color: rgba(30,143,224,0.35) !important;
+}
+
+/* Muted secondary text patterns */
+body.light-mode [style*="rgba(255,255,255,0.4)"],
+body.light-mode [style*="rgba(255,255,255,0.35)"],
+body.light-mode [style*="rgba(255,255,255,0.45)"],
+body.light-mode [style*="rgba(255,255,255,0.5)"],
+body.light-mode [style*="rgba(255,255,255,0.55)"],
+body.light-mode [style*="rgba(255,255,255,0.6)"],
+body.light-mode [style*="rgba(255,255,255,0.65)"] {
+  color: #64748b !important;
+}
+body.light-mode [style*="rgba(255,255,255,0.7)"],
+body.light-mode [style*="rgba(255,255,255,0.75)"],
+body.light-mode [style*="rgba(255,255,255,0.8)"],
+body.light-mode [style*="rgba(255,255,255,0.85)"],
+body.light-mode [style*="rgba(255,255,255,0.9)"] {
+  color: #1e293b !important;
+}
+
+/* Modals — light mode */
+body.light-mode .modal-box {
+  background: #ffffff !important;
+  color: #1e293b !important;
+  border-color: rgba(30,143,224,0.2) !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important;
+}
+body.light-mode .modal-box .modal-title { -webkit-text-fill-color: transparent !important; }
+body.light-mode .modal-box .field-label { color: #475569 !important; }
+body.light-mode .modal-box .ex-mini-label { color: #64748b !important; }
+body.light-mode .modal-box .modal-footer { border-top-color: rgba(0,0,0,0.08) !important; }
+body.light-mode .modal-box .btn-cancel {
+  border-color: rgba(0,0,0,0.2) !important;
+  color: #475569 !important;
+}
+body.light-mode .modal-box .btn-cancel:hover { color: #1e293b !important; border-color: rgba(0,0,0,0.35) !important; }
+
+
+/* Trainer logo label */
+body.light-mode .trainer-logo-label { color: #94a3b8 !important; }
+
+/* Progress bar track */
+body.light-mode .upload-progress-bar { background: rgba(0,0,0,0.08) !important; }
+
+/* Role badge stays the same (colored) */
+
+/* Filter / secondary buttons */
+body.light-mode .btn-secondary {
+  background: #f1f5f9 !important;
+  border-color: rgba(0,0,0,0.15) !important;
+  color: #475569 !important;
+}
+body.light-mode .btn-secondary:hover {
+  background: #e2e8f0 !important;
+  border-color: rgba(0,0,0,0.25) !important;
+  color: #1e293b !important;
+}
+body.light-mode .active-filter {
+  background: rgba(80,184,240,0.15) !important;
+  border-color: rgba(80,184,240,0.5) !important;
+  color: #1e8fe0 !important;
+}
+
+/* Scrollbar in light mode */
+body.light-mode ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04) !important; }
+body.light-mode ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15) !important; }
+
+/* ── Workouts / athlete exercise page ── */
+body.light-mode .exercise-card {
+  background: #f0f6ff !important;
+  border-color: rgba(114,184,50,0.2) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+}
+body.light-mode .exercise-card.completed {
+  background: rgba(114,184,50,0.08) !important;
+  border-color: rgba(114,184,50,0.35) !important;
+}
+body.light-mode .exercise-name { color: #1e293b !important; }
+body.light-mode .exercise-card.completed .exercise-name { color: #94a3b8 !important; }
+body.light-mode .exercise-details span { color: #475569 !important; }
+body.light-mode .trainer-note { color: #64748b !important; }
+body.light-mode .section-label { color: #64748b !important; }
+
+/* Meta pills */
+body.light-mode .meta-pill {
+  background: rgba(114,184,50,0.08) !important;
+  border-color: rgba(114,184,50,0.25) !important;
+  color: #3d6b18 !important;
+}
+
+/* Program banner */
+body.light-mode .program-banner {
+  background: #f0f6ff !important;
+  border-color: rgba(114,184,50,0.25) !important;
+}
+
+/* Program selector buttons */
+body.light-mode .program-selector-btn {
+  background: #f1f5f9 !important;
+  border-color: rgba(114,184,50,0.2) !important;
+  color: #475569 !important;
+}
+body.light-mode .program-selector-btn.active {
+  background: rgba(114,184,50,0.12) !important;
+  border-color: rgba(114,184,50,0.5) !important;
+  color: #3d6b18 !important;
+}
+
+/* Day tabs on workouts page */
+body.light-mode .day-tabs .day-tab {
+  background: #f1f5f9 !important;
+  border-color: rgba(0,0,0,0.12) !important;
+  color: #475569 !important;
+}
+body.light-mode .day-tabs .day-tab.active {
+  background: rgba(114,184,50,0.12) !important;
+  border-color: rgba(114,184,50,0.4) !important;
+  color: #3d6b18 !important;
+}
+
+/* Main tabs (Today / History) */
+body.light-mode .main-tab {
+  border-color: rgba(0,0,0,0.12) !important;
+  color: #475569 !important;
+}
+body.light-mode .main-tab.active {
+  background: rgba(114,184,50,0.12) !important;
+  border-color: rgba(114,184,50,0.5) !important;
+  color: #3d6b18 !important;
+}
+
+/* Progress bar track */
+body.light-mode .progress-bar-track { background: rgba(0,0,0,0.08) !important; }
+body.light-mode .progress-label { color: #64748b !important; }
+
+/* Note editor */
+body.light-mode .note-textarea {
+  background: #f8fafc !important;
+  border-color: rgba(245,158,11,0.3) !important;
+  color: #1e293b !important;
+}
+body.light-mode .note-textarea::placeholder { color: #94a3b8 !important; }
+body.light-mode .note-editor { border-top-color: rgba(0,0,0,0.07) !important; }
+
+/* History cards */
+body.light-mode .history-card {
+  background: #f0f6ff !important;
+  border-color: rgba(114,184,50,0.2) !important;
+}
+body.light-mode .history-date { color: #1e293b !important; }
+body.light-mode .history-program { color: #64748b !important; }
+body.light-mode .history-ex-pill {
+  background: rgba(0,0,0,0.04) !important;
+  border-color: rgba(0,0,0,0.1) !important;
+  color: #475569 !important;
+}

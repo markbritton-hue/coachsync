@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="CoachSyncLogo.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
   <title>My Workouts — CoachSync</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="theme.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
     body {
@@ -552,16 +554,37 @@
       .get();
     // Note: 'week' field won't exist on old logs — those are ignored here
 
-    const logDoc = logSnap.docs.find(d => d.data().day === currentDay);
+    const logDoc = logSnap.docs.find(d => {
+      const data = d.data();
+      return data.day === currentDay && data.programName === programData.name;
+    });
     if (logDoc) {
       todayLogId    = logDoc.id;
-      completed     = new Set(logDoc.data().completedExercises || []);
+      completed     = normalizeCompletedKeys(logDoc.data().completedExercises || []);
       exerciseNotes = logDoc.data().exerciseNotes || {};
     } else {
       todayLogId    = null;
       completed     = new Set();
       exerciseNotes = {};
     }
+  }
+
+  function normalizeCompletedKeys(keys) {
+    const dayExercises = getDayExercises();
+    const localKeys = new Set(dayExercises.map(ex => ex.localIndex.toString()));
+    const globalToLocal = new Map(dayExercises.map(ex => [ex.globalIndex.toString(), ex.localIndex.toString()]));
+    const normalized = new Set();
+
+    keys.forEach(key => {
+      const strKey = key.toString();
+      if (localKeys.has(strKey)) {
+        normalized.add(strKey);
+      } else if (globalToLocal.has(strKey)) {
+        normalized.add(globalToLocal.get(strKey));
+      }
+    });
+
+    return normalized;
   }
 
   // ── Render program banner + day tabs + exercises ──
@@ -614,9 +637,29 @@
   }
 
   // ── Get exercises for current day ──
-  // All exercises show every day — each day is a fresh log of the same workout
   function getDayExercises() {
-    return (programData.exercises || []).map((ex, i) => ({ ...ex, globalIndex: i }));
+    const days = Array.isArray(programData.days) ? programData.days : [];
+    const dayIdx = currentDay - 1;
+
+    if (days.length) {
+      if (!days[dayIdx]) return [];
+
+      const offset = days
+        .slice(0, dayIdx)
+        .reduce((sum, day) => sum + ((day.exercises || []).length), 0);
+
+      return (days[dayIdx].exercises || []).map((ex, i) => ({
+        ...ex,
+        localIndex: i,
+        globalIndex: offset + i
+      }));
+    }
+
+    return (programData.exercises || []).map((ex, i) => ({
+      ...ex,
+      localIndex: i,
+      globalIndex: i
+    }));
   }
 
   // ── Render exercises ──
@@ -625,12 +668,24 @@
     const dayExercises = getDayExercises();
     list.innerHTML = '';
 
+    if (dayExercises.length === 0) {
+      list.innerHTML = `
+        <div class="empty-state" style="padding:34px 20px;">
+          <i class="fa-solid fa-calendar-xmark"></i>
+          <p>No exercises scheduled for this day.</p>
+        </div>`;
+      updateProgress();
+      return;
+    }
+
     dayExercises.forEach(ex => {
       const gi      = ex.globalIndex;
-      const key     = gi.toString();
+      const li      = ex.localIndex;
+      const key     = li.toString();
       const done    = completed.has(key);
-      const noteKey = `${currentDay}_${gi}`;
-      const note    = exerciseNotes[noteKey] || '';
+      const noteKey = `${currentDay}_${li}`;
+      const legacyNoteKey = `${currentDay}_${gi}`;
+      const note    = exerciseNotes[noteKey] || exerciseNotes[legacyNoteKey] || '';
 
       // Build metric string based on type
       const metricVal  = ex.value || ex.reps || '';
@@ -639,11 +694,11 @@
 
       const card = document.createElement('div');
       card.className = 'exercise-card' + (done ? ' completed' : '');
-      card.id = 'ex-' + gi;
+      card.id = 'ex-' + li;
       card.style.cursor = 'pointer';
       card.title = 'Tap to start guided exercise';
       card.addEventListener('click', () => {
-        const url = `exercise.html?program=${encodeURIComponent(programData.name)}&ex=${gi}&week=${currentWeek}&day=${currentDay}&logId=${todayLogId || ''}&returnTo=workouts.html`;
+        const url = `exercise.html?program=${encodeURIComponent(programData.name)}&ex=${gi}&completeKey=${li}&week=${currentWeek}&day=${currentDay}&logId=${todayLogId || ''}&returnTo=workouts.html`;
         window.location.href = url;
       });
 
@@ -654,7 +709,10 @@
       const checkbox = document.createElement('div');
       checkbox.className = 'exercise-checkbox';
       checkbox.innerHTML = '<i class="fa-solid fa-check"></i>';
-      checkbox.addEventListener('click', () => toggleExercise(gi));
+      checkbox.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleExercise(li);
+      });
 
       const info = document.createElement('div');
       info.className = 'exercise-info';
@@ -682,7 +740,7 @@
 
       const noteDisplay = document.createElement('div');
       noteDisplay.className = 'athlete-note-display';
-      noteDisplay.id = 'note-display-' + gi;
+      noteDisplay.id = 'note-display-' + li;
       if (note) {
         noteDisplay.innerHTML = `<i class="fa-solid fa-pen-to-square" style="font-size:0.7rem;margin-top:2px;"></i>${esc(note)}`;
       } else {
@@ -707,9 +765,9 @@
 
       const noteBtn = document.createElement('button');
       noteBtn.className = 'btn-note' + (note ? ' has-note' : '');
-      noteBtn.id = 'note-btn-' + gi;
+      noteBtn.id = 'note-btn-' + li;
       noteBtn.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>${note ? 'Edit' : 'Note'}`;
-      noteBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleNote(gi); });
+      noteBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleNote(li); });
       rightBtns.appendChild(noteBtn);
 
       topRow.append(checkbox, info, rightBtns);
@@ -717,13 +775,13 @@
       // Note editor
       const noteEditor = document.createElement('div');
       noteEditor.className = 'note-editor';
-      noteEditor.id = 'note-editor-' + gi;
+      noteEditor.id = 'note-editor-' + li;
       const noteTa = document.createElement('textarea');
       noteTa.className = 'note-textarea';
-      noteTa.id = 'note-ta-' + gi;
+      noteTa.id = 'note-ta-' + li;
       noteTa.placeholder = 'Add your note (e.g. felt strong, increased weight…)';
       noteTa.value = note;
-      noteTa.addEventListener('blur', () => saveNote(gi));
+      noteTa.addEventListener('blur', () => saveNote(li));
       noteEditor.appendChild(noteTa);
 
       card.append(topRow, noteEditor);
@@ -734,10 +792,10 @@
   }
 
   // ── Toggle exercise complete ──
-  function toggleExercise(gi) {
-    const key = gi.toString();
+  function toggleExercise(localIndex) {
+    const key = localIndex.toString();
     completed.has(key) ? completed.delete(key) : completed.add(key);
-    const card = document.getElementById('ex-' + gi);
+    const card = document.getElementById('ex-' + localIndex);
     card.classList.toggle('completed', completed.has(key));
     updateProgress();
     saveProgress();
@@ -745,8 +803,10 @@
 
   // ── Progress bar ──
   function updateProgress() {
-    const total = getDayExercises().length;
-    const done  = completed.size;
+    const dayExercises = getDayExercises();
+    const validKeys = new Set(dayExercises.map(ex => ex.localIndex.toString()));
+    const total = dayExercises.length;
+    const done  = Array.from(completed).filter(key => validKeys.has(key)).length;
     document.getElementById('dayProgressLabel').textContent = `Week ${currentWeek} · Day ${currentDay} Progress`;
     document.getElementById('progressText').textContent = `${done} / ${total} exercises`;
     document.getElementById('progressBar').style.width = total ? (done / total * 100) + '%' : '0%';
@@ -754,23 +814,23 @@
   }
 
   // ── Toggle note editor ──
-  function toggleNote(gi) {
-    const editor = document.getElementById('note-editor-' + gi);
+  function toggleNote(localIndex) {
+    const editor = document.getElementById('note-editor-' + localIndex);
     editor.classList.toggle('open');
     if (editor.classList.contains('open')) {
-      document.getElementById('note-ta-' + gi).focus();
+      document.getElementById('note-ta-' + localIndex).focus();
     }
   }
 
   // ── Save note on blur ──
-  async function saveNote(gi) {
-    const noteKey = `${currentDay}_${gi}`;
-    const text    = document.getElementById('note-ta-' + gi).value.trim();
+  async function saveNote(localIndex) {
+    const noteKey = `${currentDay}_${localIndex}`;
+    const text    = document.getElementById('note-ta-' + localIndex).value.trim();
     exerciseNotes[noteKey] = text;
 
     // Update display
-    const display = document.getElementById('note-display-' + gi);
-    const btn     = document.getElementById('note-btn-' + gi);
+    const display = document.getElementById('note-display-' + localIndex);
+    const btn     = document.getElementById('note-btn-' + localIndex);
     if (text) {
       display.innerHTML = `<i class="fa-solid fa-pen-to-square" style="font-size:0.7rem;margin-top:2px;"></i>${esc(text)}`;
       display.style.display = 'flex';
@@ -788,6 +848,7 @@
   // ── Save progress to Firestore ──
   async function saveProgress(rpe = null) {
     const dayExercises = getDayExercises();
+    const validKeys = new Set(dayExercises.map(ex => ex.localIndex.toString()));
     try {
       const data = {
         athleteId:          currentUser.uid,
@@ -795,8 +856,9 @@
         week:               currentWeek,
         day:                currentDay,
         date:               todayKey,
-        completedExercises: Array.from(completed),
+        completedExercises: Array.from(completed).filter(key => validKeys.has(key)),
         exerciseNames:      dayExercises.map(ex => ex.name),
+        exerciseIndexes:    dayExercises.map(ex => ex.globalIndex),
         exerciseNotes:      exerciseNotes,
         totalExercises:     dayExercises.length,
         updatedAt:          firebase.firestore.FieldValue.serverTimestamp()
@@ -974,5 +1036,6 @@
     window.location.href = 'index.html';
   }
 </script>
+<script src="theme.js"></script>
 </body>
 </html>
