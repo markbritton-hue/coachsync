@@ -1,5 +1,6 @@
 .env.local
 .env
+.env.*.local
 node_modules/
 .claude/
 Fitness Gym.gif
