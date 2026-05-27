@@ -518,7 +518,7 @@
               <div class="ex-details">
                 ${ex.sets   ? `<span><i class="fa-solid fa-layer-group"></i> ${esc(ex.sets)} sets</span>` : ''}
                 ${ex.value  ? `<span><i class="fa-solid fa-repeat"></i> ${esc(ex.value)} ${esc(ex.type||'reps')}</span>` : (ex.reps ? `<span><i class="fa-solid fa-repeat"></i> ${esc(ex.reps)} reps</span>` : '')}
-                ${ex.weight ? `<span><i class="fa-solid fa-dumbbell"></i> ${esc(ex.weight)} lbs</span>` : ''}
+                ${ex.targetWeight || ex.weight ? `<span><i class="fa-solid fa-dumbbell"></i> ${esc(ex.targetWeight ? ex.targetWeight + ' lb target' : ex.weight)}</span>` : ''}
                 ${ex.rest   ? `<span><i class="fa-regular fa-clock"></i> ${esc(ex.rest)}s rest</span>` : ''}
               </div>
               ${ex.notes ? `<div style="font-size:0.78rem;color:rgba(255,255,255,0.4);font-style:italic;margin-top:3px;"><i class="fa-solid fa-whistle" style="font-size:0.65rem;margin-right:3px;"></i>${esc(ex.notes)}</div>` : ''}

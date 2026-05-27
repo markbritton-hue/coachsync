@@ -575,11 +575,12 @@
     meta.innerHTML = '';
     if (ex.sets)     addPill(meta, 'fa-layer-group',    ex.sets + ' sets');
     if (metricVal)   addPill(meta, metricIcon,           metricVal + ' ' + metricUnit);
-    if (ex.weight)   addPill(meta, 'fa-weight-hanging',  ex.weight);
+    const prescribedWeight = ex.targetWeight ? ex.targetWeight + ' lb target' : ex.weight;
+    if (prescribedWeight) addPill(meta, 'fa-weight-hanging', prescribedWeight);
     if (ex.rest)     addPill(meta, 'fa-clock',           ex.rest + 's rest');
 
     // Pre-fill weight override with prescribed weight
-    if (ex.weight) document.getElementById('weightOverride').value = ex.weight;
+    if (ex.targetWeight || ex.weight) document.getElementById('weightOverride').value = ex.targetWeight ? ex.targetWeight + ' lb' : ex.weight;
     // Hide weight row if no weight relevant (bodyweight exercises OK to leave)
 
     if (ex.notes) {
@@ -864,7 +865,7 @@
         prescribed: {
           sets:   ex.sets   || null,
           value:  ex.value  || ex.reps || null,
-          weight: ex.weight || null,
+          weight: ex.targetWeight ? ex.targetWeight + ' lb target' : (ex.weight || null),
           rest:   ex.rest   || null,
         },
         sets:         setsLog,

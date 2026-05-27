@@ -725,7 +725,7 @@
       details.className = 'exercise-details';
       if (ex.sets)     details.innerHTML += `<span><i class="fa-solid fa-layer-group"></i> ${esc(ex.sets)} sets</span>`;
       if (metricVal)   details.innerHTML += `<span><i class="fa-solid ${metricIcon}"></i> ${esc(metricVal)} ${metricUnit}</span>`;
-      if (ex.weight)   details.innerHTML += `<span><i class="fa-solid fa-weight-hanging"></i> ${esc(ex.weight)}</span>`;
+      if (ex.targetWeight || ex.weight) details.innerHTML += `<span><i class="fa-solid fa-weight-hanging"></i> ${esc(ex.targetWeight ? ex.targetWeight + ' lb target' : ex.weight)}</span>`;
       if (ex.rest)     details.innerHTML += `<span><i class="fa-regular fa-clock"></i> ${esc(ex.rest)}s rest</span>`;
 
       info.appendChild(nameEl);
