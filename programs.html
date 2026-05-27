@@ -143,7 +143,7 @@
     .modal-box {
       background: linear-gradient(135deg, #1e293b, #0f172a);
       border: 1px solid rgba(80,184,240,0.3); border-radius: 20px;
-      padding: 36px; width: 100%; max-width: 660px;
+      padding: 36px; width: 100%; max-width: 960px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.8); margin: auto;
     }
     .modal-title {
@@ -266,7 +266,7 @@
       font-size: 1rem; cursor: pointer; padding: 0; line-height: 1;
     }
     .exercise-builder-row .remove-ex:hover { color: #ef4444; }
-    .ex-grid { display: grid; grid-template-columns: 1fr 52px 96px 72px 78px 62px 82px 76px; gap: 10px; align-items: end; }
+    .ex-grid { display: grid; grid-template-columns: minmax(180px, 1.4fr) minmax(52px, 0.45fr) minmax(86px, 0.75fr) minmax(68px, 0.55fr) minmax(74px, 0.6fr) minmax(58px, 0.48fr) minmax(78px, 0.65fr) minmax(72px, 0.58fr); gap: 10px; align-items: end; }
     .ex-grid-full { grid-column: 1 / -1; }
     .ex-mini-label {
       color: rgba(255,255,255,0.5); font-size: 0.75rem; font-weight: 600;
