@@ -93,6 +93,8 @@ function getDefaultFaviconHref() {
   return existing?.getAttribute('data-default-href') || 'CoachSyncLogo.png';
 }
 
+let coachSyncManifestUrl = null;
+
 function inferFaviconType(src) {
   const value = String(src || '');
   if (value.startsWith('data:image/svg')) return 'image/svg+xml';
@@ -101,20 +103,59 @@ function inferFaviconType(src) {
   return 'image/png';
 }
 
-function setCoachSyncFavicon(src) {
-  let link = document.querySelector('link[rel~="icon"]');
+function ensureHeadLink(rel, selector = `link[rel="${rel}"]`) {
+  let link = document.querySelector(selector);
   if (!link) {
     link = document.createElement('link');
-    link.rel = 'icon';
+    link.rel = rel;
     document.head.appendChild(link);
   }
+  return link;
+}
 
+function setCoachSyncFavicon(src) {
+  const iconSrc = src || getDefaultFaviconHref();
+  const iconType = inferFaviconType(iconSrc);
+  const link = ensureHeadLink('icon', 'link[rel~="icon"]');
   if (!link.getAttribute('data-default-href')) {
     link.setAttribute('data-default-href', link.getAttribute('href') || 'CoachSyncLogo.png');
   }
 
-  link.type = inferFaviconType(src);
-  link.href = src || getDefaultFaviconHref();
+  link.type = iconType;
+  link.href = iconSrc;
+  setCoachSyncTouchIcon(iconSrc);
+  setCoachSyncManifest(iconSrc, iconType);
+}
+
+function setCoachSyncTouchIcon(src) {
+  const touchIcon = ensureHeadLink('apple-touch-icon');
+  if (!touchIcon.getAttribute('data-default-href')) {
+    touchIcon.setAttribute('data-default-href', touchIcon.getAttribute('href') || 'CoachSyncLogo.png');
+  }
+  touchIcon.href = src || touchIcon.getAttribute('data-default-href') || 'CoachSyncLogo.png';
+}
+
+function setCoachSyncManifest(iconSrc, iconType) {
+  const manifest = {
+    name: 'CoachSync',
+    short_name: 'CoachSync',
+    start_url: './index.html',
+    scope: './',
+    display: 'standalone',
+    background_color: '#0f172a',
+    theme_color: '#0f172a',
+    icons: [
+      { src: iconSrc, sizes: '192x192', type: iconType, purpose: 'any' },
+      { src: iconSrc, sizes: '512x512', type: iconType, purpose: 'any' },
+      { src: iconSrc, sizes: '512x512', type: iconType, purpose: 'maskable' }
+    ]
+  };
+
+  if (coachSyncManifestUrl) URL.revokeObjectURL(coachSyncManifestUrl);
+  coachSyncManifestUrl = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }));
+
+  const link = ensureHeadLink('manifest');
+  link.href = coachSyncManifestUrl;
 }
 
 function resetCoachSyncFavicon() {
