@@ -115,7 +115,16 @@
     .athlete-name-col .prog { font-size: 0.72rem; color: rgba(255,255,255,0.35); }
     .athlete-sessions { text-align: center; min-width: 40px; font-size: 0.88rem; font-weight: 700; color: #72b832; }
     .athlete-rpe     { text-align: center; min-width: 36px; font-size: 0.82rem; font-weight: 600; color: rgba(255,255,255,0.5); }
+    .athlete-adherence { text-align: center; min-width: 96px; font-size: 0.82rem; font-weight: 700; }
     .athlete-last    { font-size: 0.72rem; color: rgba(255,255,255,0.3); text-align: right; min-width: 70px; }
+    .adherence-pill {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 76px; padding: 3px 8px; border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05);
+    }
+    .adherence-high { color: #10b981; border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.1); }
+    .adherence-mid  { color: #f59e0b; border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.1); }
+    .adherence-low  { color: #ef4444; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.1); }
     .col-header { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: rgba(255,255,255,0.2); }
 
     /* ── Program popularity ── */
@@ -252,6 +261,7 @@
             <div style="flex:1;" class="col-header">Athlete</div>
             <div style="min-width:40px;text-align:center;" class="col-header">Sessions</div>
             <div style="min-width:36px;text-align:center;" class="col-header">Avg RPE</div>
+            <div style="min-width:96px;text-align:center;" class="col-header">Adherence</div>
             <div style="min-width:70px;text-align:right;" class="col-header">Last Workout</div>
           </div>
           <div id="athleteTable"></div>
@@ -470,8 +480,18 @@
         const sessions = aLogs.length;
         const rpeLogs  = aLogs.filter(l => l.rpe != null);
         const avgRpe   = rpeLogs.length ? (rpeLogs.reduce((s, l) => s + l.rpe, 0) / rpeLogs.length).toFixed(1) : '—';
+        const exerciseTotals = aLogs.reduce((totals, log) => {
+          const total = parseInt(log.totalExercises, 10) || (log.exerciseNames || []).length || 0;
+          if (!total) return totals;
+          totals.completed += (log.completedExercises || []).length;
+          totals.total += total;
+          return totals;
+        }, { completed: 0, total: 0 });
+        const adherence = exerciseTotals.total
+          ? Math.round((exerciseTotals.completed / exerciseTotals.total) * 100)
+          : null;
         const lastDate = aLogs.length ? aLogs[aLogs.length - 1].date : null;
-        return { a, sessions, avgRpe, lastDate };
+        return { a, sessions, avgRpe, adherence, exerciseTotals, lastDate };
       })
       .filter(r => r.sessions > 0)
       .sort((a, b) => b.sessions - a.sessions);
@@ -481,10 +501,12 @@
       return;
     }
 
-    rows.forEach(({ a, sessions, avgRpe, lastDate }) => {
+    rows.forEach(({ a, sessions, avgRpe, adherence, exerciseTotals, lastDate }) => {
       const initials = getInitials(a.displayName || a.email || '?');
       const progs    = (a.assignedPrograms || (a.assignedProgram ? [a.assignedProgram] : [])).join(', ');
       const lastStr  = lastDate ? daysAgo(lastDate) : '—';
+      const adherenceClass = adherence == null ? '' : adherence >= 85 ? ' adherence-high' : adherence >= 65 ? ' adherence-mid' : ' adherence-low';
+      const adherenceText = adherence == null ? '—' : `${exerciseTotals.completed}/${exerciseTotals.total} (${adherence}%)`;
       table.insertAdjacentHTML('beforeend', `
         <div class="athlete-row">
           <div class="athlete-avatar">${esc(initials)}</div>
@@ -494,6 +516,7 @@
           </div>
           <div class="athlete-sessions">${sessions}</div>
           <div class="athlete-rpe">${avgRpe}</div>
+          <div class="athlete-adherence"><span class="adherence-pill${adherenceClass}">${adherenceText}</span></div>
           <div class="athlete-last">${lastStr}</div>
         </div>`);
     });

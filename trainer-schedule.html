@@ -74,6 +74,8 @@
     .start-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
     .start-card.active  { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
     .start-card.active:hover { border-color: rgba(16,185,129,0.5); }
+    .start-card.final-week { border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.06); }
+    .start-card.final-week:hover { border-color: rgba(245,158,11,0.55); }
     .start-card.upcoming { border-color: rgba(80,184,240,0.25); }
     .start-card.upcoming:hover { border-color: rgba(80,184,240,0.45); }
     .start-card.unset   { border-color: rgba(255,255,255,0.06); opacity: 0.7; }
@@ -84,12 +86,14 @@
       flex-shrink: 0; min-width: 58px;
     }
     .date-block.active   { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); }
+    .date-block.final-week { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); }
     .date-block.upcoming { background: rgba(80,184,240,0.1);  border: 1px solid rgba(80,184,240,0.25); }
     .date-block.unset    { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
     .date-month { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
     .date-day   { font-size: 1.5rem; font-weight: 800; color: white; line-height: 1.1; }
     .date-year  { font-size: 0.68rem; color: rgba(255,255,255,0.4); }
     .date-block.active .date-month   { color: #10b981; }
+    .date-block.final-week .date-month { color: #f59e0b; }
     .date-block.upcoming .date-month { color: #50b8f0; }
     .date-block.unset .date-month    { color: rgba(255,255,255,0.3); }
 
@@ -118,6 +122,7 @@
       padding: 4px 12px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
     }
     .badge-active   { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); color: #10b981; }
+    .badge-final    { background: rgba(245,158,11,0.13); border: 1px solid rgba(245,158,11,0.35); color: #f59e0b; }
     .badge-upcoming { background: rgba(80,184,240,0.1);  border: 1px solid rgba(80,184,240,0.3);  color: #50b8f0; }
     .badge-unset    { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.35); }
 
@@ -198,6 +203,7 @@
 
   let currentUser = null;
   let allAthletes = [];
+  let programMap  = {};
   let latestLogs  = {}; // athleteId → { programName → log }
 
   auth.onAuthStateChanged(async user => {
@@ -213,10 +219,20 @@
       .where('trainerId', '==', currentUser.uid)
       .onSnapshot(async snap => {
         allAthletes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        await loadPrograms();
         await loadLatestLogs();
         render();
         document.getElementById('loadingOverlay').style.display = 'none';
       });
+  }
+
+  async function loadPrograms() {
+    const snap = await db.collection('programs').get();
+    programMap = {};
+    snap.docs.forEach(d => {
+      const data = { id: d.id, ...d.data() };
+      if (data.name) programMap[data.name] = data;
+    });
   }
 
   async function loadLatestLogs() {
@@ -245,6 +261,11 @@
     return { week: Math.floor(dayIndex / daysPerWeek) + 1, day: (dayIndex % daysPerWeek) + 1 };
   }
 
+  function parseWeekCount(duration) {
+    const match = String(duration || '').match(/\d+/);
+    return match ? parseInt(match[0], 10) : 0;
+  }
+
   // Expand athletes × programs into a flat list of entries
   function buildEntries() {
     const entries = [];
@@ -263,7 +284,12 @@
           || (programs.length === 1 ? a.programStartDate : null)
           || null;
         const hasLog = !!(latestLogs[a.id] && latestLogs[a.id][pName]);
-        entries.push({ athlete: a, progName: pName, startMs, hasLog });
+        const program = programMap[pName] || null;
+        const totalWeeks = parseWeekCount(program?.duration);
+        const endMs = startMs && totalWeeks ? startMs + (totalWeeks * 7 * 86400000) : null;
+        const daysLeft = endMs ? Math.ceil((endMs - Date.now()) / 86400000) : null;
+        const inFinalWeek = !!(startMs && totalWeeks && daysLeft !== null && daysLeft > 0 && daysLeft <= 7);
+        entries.push({ athlete: a, progName: pName, startMs, hasLog, program, totalWeeks, daysLeft, inFinalWeek });
       });
     });
     return entries;
@@ -287,20 +313,23 @@
     // Upcoming = start date set but no workout logged yet
     // Unset = no start date and no log
     const active   = entries.filter(e => e.hasLog);
+    const finalWeek = entries.filter(e => e.inFinalWeek);
     const upcoming = entries.filter(e => !e.hasLog && e.startMs);
     const unset    = entries.filter(e => !e.hasLog && !e.startMs);
 
+    finalWeek.sort((a, b) => a.daysLeft - b.daysLeft);
     // Sort active by most recently started first
     active.sort((a, b) => b.startMs - a.startMs);
     // Sort upcoming by soonest first
     upcoming.sort((a, b) => a.startMs - b.startMs);
 
+    if (finalWeek.length) renderSection('Final Week', 'dot-amber', 'final-week', finalWeek, content);
     if (active.length)   renderSection('Active Programs',  'dot-green', 'active',   active,   content);
     if (upcoming.length) renderSection('Scheduled Starts','dot-blue',  'upcoming', upcoming, content);
     if (unset.length)    renderSection('Not Scheduled',   'dot-muted', 'unset',    unset,    content);
 
     document.getElementById('pageSubtitle').textContent =
-      `${allAthletes.length} athlete${allAthletes.length !== 1 ? 's' : ''} · ${active.length} active · ${upcoming.length} upcoming`;
+      `${allAthletes.length} athlete${allAthletes.length !== 1 ? 's' : ''} · ${active.length} active · ${finalWeek.length} final week · ${upcoming.length} upcoming`;
   }
 
   function renderSection(label, dotClass, type, entries, container) {
@@ -362,7 +391,14 @@
     const metaEl = document.createElement('div');
     metaEl.className = 'card-meta';
 
-    if (startMs && type === 'active') {
+    if (startMs && type === 'final-week') {
+      const daysLeft = Math.max(1, entry.daysLeft || 1);
+      const label = daysLeft === 1 ? '1 day left' : `${daysLeft} days left`;
+      metaEl.innerHTML += `<span class="meta-pill pill-amber"><i class="fa-solid fa-hourglass-end"></i> ${label}</span>`;
+      if (entry.totalWeeks) {
+        metaEl.innerHTML += `<span class="meta-pill pill-muted"><i class="fa-regular fa-clock"></i> ${entry.totalWeeks} week program</span>`;
+      }
+    } else if (startMs && type === 'active') {
       const daysActive = Math.floor((todayDay - new Date(startMs).setHours(0,0,0,0)) / 86400000);
       metaEl.innerHTML += `<span class="meta-pill pill-green"><i class="fa-solid fa-circle-check"></i> Day ${daysActive + 1} active</span>`;
 
@@ -388,6 +424,9 @@
     if (type === 'active') {
       badge.classList.add('badge-active');
       badge.innerHTML = '<i class="fa-solid fa-circle" style="font-size:6px;margin-right:4px;"></i> Active';
+    } else if (type === 'final-week') {
+      badge.classList.add('badge-final');
+      badge.innerHTML = '<i class="fa-solid fa-hourglass-end" style="margin-right:4px;"></i> 1 Week Left';
     } else if (type === 'upcoming') {
       badge.classList.add('badge-upcoming');
       badge.innerHTML = '<i class="fa-solid fa-calendar-check" style="margin-right:4px;"></i> Starting Soon';
