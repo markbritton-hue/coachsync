@@ -94,7 +94,6 @@ function getDefaultFaviconHref() {
 }
 
 let coachSyncManifestUrl = null;
-let coachSyncIconUpdateId = 0;
 
 function inferFaviconType(src) {
   const value = String(src || '');
@@ -114,56 +113,18 @@ function ensureHeadLink(rel, selector = `link[rel="${rel}"]`) {
   return link;
 }
 
-function replaceHeadLink(rel, href, type, attrs = {}) {
-  document.querySelectorAll(`link[rel="${rel}"]`).forEach(el => el.remove());
-  const link = document.createElement('link');
-  link.rel = rel;
-  link.href = href;
-  if (type) link.type = type;
-  Object.entries(attrs).forEach(([key, value]) => link.setAttribute(key, value));
-  document.head.appendChild(link);
-  return link;
-}
-
-function makeSquarePngIcon(src, size = 192) {
-  return new Promise(resolve => {
-    const img = new Image();
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, size, size);
-
-        const scale = Math.min((size * 0.84) / img.width, (size * 0.84) / img.height);
-        const w = Math.max(1, Math.round(img.width * scale));
-        const h = Math.max(1, Math.round(img.height * scale));
-        const x = Math.round((size - w) / 2);
-        const y = Math.round((size - h) / 2);
-        ctx.drawImage(img, x, y, w, h);
-        resolve(canvas.toDataURL('image/png'));
-      } catch (e) {
-        resolve(src);
-      }
-    };
-    img.onerror = () => resolve(src);
-    img.src = src;
-  });
-}
-
-async function setCoachSyncFavicon(src) {
-  const updateId = ++coachSyncIconUpdateId;
+function setCoachSyncFavicon(src) {
   const iconSrc = src || getDefaultFaviconHref();
-  const defaultHref = getDefaultFaviconHref();
-  const squareIconSrc = await makeSquarePngIcon(iconSrc, 192);
-  if (updateId !== coachSyncIconUpdateId) return;
+  const iconType = inferFaviconType(iconSrc);
+  const link = ensureHeadLink('icon', 'link[rel~="icon"]');
+  if (!link.getAttribute('data-default-href')) {
+    link.setAttribute('data-default-href', link.getAttribute('href') || 'CoachSyncLogo.png');
+  }
 
-  document.querySelectorAll('link[rel~="icon"]').forEach(el => el.remove());
-  replaceHeadLink('icon', squareIconSrc, 'image/png', { sizes: '32x32', 'data-default-href': defaultHref });
-  replaceHeadLink('shortcut icon', squareIconSrc, 'image/png', { 'data-default-href': defaultHref });
-  setCoachSyncTouchIcon(squareIconSrc);
-  setCoachSyncManifest(squareIconSrc, 'image/png');
+  link.type = iconType;
+  link.href = iconSrc;
+  setCoachSyncTouchIcon(iconSrc);
+  setCoachSyncManifest(iconSrc, iconType);
 }
 
 function setCoachSyncTouchIcon(src) {
