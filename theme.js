@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const saved = localStorage.getItem('cs-theme') || 'dark';
   applyTheme(saved, false);
   injectToggleButton();
+  applyTrainerFavicon();
 });
 
 function applyTheme(theme, animate = true) {
@@ -86,3 +87,82 @@ function injectToggleButton() {
     btn.innerHTML = '<i class="fa-solid fa-sun theme-icon"></i> Light';
   }
 }
+
+function getDefaultFaviconHref() {
+  const existing = document.querySelector('link[rel~="icon"]');
+  return existing?.getAttribute('data-default-href') || 'CoachSyncLogo.png';
+}
+
+function inferFaviconType(src) {
+  const value = String(src || '');
+  if (value.startsWith('data:image/svg')) return 'image/svg+xml';
+  if (value.startsWith('data:image/jpeg')) return 'image/jpeg';
+  if (value.startsWith('data:image/webp')) return 'image/webp';
+  return 'image/png';
+}
+
+function setCoachSyncFavicon(src) {
+  let link = document.querySelector('link[rel~="icon"]');
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'icon';
+    document.head.appendChild(link);
+  }
+
+  if (!link.getAttribute('data-default-href')) {
+    link.setAttribute('data-default-href', link.getAttribute('href') || 'CoachSyncLogo.png');
+  }
+
+  link.type = inferFaviconType(src);
+  link.href = src || getDefaultFaviconHref();
+}
+
+function resetCoachSyncFavicon() {
+  setCoachSyncFavicon(getDefaultFaviconHref());
+}
+
+async function applyTrainerFavicon() {
+  try {
+    if (!window.firebase || !firebase.apps || firebase.apps.length === 0 || !firebase.auth || !firebase.firestore) return;
+
+    firebase.auth().onAuthStateChanged(async user => {
+      try {
+        if (!user) {
+          resetCoachSyncFavicon();
+          return;
+        }
+
+        const db = firebase.firestore();
+        const userSnap = await db.collection('users').doc(user.uid).get();
+        if (!userSnap.exists) {
+          resetCoachSyncFavicon();
+          return;
+        }
+
+        const userData = userSnap.data();
+        const trainerId = userData.role === 'trainer' ? user.uid : userData.trainerId;
+        if (!trainerId) {
+          resetCoachSyncFavicon();
+          return;
+        }
+
+        const trainerData = trainerId === user.uid
+          ? userData
+          : (await db.collection('users').doc(trainerId).get()).data();
+
+        if (trainerData?.logoUrl) {
+          setCoachSyncFavicon(trainerData.logoUrl);
+        } else {
+          resetCoachSyncFavicon();
+        }
+      } catch (e) {
+        resetCoachSyncFavicon();
+      }
+    });
+  } catch (e) {
+    resetCoachSyncFavicon();
+  }
+}
+
+window.setCoachSyncFavicon = setCoachSyncFavicon;
+window.resetCoachSyncFavicon = resetCoachSyncFavicon;

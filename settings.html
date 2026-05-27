@@ -396,6 +396,7 @@
 
       // Update the preview to the compressed version
       logoPreview.src = dataUrl;
+      if (window.setCoachSyncFavicon) window.setCoachSyncFavicon(dataUrl);
       pendingLogoFile = null;
       btnSave.style.display = 'none';
       btnSave.disabled = false;
@@ -422,6 +423,7 @@
       logoHolder.style.display  = 'block';
       btnSave.style.display     = 'none';
       btnRemove.style.display   = 'none';
+      if (window.resetCoachSyncFavicon) window.resetCoachSyncFavicon();
       pendingLogoFile = null;
       setLogoStatus('Logo removed.', 'info');
     } catch(err) {

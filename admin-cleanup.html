@@ -98,7 +98,7 @@
   }
 
   async function deleteCollection(collName) {
-    let total = 0;
+    const result = { deleted: 0, errors: 0, readError: null };
     try {
       let snap;
       do {
@@ -107,16 +107,19 @@
         for (const doc of snap.docs) {
           try {
             await doc.ref.delete();
-            total++;
+            result.deleted++;
           } catch(e) {
+            result.errors++;
             log(`  ✗ Could not delete ${doc.id}: ${e.message}`, 'err');
           }
         }
       } while (snap.size === 400);
     } catch(e) {
+      result.errors++;
+      result.readError = e;
       log(`  ✗ Error reading ${collName}: ${e.message}`, 'err');
     }
-    return total;
+    return result;
   }
 
   // ── Targeted: one athlete + program ──
@@ -153,11 +156,17 @@
     }
 
     let deleted = 0;
+    let failed = 0;
     for (const doc of logsSnap.docs) {
-      await db.collection('workoutLogs').doc(doc.id).delete();
-      log(`Deleted ${++deleted}/${logsSnap.size}: ${doc.id}`, 'ok');
+      try {
+        await db.collection('workoutLogs').doc(doc.id).delete();
+        log(`Deleted ${++deleted}/${logsSnap.size}: ${doc.id}`, 'ok');
+      } catch(e) {
+        failed++;
+        log(`Failed ${doc.id}: ${e.message}`, 'err');
+      }
     }
-    log(`✓ Done. ${deleted} log(s) deleted.`, 'ok');
+    log(failed ? `Finished with errors: ${deleted} deleted, ${failed} failed.` : `✓ Done. ${deleted} log(s) deleted.`, failed ? 'warn' : 'ok');
     btn.disabled = false;
   }
 
@@ -175,22 +184,25 @@
 
     // 1. Delete all programs
     log('Deleting programs collection…', 'warn');
-    const progCount = await deleteCollection('programs');
-    log(`✓ Deleted ${progCount} program(s).`, 'ok');
+    const progResult = await deleteCollection('programs');
+    log(`${progResult.errors ? '⚠' : '✓'} Deleted ${progResult.deleted} program(s).`, progResult.errors ? 'warn' : 'ok');
 
     // 2. Delete all workout logs
     log('Deleting workoutLogs collection…', 'warn');
-    const logCount = await deleteCollection('workoutLogs');
-    log(`✓ Deleted ${logCount} workout log(s).`, 'ok');
+    const logResult = await deleteCollection('workoutLogs');
+    log(`${logResult.errors ? '⚠' : '✓'} Deleted ${logResult.deleted} workout log(s).`, logResult.errors ? 'warn' : 'ok');
 
     // 3. Clear program assignments from all athlete accounts
     log('Clearing athlete program assignments…', 'warn');
     const athleteSnap = await db.collection('users').get();
     log(`  Found ${athleteSnap.size} total user(s)`);
     let cleared = 0;
+    let athletes = 0;
+    let clearErrors = 0;
     for (const doc of athleteSnap.docs) {
       const data = doc.data();
       if (data.role === 'trainer') { log(`  Skipping trainer: ${data.email || doc.id}`); continue; }
+      athletes++;
       const patch = { assignedPrograms: [], sessionsCompleted: 0 };
       if (data.assignedProgram)   patch.assignedProgram   = firebase.firestore.FieldValue.delete();
       if (data.programStartDates) patch.programStartDates = firebase.firestore.FieldValue.delete();
@@ -201,11 +213,18 @@
         log(`  ✓ Cleared: ${data.displayName || data.email || doc.id}`, 'ok');
         cleared++;
       } catch(e) {
+        clearErrors++;
         log(`  ✗ Failed to clear ${doc.id}: ${e.message}`, 'err');
       }
     }
-    log(`✓ Cleared ${cleared}/${athleteSnap.size} athlete account(s).`, 'ok');
-    log('🔥 Full reset complete. Everything is wiped.', 'warn');
+    log(`${clearErrors ? '⚠' : '✓'} Cleared ${cleared}/${athletes} athlete account(s).`, clearErrors ? 'warn' : 'ok');
+
+    const totalErrors = progResult.errors + logResult.errors + clearErrors;
+    if (totalErrors) {
+      log(`⚠ Full reset finished with ${totalErrors} error(s). Some data may remain.`, 'err');
+    } else {
+      log('🔥 Full reset complete. Everything is wiped.', 'warn');
+    }
 
     btnReset.disabled    = false;
     btnTargeted.disabled = false;
