@@ -211,25 +211,6 @@
     <p>The all-in-one platform connecting athletes and trainers.</p>
   </div>
 
-  <!-- Quick test nav -->
-  <div style="display:flex; gap:16px; justify-content:center; margin-top:12px;">
-    <button onclick="loginAsAthlete()" style="
-      background:#3566AB; border:none; color:white; font-weight:700;
-      padding:14px 32px; border-radius:25px; font-size:1rem;
-      box-shadow:0 4px 12px rgba(53,102,171,0.4); display:inline-flex; align-items:center; gap:8px;
-      transition:all 0.2s; cursor:pointer;" id="btnAthlete">
-      <i class="fa-solid fa-person-running"></i> Athlete View
-    </button>
-    <button onclick="loginAsTrainer()" style="
-      background:#3566AB; border:none; color:white; font-weight:700;
-      padding:14px 32px; border-radius:25px; font-size:1rem;
-      box-shadow:0 4px 12px rgba(53,102,171,0.4); display:inline-flex; align-items:center; gap:8px;
-      transition:all 0.2s; cursor:pointer;" id="btnTrainer">
-      <i class="fa-solid fa-whistle"></i> Trainer View
-    </button>
-  </div>
-
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -259,7 +240,7 @@
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Signing in…';
     try {
-      await auth.signInWithEmailAndPassword('smith@gmail.com', 'asd12345');
+      throw new Error('Quick test login has been removed. Sign in with an account or seed demo data instead.');
     } catch(e) {
       btn.disabled = false;
       btn.innerHTML = '<i class="fa-solid fa-person-running"></i> Athlete View';
@@ -272,8 +253,7 @@
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Signing in…';
     try {
-      await auth.signInWithEmailAndPassword('mark@markbritton.com', 'asd12345');
-      // onAuthStateChanged will handle the redirect
+      throw new Error('Quick test login has been removed. Sign in with an account or seed demo data instead.');
     } catch(e) {
       btn.disabled = false;
       btn.innerHTML = '<i class="fa-solid fa-whistle"></i> Trainer View';

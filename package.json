@@ -1,0 +1,13 @@
+{
+  "name": "coachsync",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "seed:demo": "node scripts/seed-demo-data.js",
+    "clear:demo": "node scripts/clear-demo-data.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0"
+  }
+}
