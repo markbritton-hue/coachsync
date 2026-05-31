@@ -4,22 +4,22 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/png" href="CoachSyncLogo.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#1C1C1C" />
   <title>Athlete Detail — CoachSync</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="theme.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
     body {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      background: linear-gradient(135deg, #1C1C1C 0%, #114084 100%);
       min-height: 100vh;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: rgba(255,255,255,0.9);
     }
     .top-nav {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 18px 24px; border-bottom: 1px solid rgba(80,184,240,0.15);
-      background: rgba(15,23,42,0.6);
+      padding: 18px 24px; border-bottom: 1px solid rgba(131,183,222,0.15);
+      background: rgba(28,28,28,0.6);
     }
     .nav-right { display: flex; align-items: center; gap: 12px; }
     .btn-back {
@@ -28,7 +28,7 @@
       padding: 6px 16px; border-radius: 25px; cursor: pointer;
       text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
     }
-    .btn-back:hover { border-color: #50b8f0; color: #50b8f0; }
+    .btn-back:hover { border-color: #83B7DE; color: #83B7DE; }
     .btn-logout {
       background: none; border: 1px solid rgba(239,68,68,0.4);
       color: rgba(239,68,68,0.8); font-size: 0.85rem; font-weight: 600;
@@ -38,13 +38,13 @@
 
     /* ── Profile hero ── */
     .profile-hero {
-      background: rgba(30,41,59,0.85); border: 1px solid rgba(80,184,240,0.2);
+      background: rgba(17,64,132,0.85); border: 1px solid rgba(131,183,222,0.2);
       border-radius: 18px; padding: 30px; margin: 32px 0 24px;
       display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
     }
     .profile-avatar {
       width: 72px; height: 72px; border-radius: 50%; flex-shrink: 0;
-      background: linear-gradient(135deg, #1e8fe0, #50b8f0);
+      background: linear-gradient(135deg, #3566AB, #83B7DE);
       display: flex; align-items: center; justify-content: center;
       font-size: 1.8rem; font-weight: 800; color: white; text-transform: uppercase;
     }
@@ -56,7 +56,7 @@
       font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
       padding: 4px 12px; border-radius: 20px;
     }
-    .badge-blue   { background: rgba(80,184,240,0.15); border: 1px solid rgba(80,184,240,0.35); color: #50b8f0; }
+    .badge-blue   { background: rgba(131,183,222,0.15); border: 1px solid rgba(131,183,222,0.35); color: #83B7DE; }
     .badge-green  { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); color: #10b981; }
     .badge-amber  { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3);  color: #f59e0b; }
     .badge-muted  { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.4); }
@@ -67,10 +67,10 @@
       gap: 14px; margin-bottom: 28px;
     }
     .stat-card {
-      background: rgba(30,41,59,0.8); border: 1px solid rgba(30,143,224,0.18);
+      background: rgba(17,64,132,0.8); border: 1px solid rgba(53,102,171,0.18);
       border-radius: 12px; padding: 18px 16px; text-align: center;
     }
-    .stat-value { font-size: 1.5rem; font-weight: 800; color: #1e8fe0; margin-bottom: 4px; }
+    .stat-value { font-size: 1.5rem; font-weight: 800; color: #3566AB; margin-bottom: 4px; }
     .stat-label { font-size: 0.72rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.4px; }
 
     /* ── Program card ── */
@@ -79,14 +79,14 @@
       letter-spacing: 0.5px; color: rgba(255,255,255,0.35); margin-bottom: 14px;
     }
     .program-card {
-      background: rgba(30,41,59,0.85); border: 1px solid rgba(80,184,240,0.2);
+      background: rgba(17,64,132,0.85); border: 1px solid rgba(131,183,222,0.2);
       border-radius: 14px; padding: 22px 24px; margin-bottom: 28px;
     }
-    .program-name { font-size: 1.1rem; font-weight: 700; color: #50b8f0; margin-bottom: 8px; }
+    .program-name { font-size: 1.1rem; font-weight: 700; color: #83B7DE; margin-bottom: 8px; }
     .program-meta { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; }
     .program-meta span { color: rgba(255,255,255,0.5); font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
     .prog-bar-track { background: rgba(255,255,255,0.08); border-radius: 8px; height: 8px; overflow: hidden; margin-bottom: 6px; }
-    .prog-bar-fill  { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #1e8fe0, #50b8f0); transition: width 0.5s; }
+    .prog-bar-fill  { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #3566AB, #83B7DE); transition: width 0.5s; }
     .prog-bar-labels { display: flex; justify-content: space-between; font-size: 0.78rem; color: rgba(255,255,255,0.4); }
 
     /* ── Tabs ── */
@@ -96,18 +96,18 @@
       color: rgba(255,255,255,0.5); font-size: 0.875rem; font-weight: 600;
       padding: 8px 20px; border-radius: 25px; cursor: pointer; transition: all 0.2s;
     }
-    .tab.active { background: rgba(80,184,240,0.15); border-color: rgba(80,184,240,0.45); color: #50b8f0; }
+    .tab.active { background: rgba(131,183,222,0.15); border-color: rgba(131,183,222,0.45); color: #83B7DE; }
     .tab:hover:not(.active) { border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.75); }
     .day-tab {
       background: none; border: 1px solid rgba(255,255,255,0.1);
       color: rgba(255,255,255,0.45); font-size: 0.8rem; font-weight: 600;
       padding: 6px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s;
     }
-    .day-tab.active { background: rgba(114,184,50,0.12); border-color: rgba(114,184,50,0.4); color: #72b832; }
-    .day-tab.today  { border-color: rgba(80,184,240,0.3); color: rgba(80,184,240,0.7); }
+    .day-tab.active { background: rgba(53,102,171,0.12); border-color: rgba(53,102,171,0.4); color: #3566AB; }
+    .day-tab.today  { border-color: rgba(131,183,222,0.3); color: rgba(131,183,222,0.7); }
     .day-tab.has-log::after { content: '●'; font-size: 6px; margin-left: 5px; vertical-align: middle; color: #10b981; }
     .week-nav {
-      background: rgba(30,41,59,0.72); border: 1px solid rgba(80,184,240,0.16);
+      background: rgba(17,64,132,0.72); border: 1px solid rgba(131,183,222,0.16);
       border-radius: 12px; padding: 10px 14px; margin-bottom: 14px;
       display: flex; align-items: center; justify-content: space-between; gap: 10px;
     }
@@ -116,7 +116,7 @@
       background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.65);
       display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
     }
-    .week-arrow:hover:not(:disabled) { border-color: rgba(80,184,240,0.45); color: #50b8f0; }
+    .week-arrow:hover:not(:disabled) { border-color: rgba(131,183,222,0.45); color: #83B7DE; }
     .week-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
     .week-nav-title { font-size: 0.88rem; font-weight: 800; color: rgba(255,255,255,0.82); text-align: center; }
     .week-nav-sub { font-size: 0.72rem; color: rgba(255,255,255,0.35); text-align: center; margin-top: 2px; }
@@ -129,7 +129,7 @@
 
     /* ── History cards ── */
     .history-card {
-      background: rgba(30,41,59,0.8); border: 1px solid rgba(30,143,224,0.18);
+      background: rgba(17,64,132,0.8); border: 1px solid rgba(53,102,171,0.18);
       border-radius: 12px; padding: 18px 20px; margin-bottom: 12px;
     }
     .history-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
@@ -143,14 +143,14 @@
     .history-exercises { display: flex; flex-wrap: wrap; gap: 6px; }
     .ex-pill {
       font-size: 0.75rem; padding: 3px 10px; border-radius: 20px;
-      background: rgba(30,143,224,0.12); border: 1px solid rgba(30,143,224,0.25);
+      background: rgba(53,102,171,0.12); border: 1px solid rgba(53,102,171,0.25);
       color: rgba(255,255,255,0.6);
     }
     .ex-pill.done { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.3); color: #10b981; }
 
     /* ── Current workout ── */
     .current-exercise-card {
-      background: rgba(30,41,59,0.8); border: 1px solid rgba(30,143,224,0.18);
+      background: rgba(17,64,132,0.8); border: 1px solid rgba(53,102,171,0.18);
       border-radius: 12px; padding: 16px 18px; margin-bottom: 10px;
       display: flex; align-items: center; gap: 14px;
     }
@@ -166,11 +166,11 @@
     .athlete-note { font-size: 0.78rem; color: #f59e0b; margin-top: 4px; font-style: italic; }
 
     .empty-state { text-align: center; padding: 50px 20px; }
-    .empty-state i { font-size: 2.5rem; color: rgba(80,184,240,0.2); margin-bottom: 14px; display: block; }
+    .empty-state i { font-size: 2.5rem; color: rgba(131,183,222,0.2); margin-bottom: 14px; display: block; }
     .empty-state p { color: rgba(255,255,255,0.35); font-size: 0.9rem; }
 
     .loading-overlay {
-      position: fixed; inset: 0; background: linear-gradient(135deg, #0f172a, #1e293b);
+      position: fixed; inset: 0; background: linear-gradient(135deg, #1C1C1C, #114084);
       display: flex; align-items: center; justify-content: center;
       z-index: 9999; font-size: 1.1rem; color: rgba(255,255,255,0.5); gap: 12px;
     }
@@ -550,7 +550,7 @@
     let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
       <div style="font-size:1rem;font-weight:700;color:rgba(255,255,255,0.8);">
         Block 1 · Week ${currentWeek} · Day ${viewingDay}
-        ${isToday ? '<span style="font-size:0.72rem;font-weight:600;background:rgba(80,184,240,0.15);border:1px solid rgba(80,184,240,0.3);color:#50b8f0;padding:2px 8px;border-radius:12px;margin-left:8px;">Today</span>' : ''}
+        ${isToday ? '<span style="font-size:0.72rem;font-weight:600;background:rgba(131,183,222,0.15);border:1px solid rgba(131,183,222,0.3);color:#83B7DE;padding:2px 8px;border-radius:12px;margin-left:8px;">Today</span>' : ''}
       </div>
       <div style="font-size:0.85rem;color:${done===total&&total>0?'#10b981':'rgba(255,255,255,0.45)'};">
         ${logData ? `${done} / ${total} exercises completed` : 'Not logged yet'}
@@ -572,7 +572,7 @@
         const c = n <= 6 ? '#10b981' : n <= 9 ? '#f59e0b' : '#ef4444';
         return `<div style="flex:1;height:22px;border-radius:4px;background:${lit?c:'rgba(255,255,255,0.06)'};display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:${lit?'white':'transparent'};">${n}</div>`;
       }).join('');
-      html += `<div style="background:rgba(30,41,59,0.8);border:1px solid rgba(80,184,240,0.15);border-radius:12px;padding:16px 18px;margin-bottom:20px;">
+      html += `<div style="background:rgba(17,64,132,0.8);border:1px solid rgba(131,183,222,0.15);border-radius:12px;padding:16px 18px;margin-bottom:20px;">
         <div style="font-size:0.7rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px;"><i class="fa-solid fa-fire-flame-curved" style="margin-right:4px;"></i>Effort Rating (RPE)</div>
         <div style="display:flex;gap:3px;margin-bottom:6px;">${blocks}</div>
         <div style="font-size:0.82rem;"><span style="color:${rpeColor};font-weight:700;">${logData.rpe}/10</span> <span style="color:rgba(255,255,255,0.45);">— ${rpeLabels[logData.rpe]||''}</span></div>

@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/png" href="CoachSyncLogo.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#1C1C1C" />
   <title>My Athletes — CoachSync</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="theme.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
     body {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      background: linear-gradient(135deg, #1C1C1C 0%, #114084 100%);
       min-height: 100vh;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: rgba(255,255,255,0.9);
@@ -21,12 +21,12 @@
     .top-nav {
       display: flex; align-items: center; justify-content: space-between;
       padding: 18px 24px;
-      border-bottom: 1px solid rgba(80,184,240,0.15);
-      background: rgba(15,23,42,0.6);
+      border-bottom: 1px solid rgba(131,183,222,0.15);
+      background: rgba(28,28,28,0.6);
     }
     .nav-brand {
       font-size: 1.35rem; font-weight: 800;
-      background: linear-gradient(135deg, #50b8f0, #1e8fe0);
+      background: linear-gradient(135deg, #83B7DE, #3566AB);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       display: flex; align-items: center; gap: 10px; text-decoration: none;
     }
@@ -37,7 +37,7 @@
       padding: 6px 16px; border-radius: 25px; cursor: pointer;
       text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
     }
-    .btn-back:hover { border-color: #50b8f0; color: #50b8f0; background: rgba(80,184,240,0.08); }
+    .btn-back:hover { border-color: #83B7DE; color: #83B7DE; background: rgba(131,183,222,0.08); }
     .btn-logout {
       background: none; border: 1px solid rgba(239,68,68,0.4);
       color: rgba(239,68,68,0.8); font-size: 0.85rem; font-weight: 600;
@@ -52,15 +52,15 @@
     }
     .page-header h1 {
       font-size: 1.8rem; font-weight: 800;
-      background: linear-gradient(135deg, #50b8f0, #1e8fe0);
+      background: linear-gradient(135deg, #83B7DE, #3566AB);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0;
     }
     .page-header p { color: rgba(255,255,255,0.5); font-size: 0.9rem; margin: 4px 0 0; }
 
     /* ── Invite code card ── */
     .invite-card {
-      background: rgba(30,41,59,0.8);
-      border: 1px solid rgba(80,184,240,0.25);
+      background: rgba(17,64,132,0.8);
+      border: 1px solid rgba(131,183,222,0.25);
       border-radius: 15px; padding: 24px 28px;
       margin-bottom: 32px;
       display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
@@ -68,32 +68,32 @@
     .invite-card-left { display: flex; align-items: center; gap: 16px; }
     .invite-icon {
       width: 48px; height: 48px; border-radius: 12px;
-      background: rgba(80,184,240,0.15); border: 1px solid rgba(80,184,240,0.3);
+      background: rgba(131,183,222,0.15); border: 1px solid rgba(131,183,222,0.3);
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.4rem; color: #50b8f0; flex-shrink: 0;
+      font-size: 1.4rem; color: #83B7DE; flex-shrink: 0;
     }
     .invite-label { color: rgba(255,255,255,0.5); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
     .invite-code {
       font-size: 1.6rem; font-weight: 800; letter-spacing: 4px;
-      color: #50b8f0; font-family: 'Courier New', monospace;
+      color: #83B7DE; font-family: 'Courier New', monospace;
     }
     .invite-hint { color: rgba(255,255,255,0.4); font-size: 0.82rem; margin-top: 4px; }
     .btn-copy {
-      background: rgba(80,184,240,0.15); border: 1px solid rgba(80,184,240,0.35);
-      color: #50b8f0; font-weight: 600; padding: 10px 20px; border-radius: 25px;
+      background: rgba(131,183,222,0.15); border: 1px solid rgba(131,183,222,0.35);
+      color: #83B7DE; font-weight: 600; padding: 10px 20px; border-radius: 25px;
       cursor: pointer; transition: all 0.2s; font-size: 0.9rem;
       display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
     }
-    .btn-copy:hover { background: rgba(80,184,240,0.25); }
+    .btn-copy:hover { background: rgba(131,183,222,0.25); }
     .btn-copy:disabled { opacity: 0.6; cursor: not-allowed; }
 
     /* ── Search ── */
     .search-bar {
-      background: rgba(15,23,42,0.7); border: 2px solid rgba(80,184,240,0.2);
+      background: rgba(28,28,28,0.7); border: 2px solid rgba(131,183,222,0.2);
       color: white; border-radius: 25px; padding: 11px 20px;
       width: 100%; max-width: 380px; font-size: 0.95rem; outline: none;
     }
-    .search-bar:focus { border-color: #50b8f0; box-shadow: 0 0 0 3px rgba(80,184,240,0.12); }
+    .search-bar:focus { border-color: #83B7DE; box-shadow: 0 0 0 3px rgba(131,183,222,0.12); }
     .search-bar::placeholder { color: rgba(255,255,255,0.3); }
 
     /* ── Athlete cards ── */
@@ -102,16 +102,16 @@
       gap: 20px; margin-bottom: 48px;
     }
     .athlete-card {
-      background: rgba(30,41,59,0.85); border: 1px solid rgba(30,143,224,0.2);
+      background: rgba(17,64,132,0.85); border: 1px solid rgba(53,102,171,0.2);
       border-radius: 15px; padding: 24px;
       box-shadow: 0 8px 20px rgba(0,0,0,0.4); transition: all 0.3s ease;
       cursor: pointer;
     }
-    .athlete-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.5); border-color: rgba(30,143,224,0.4); }
+    .athlete-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.5); border-color: rgba(53,102,171,0.4); }
     .athlete-card-top { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
     .athlete-avatar {
       width: 52px; height: 52px; border-radius: 50%;
-      background: linear-gradient(135deg, #1e8fe0, #50b8f0);
+      background: linear-gradient(135deg, #3566AB, #83B7DE);
       display: flex; align-items: center; justify-content: center;
       font-size: 1.3rem; font-weight: 800; color: white; flex-shrink: 0; text-transform: uppercase;
     }
@@ -121,24 +121,24 @@
       display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
     }
     .stat-box {
-      background: rgba(15,23,42,0.5); border: 1px solid rgba(30,143,224,0.15);
+      background: rgba(28,28,28,0.5); border: 1px solid rgba(53,102,171,0.15);
       border-radius: 8px; padding: 10px 12px; text-align: center;
     }
-    .stat-value { font-size: 1.1rem; font-weight: 700; color: #1e8fe0; }
+    .stat-value { font-size: 1.1rem; font-weight: 700; color: #3566AB; }
     .stat-label { font-size: 0.72rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px; }
 
     .athlete-program {
-      background: rgba(80,184,240,0.08); border: 1px solid rgba(80,184,240,0.2);
+      background: rgba(131,183,222,0.08); border: 1px solid rgba(131,183,222,0.2);
       border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;
     }
     .athlete-program-label { color: rgba(255,255,255,0.4); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
-    .athlete-program-name { color: #50b8f0; font-weight: 700; font-size: 0.9rem; margin-bottom: 10px; }
+    .athlete-program-name { color: #83B7DE; font-weight: 700; font-size: 0.9rem; margin-bottom: 10px; }
 
     .progress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
     .progress-week-label { font-size: 0.78rem; font-weight: 700; color: rgba(255,255,255,0.7); }
     .progress-pct-label  { font-size: 0.72rem; color: rgba(255,255,255,0.4); }
     .prog-bar-track { background: rgba(255,255,255,0.08); border-radius: 6px; height: 6px; overflow: hidden; }
-    .prog-bar-fill  { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #1e8fe0, #50b8f0); transition: width 0.4s; }
+    .prog-bar-fill  { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #3566AB, #83B7DE); transition: width 0.4s; }
 
     .status-badge {
       display: inline-flex; align-items: center; gap: 5px;
@@ -154,19 +154,19 @@
 
     /* ── Buttons ── */
     .btn-primary-app {
-      background: #50b8f0; border: none; color: white; font-weight: 700;
+      background: #83B7DE; border: none; color: white; font-weight: 700;
       padding: 11px 24px; border-radius: 25px; font-size: 0.95rem;
-      cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(80,184,240,0.3);
+      cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(131,183,222,0.3);
       display: inline-flex; align-items: center; gap: 8px;
     }
-    .btn-primary-app:hover { background: #1070c0; transform: translateY(-2px); }
+    .btn-primary-app:hover { background: #114084; transform: translateY(-2px); }
     .btn-assign {
-      background: rgba(30,143,224,0.18); border: 1px solid rgba(30,143,224,0.5);
-      color: #50b8f0; font-size: 0.85rem; font-weight: 700;
+      background: rgba(53,102,171,0.18); border: 1px solid rgba(53,102,171,0.5);
+      color: #83B7DE; font-size: 0.85rem; font-weight: 700;
       padding: 9px 18px; border-radius: 20px; cursor: pointer; transition: all 0.2s;
       display: inline-flex; align-items: center; gap: 6px; width: 100%; justify-content: center;
     }
-    .btn-assign:hover { background: rgba(30,143,224,0.32); border-color: #50b8f0; }
+    .btn-assign:hover { background: rgba(53,102,171,0.32); border-color: #83B7DE; }
     .btn-remove {
       background: none; border: 1px solid rgba(239,68,68,0.3);
       color: rgba(239,68,68,0.7); font-size: 0.82rem; font-weight: 600;
@@ -174,18 +174,18 @@
     }
     .btn-remove:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.08); }
     .program-mini-card {
-      background: rgba(15,23,42,0.5); border: 1px solid rgba(80,184,240,0.2);
+      background: rgba(28,28,28,0.5); border: 1px solid rgba(131,183,222,0.2);
       border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
       transition: border-color 0.2s, background 0.2s;
     }
     .program-mini-card:hover {
-      border-color: rgba(80,184,240,0.5); background: rgba(80,184,240,0.07);
+      border-color: rgba(131,183,222,0.5); background: rgba(131,183,222,0.07);
     }
     .program-mini-card.started {
-      background: rgba(114,184,50,0.07); border-color: rgba(114,184,50,0.3);
+      background: rgba(53,102,171,0.07); border-color: rgba(53,102,171,0.3);
     }
     .program-mini-card.started:hover {
-      background: rgba(114,184,50,0.13); border-color: rgba(114,184,50,0.5);
+      background: rgba(53,102,171,0.13); border-color: rgba(53,102,171,0.5);
     }
     .btn-remove-prog {
       background: none; border: none; color: rgba(239,68,68,0.45);
@@ -198,11 +198,11 @@
     .empty-state {
       grid-column: 1/-1; text-align: center; padding: 60px 20px;
     }
-    .empty-state i { font-size: 3rem; color: rgba(30,143,224,0.25); margin-bottom: 16px; display: block; }
+    .empty-state i { font-size: 3rem; color: rgba(53,102,171,0.25); margin-bottom: 16px; display: block; }
     .empty-state p { color: rgba(255,255,255,0.35); font-size: 0.95rem; }
     .loading-overlay {
       position: fixed; inset: 0;
-      background: linear-gradient(135deg, #0f172a, #1e293b);
+      background: linear-gradient(135deg, #1C1C1C, #114084);
       display: flex; align-items: center; justify-content: center;
       z-index: 9999; font-size: 1.1rem; color: rgba(255,255,255,0.5); gap: 12px;
     }
@@ -215,24 +215,24 @@
     }
     .modal-overlay.open { display: flex; }
     .modal-box {
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      border: 1px solid rgba(80,184,240,0.3); border-radius: 20px;
+      background: linear-gradient(135deg, #114084, #1C1C1C);
+      border: 1px solid rgba(131,183,222,0.3); border-radius: 20px;
       padding: 36px; width: 100%; max-width: 480px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.8);
     }
     .modal-title {
       font-size: 1.3rem; font-weight: 800;
-      background: linear-gradient(135deg, #50b8f0, #1e8fe0);
+      background: linear-gradient(135deg, #83B7DE, #3566AB);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px;
     }
     .field-label { color: rgba(255,255,255,0.6); font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block; }
     .field-select {
-      background: rgba(15,23,42,0.7); border: 2px solid rgba(80,184,240,0.25);
+      background: rgba(28,28,28,0.7); border: 2px solid rgba(131,183,222,0.25);
       color: white; border-radius: 8px; padding: 11px 14px;
       width: 100%; font-size: 0.95rem; margin-bottom: 20px; outline: none;
     }
-    .field-select:focus { border-color: #50b8f0; }
-    .field-select option { background: #1e293b; }
+    .field-select:focus { border-color: #83B7DE; }
+    .field-select option { background: #114084; }
     .modal-footer { display: flex; gap: 10px; justify-content: flex-end; }
     .btn-cancel {
       background: none; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6);
@@ -240,17 +240,17 @@
     }
     .btn-cancel:hover { border-color: rgba(255,255,255,0.4); color: white; }
     .btn-save {
-      background: #50b8f0; border: none; color: white; font-weight: 700;
+      background: #83B7DE; border: none; color: white; font-weight: 700;
       padding: 10px 26px; border-radius: 25px; cursor: pointer; transition: all 0.2s;
-      box-shadow: 0 4px 12px rgba(80,184,240,0.3);
+      box-shadow: 0 4px 12px rgba(131,183,222,0.3);
     }
-    .btn-save:hover { background: #1070c0; transform: translateY(-2px); }
+    .btn-save:hover { background: #114084; transform: translateY(-2px); }
     .btn-save:disabled { opacity: 0.6; transform: none; cursor: not-allowed; }
 
     /* ── Toast ── */
     .toast {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-      background: #1e293b; border: 1px solid rgba(80,184,240,0.4);
+      background: #114084; border: 1px solid rgba(131,183,222,0.4);
       border-radius: 14px; padding: 14px 22px; z-index: 99999;
       display: none; align-items: center; gap: 10px;
       font-size: 0.9rem; color: rgba(255,255,255,0.85);
@@ -270,7 +270,7 @@
       display: inline-flex; align-items: center; gap: 4px;
       font-size: 0.72rem; font-weight: 700; padding: 3px 9px; border-radius: 20px;
     }
-    .log-pill-week { background: rgba(80,184,240,0.12); border: 1px solid rgba(80,184,240,0.25); color: #50b8f0; }
+    .log-pill-week { background: rgba(131,183,222,0.12); border: 1px solid rgba(131,183,222,0.25); color: #83B7DE; }
     .log-pill-progress { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: #10b981; }
     .log-pill-rpe { border: 1px solid; }
     .log-pill-rpe.easy   { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.3); color: #10b981; }
@@ -278,11 +278,11 @@
     .log-pill-rpe.hard   { background: rgba(239,68,68,0.12);  border-color: rgba(239,68,68,0.3);  color: #ef4444; }
     .log-view-btn {
       margin-left: auto; background: none; border: none;
-      color: rgba(80,184,240,0.5); font-size: 0.72rem; cursor: pointer;
+      color: rgba(131,183,222,0.5); font-size: 0.72rem; cursor: pointer;
       padding: 2px 6px; border-radius: 6px; transition: color 0.2s;
       display: inline-flex; align-items: center; gap: 4px;
     }
-    .log-view-btn:hover { color: #50b8f0; }
+    .log-view-btn:hover { color: #83B7DE; }
 
     /* ── Workout detail modal ── */
     .detail-modal-overlay {
@@ -292,8 +292,8 @@
     }
     .detail-modal-overlay.open { display: flex; }
     .detail-modal-box {
-      background: linear-gradient(160deg, #1e293b, #0f172a);
-      border: 1px solid rgba(80,184,240,0.25); border-radius: 22px 22px 0 0;
+      background: linear-gradient(160deg, #114084, #1C1C1C);
+      border: 1px solid rgba(131,183,222,0.25); border-radius: 22px 22px 0 0;
       width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto;
       padding: 32px 28px 40px; box-shadow: 0 -20px 60px rgba(0,0,0,0.8);
       animation: slideUp 0.25s ease;
@@ -318,7 +318,7 @@
       font-size: 0.78rem; font-weight: 700; padding: 5px 12px; border-radius: 20px;
     }
     .rpe-display {
-      background: rgba(30,41,59,0.8); border: 1px solid rgba(80,184,240,0.2);
+      background: rgba(17,64,132,0.8); border: 1px solid rgba(131,183,222,0.2);
       border-radius: 14px; padding: 18px 20px; margin-bottom: 20px;
     }
     .rpe-display-label { font-size: 0.72rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
@@ -337,7 +337,7 @@
     .ex-list { display: flex; flex-direction: column; gap: 8px; }
     .ex-list-item {
       display: flex; align-items: center; gap: 12px;
-      background: rgba(15,23,42,0.5); border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(28,28,28,0.5); border: 1px solid rgba(255,255,255,0.06);
       border-radius: 10px; padding: 12px 14px;
     }
     .ex-list-item.done { border-color: rgba(16,185,129,0.25); }
@@ -453,7 +453,7 @@
   <div class="modal-box">
     <h2 class="modal-title"><i class="fa-solid fa-calendar-pen me-2"></i>Set Start Date</h2>
     <p style="color:rgba(255,255,255,0.5);font-size:0.88rem;margin-bottom:20px;">
-      Program: <strong id="editDateProgName" style="color:#50b8f0;"></strong>
+      Program: <strong id="editDateProgName" style="color:#83B7DE;"></strong>
     </p>
     <label class="field-label">Start Date</label>
     <input type="date" class="field-select" id="editDateInput" style="margin-bottom:20px;" />
@@ -701,7 +701,7 @@
           const editBtn = document.createElement('button');
           editBtn.className = 'btn-remove-prog';
           editBtn.title = 'Edit program';
-          editBtn.style.color = 'rgba(80,184,240,0.6)';
+          editBtn.style.color = 'rgba(131,183,222,0.6)';
           editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
           editBtn.addEventListener('click', (e) => {
             e.stopPropagation();

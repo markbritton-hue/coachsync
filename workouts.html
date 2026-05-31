@@ -4,22 +4,22 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/png" href="CoachSyncLogo.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#1C1C1C" />
   <title>My Workouts — CoachSync</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="theme.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
     body {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      background: linear-gradient(135deg, #1C1C1C 0%, #114084 100%);
       min-height: 100vh;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: rgba(255,255,255,0.9);
     }
     .top-nav {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 6px 12px; border-bottom: 1px solid rgba(114,184,50,0.15);
-      background: rgba(15,23,42,0.6);
+      padding: 6px 12px; border-bottom: 1px solid rgba(53,102,171,0.15);
+      background: rgba(28,28,28,0.6);
     }
     .nav-brand { display: flex; align-items: center; gap: 10px; }
     .nav-right { display: flex; align-items: center; gap: 8px; }
@@ -29,7 +29,7 @@
       padding: 5px 12px; border-radius: 25px; cursor: pointer;
       text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px;
     }
-    .btn-back:hover { border-color: #72b832; color: #72b832; }
+    .btn-back:hover { border-color: #3566AB; color: #3566AB; }
     .btn-logout {
       background: none; border: 1px solid rgba(239,68,68,0.4);
       color: rgba(239,68,68,0.8); font-size: 0.8rem; font-weight: 600;
@@ -40,7 +40,7 @@
     .page-header { padding: 10px 0 6px; }
     .page-header h1 {
       font-size: 1.4rem; font-weight: 800;
-      background: linear-gradient(135deg, #72b832, #a0d060);
+      background: linear-gradient(135deg, #3566AB, #83B7DE);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0;
     }
 
@@ -52,38 +52,38 @@
       padding: 7px 18px; border-radius: 25px; cursor: pointer; transition: all 0.2s;
     }
     .main-tab.active {
-      background: rgba(114,184,50,0.15); border-color: rgba(114,184,50,0.5); color: #72b832;
+      background: rgba(53,102,171,0.15); border-color: rgba(53,102,171,0.5); color: #3566AB;
     }
     .main-tab:hover:not(.active) { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.8); }
 
     /* ── Program selector ── */
     .program-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
     .program-selector-btn {
-      background: rgba(30,41,59,0.8); border: 1px solid rgba(114,184,50,0.2);
+      background: rgba(17,64,132,0.8); border: 1px solid rgba(53,102,171,0.2);
       color: rgba(255,255,255,0.55); font-size: 0.85rem; font-weight: 600;
       padding: 8px 18px; border-radius: 25px; cursor: pointer; transition: all 0.2s;
     }
     .program-selector-btn.active {
-      background: rgba(114,184,50,0.15); border-color: rgba(114,184,50,0.5); color: #72b832;
+      background: rgba(53,102,171,0.15); border-color: rgba(53,102,171,0.5); color: #3566AB;
     }
     .program-selector-btn:hover:not(.active) { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.8); }
 
     /* ── Program banner ── */
     .program-banner {
-      background: rgba(30,41,59,0.85); border: 1px solid rgba(114,184,50,0.25);
+      background: rgba(17,64,132,0.85); border: 1px solid rgba(53,102,171,0.25);
       border-radius: 10px; padding: 8px 12px; margin-bottom: 8px;
       display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     }
     .program-banner-icon {
       width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
-      background: rgba(114,184,50,0.12); border: 1px solid rgba(114,184,50,0.3);
+      background: rgba(53,102,171,0.12); border: 1px solid rgba(53,102,171,0.3);
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem; color: #72b832;
+      font-size: 1.1rem; color: #3566AB;
     }
-    .program-banner-name { font-size: 0.95rem; font-weight: 700; color: #72b832; margin-bottom: 4px; }
+    .program-banner-name { font-size: 0.95rem; font-weight: 700; color: #3566AB; margin-bottom: 4px; }
     .program-banner-meta { display: flex; flex-wrap: wrap; gap: 6px; }
     .meta-pill {
-      background: rgba(114,184,50,0.1); border: 1px solid rgba(114,184,50,0.2);
+      background: rgba(53,102,171,0.1); border: 1px solid rgba(53,102,171,0.2);
       border-radius: 20px; padding: 2px 9px; font-size: 0.72rem;
       color: rgba(255,255,255,0.6); display: inline-flex; align-items: center; gap: 4px;
     }
@@ -96,7 +96,7 @@
       padding: 6px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s;
     }
     .day-tab.active {
-      background: rgba(114,184,50,0.12); border-color: rgba(114,184,50,0.4); color: #72b832;
+      background: rgba(53,102,171,0.12); border-color: rgba(53,102,171,0.4); color: #3566AB;
     }
     .day-tab:hover:not(.active) { border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.7); }
 
@@ -110,13 +110,13 @@
       background: rgba(255,255,255,0.08); border-radius: 10px; height: 6px; overflow: hidden;
     }
     .progress-bar-fill {
-      background: linear-gradient(90deg, #72b832, #a0d060);
+      background: linear-gradient(90deg, #3566AB, #83B7DE);
       height: 100%; border-radius: 10px; transition: width 0.4s ease;
     }
 
     /* Timer tools */
     .timer-tools {
-      background: rgba(30,41,59,0.72); border: 1px solid rgba(80,184,240,0.16);
+      background: rgba(17,64,132,0.72); border: 1px solid rgba(131,183,222,0.16);
       border-radius: 10px; padding: 10px 12px; margin-bottom: 12px;
       display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
     }
@@ -145,7 +145,7 @@
     }
     .skip-banner.visible { display: block; }
     .week-nav {
-      background: rgba(30,41,59,0.68); border: 1px solid rgba(114,184,50,0.14);
+      background: rgba(17,64,132,0.68); border: 1px solid rgba(53,102,171,0.14);
       border-radius: 10px; padding: 9px 12px; margin-bottom: 10px;
       display: flex; align-items: center; justify-content: space-between; gap: 10px;
     }
@@ -157,7 +157,7 @@
       color: rgba(255,255,255,0.7); display: inline-flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all 0.2s; flex-shrink: 0;
     }
-    .week-arrow:hover:not(:disabled) { border-color: rgba(114,184,50,0.45); color: #72b832; }
+    .week-arrow:hover:not(:disabled) { border-color: rgba(53,102,171,0.45); color: #3566AB; }
     .week-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
     .structure-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
     .structure-pill {
@@ -172,21 +172,21 @@
       letter-spacing: 0.5px; color: rgba(255,255,255,0.35); margin-bottom: 6px;
     }
     .exercise-card {
-      background: rgba(30,41,59,0.85); border: 1px solid rgba(114,184,50,0.15);
+      background: rgba(17,64,132,0.85); border: 1px solid rgba(53,102,171,0.15);
       border-radius: 10px; padding: 8px 12px; margin-bottom: 5px; transition: all 0.2s;
     }
     .exercise-card.completed {
-      border-color: rgba(114,184,50,0.4); background: rgba(114,184,50,0.06);
+      border-color: rgba(53,102,171,0.4); background: rgba(53,102,171,0.06);
     }
     .exercise-card-top { display: flex; align-items: center; gap: 10px; }
     .exercise-checkbox {
       width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; cursor: pointer;
-      border: 2px solid rgba(114,184,50,0.4); background: none;
+      border: 2px solid rgba(53,102,171,0.4); background: none;
       display: flex; align-items: center; justify-content: center;
       transition: all 0.2s; font-size: 0.75rem; color: transparent;
     }
     .exercise-card.completed .exercise-checkbox {
-      background: #72b832; border-color: #72b832; color: white;
+      background: #3566AB; border-color: #3566AB; color: white;
     }
     .exercise-info { flex: 1; }
     .exercise-name {
@@ -224,7 +224,7 @@
     }
     .note-editor.open { display: block; }
     .note-textarea {
-      background: rgba(15,23,42,0.6); border: 1px solid rgba(245,158,11,0.3);
+      background: rgba(28,28,28,0.6); border: 1px solid rgba(245,158,11,0.3);
       color: white; border-radius: 8px; padding: 8px 12px; width: 100%;
       font-size: 0.85rem; resize: none; outline: none; box-sizing: border-box;
       font-family: inherit; min-height: 60px;
@@ -238,9 +238,9 @@
 
     /* ── Log button ── */
     .btn-log {
-      background: #72b832; border: none; color: white; font-weight: 700;
+      background: #3566AB; border: none; color: white; font-weight: 700;
       padding: 10px 24px; border-radius: 25px; font-size: 0.9rem;
-      cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(114,184,50,0.3);
+      cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(53,102,171,0.3);
       display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; margin-bottom: 16px;
     }
     .btn-log:hover { background: #5a9528; transform: translateY(-2px); }
@@ -248,7 +248,7 @@
 
     /* ── History cards ── */
     .history-card {
-      background: rgba(30,41,59,0.85); border: 1px solid rgba(114,184,50,0.15);
+      background: rgba(17,64,132,0.85); border: 1px solid rgba(53,102,171,0.15);
       border-radius: 13px; padding: 18px 22px; margin-bottom: 12px;
     }
     .history-card-header {
@@ -258,8 +258,8 @@
     .history-date { font-size: 0.95rem; font-weight: 700; color: rgba(255,255,255,0.85); }
     .history-program { font-size: 0.78rem; color: rgba(255,255,255,0.4); margin-top: 2px; }
     .history-badge {
-      background: rgba(114,184,50,0.12); border: 1px solid rgba(114,184,50,0.3);
-      color: #72b832; font-size: 0.75rem; font-weight: 700;
+      background: rgba(53,102,171,0.12); border: 1px solid rgba(53,102,171,0.3);
+      color: #3566AB; font-size: 0.75rem; font-weight: 700;
       padding: 3px 12px; border-radius: 20px;
     }
     .history-exercises {
@@ -272,7 +272,7 @@
 
     /* ── Empty states ── */
     .empty-state { text-align: center; padding: 70px 20px; }
-    .empty-state i { font-size: 3rem; color: rgba(114,184,50,0.2); display: block; margin-bottom: 16px; }
+    .empty-state i { font-size: 3rem; color: rgba(53,102,171,0.2); display: block; margin-bottom: 16px; }
     .empty-state p { color: rgba(255,255,255,0.35); font-size: 0.95rem; }
 
     /* ── RPE modal ── */
@@ -283,8 +283,8 @@
     }
     .modal-overlay.open { display: flex; }
     .modal-box {
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      border: 1px solid rgba(114,184,50,0.3); border-radius: 20px;
+      background: linear-gradient(135deg, #114084, #1C1C1C);
+      border: 1px solid rgba(53,102,171,0.3); border-radius: 20px;
       padding: 36px 28px; width: 100%;
       box-shadow: 0 20px 60px rgba(0,0,0,0.8);
     }
@@ -295,14 +295,14 @@
       color: rgba(255,255,255,0.6); font-size: 1rem; font-weight: 700;
       cursor: pointer; transition: all 0.15s;
     }
-    .rpe-btn:hover { border-color: #72b832; color: #72b832; background: rgba(114,184,50,0.1); }
-    .rpe-btn.selected { background: #72b832; border-color: #72b832; color: white; transform: scale(1.15); }
+    .rpe-btn:hover { border-color: #3566AB; color: #3566AB; background: rgba(53,102,171,0.1); }
+    .rpe-btn.selected { background: #3566AB; border-color: #3566AB; color: white; transform: scale(1.15); }
     .rpe-btn.selected.hard { background: #f59e0b; border-color: #f59e0b; }
     .rpe-btn.selected.max  { background: #ef4444; border-color: #ef4444; }
 
     .toast {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-      background: #1e293b; border: 1px solid rgba(114,184,50,0.4);
+      background: #114084; border: 1px solid rgba(53,102,171,0.4);
       border-radius: 14px; padding: 14px 22px; z-index: 99999;
       display: none; align-items: center; gap: 10px; font-size: 0.9rem;
       color: rgba(255,255,255,0.85); box-shadow: 0 8px 30px rgba(0,0,0,0.5);
@@ -310,7 +310,7 @@
     .toast.show { display: flex; }
 
     .loading-overlay {
-      position: fixed; inset: 0; background: linear-gradient(135deg, #0f172a, #1e293b);
+      position: fixed; inset: 0; background: linear-gradient(135deg, #1C1C1C, #114084);
       display: flex; align-items: center; justify-content: center;
       z-index: 9999; font-size: 1.1rem; color: rgba(255,255,255,0.5); gap: 12px;
     }
@@ -371,7 +371,7 @@
     <div id="noStartDateState" class="empty-state" style="display:none;">
       <i class="fa-solid fa-calendar-plus"></i>
       <p>Program not started yet.<br>
-        <a href="schedule.html" style="color:#72b832;font-weight:700;">Go to Schedule</a> to set your start date.</p>
+        <a href="schedule.html" style="color:#3566AB;font-weight:700;">Go to Schedule</a> to set your start date.</p>
     </div>
 
     <div id="programContent" style="display:none;">
@@ -383,7 +383,7 @@
         <div class="program-banner-icon"><i class="fa-solid fa-clipboard-list"></i></div>
         <div style="flex:1;">
           <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.35);margin-bottom:4px;">
-            <i class="fa-solid fa-circle" style="font-size:6px;color:#72b832;margin-right:4px;vertical-align:middle;"></i> Current Program
+            <i class="fa-solid fa-circle" style="font-size:6px;color:#3566AB;margin-right:4px;vertical-align:middle;"></i> Current Program
           </div>
           <div class="program-banner-name" id="programName">—</div>
           <div class="program-banner-meta" id="programMeta"></div>
@@ -406,7 +406,7 @@
       <div class="structure-row" id="programStructureRow"></div>
 
       <div id="weekDayHeader" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-        <div style="font-size:0.95rem;font-weight:800;color:#72b832;" id="weekDayLabel">Week 1 · Day 1</div>
+        <div style="font-size:0.95rem;font-weight:800;color:#3566AB;" id="weekDayLabel">Week 1 · Day 1</div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <div class="day-tabs" id="dayTabs" style="margin-bottom:0;"></div>
           <button onclick="resetWorkout()" style="background:none;border:1px solid rgba(239,68,68,0.3);color:rgba(239,68,68,0.6);font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:5px;" onmouseover="this.style.borderColor='#ef4444';this.style.color='#ef4444'" onmouseout="this.style.borderColor='rgba(239,68,68,0.3)';this.style.color='rgba(239,68,68,0.6)'">
@@ -463,7 +463,7 @@
   <div class="modal-overlay" id="rpeModal">
     <div class="modal-box" style="max-width:420px;text-align:center;">
       <div style="font-size:2rem;margin-bottom:10px;">💪</div>
-      <h2 style="font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,#72b832,#a0d060);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;">How hard was that?</h2>
+      <h2 style="font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,#3566AB,#83B7DE);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;">How hard was that?</h2>
       <p style="color:rgba(255,255,255,0.45);font-size:0.88rem;margin-bottom:24px;">Rate your effort — 1 is easy, 10 is max effort.</p>
       <div id="rpeButtons" style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:28px;"></div>
       <div id="rpeLabel" style="font-size:0.85rem;color:rgba(255,255,255,0.4);min-height:20px;margin-bottom:20px;"></div>
@@ -591,7 +591,7 @@
     if (!activeProg) {
       document.getElementById('noProgramState').style.display = 'block';
       document.querySelector('#noProgramState p').innerHTML =
-        'No programs started yet.<br><a href="schedule.html" style="color:#72b832;font-weight:700;">Go to Schedule</a> to start a program.';
+        'No programs started yet.<br><a href="schedule.html" style="color:#3566AB;font-weight:700;">Go to Schedule</a> to start a program.';
       return;
     }
 
@@ -961,7 +961,7 @@
       : (total ? (done / total * 100) + '%' : '0%');
     document.getElementById('progressBar').style.background = workoutStatus === 'skipped'
       ? 'linear-gradient(90deg,#808080,#a3a3a3)'
-      : 'linear-gradient(90deg,#72b832,#a0d060)';
+      : 'linear-gradient(90deg,#3566AB,#83B7DE)';
     document.getElementById('btnLog').disabled = done === 0 || workoutStatus === 'skipped';
 
     const skipBanner = document.getElementById('skipBanner');
@@ -1312,8 +1312,8 @@
   function showToast(msg, error = false) {
     const t = document.getElementById('toast');
     t.className = 'toast show';
-    t.style.borderColor = error ? 'rgba(239,68,68,0.5)' : 'rgba(114,184,50,0.4)';
-    t.innerHTML = `<i class="fa-solid fa-${error ? 'circle-exclamation' : 'circle-check'}" style="color:${error ? '#ef4444' : '#72b832'};"></i> ${msg}`;
+    t.style.borderColor = error ? 'rgba(239,68,68,0.5)' : 'rgba(53,102,171,0.4)';
+    t.innerHTML = `<i class="fa-solid fa-${error ? 'circle-exclamation' : 'circle-check'}" style="color:${error ? '#ef4444' : '#3566AB'};"></i> ${msg}`;
     setTimeout(() => t.classList.remove('show'), 3500);
   }
 
