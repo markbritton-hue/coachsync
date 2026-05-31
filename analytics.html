@@ -304,6 +304,7 @@
       snap.docs.forEach(d => allLogs.push({ id: d.id, ...d.data() }));
     }
     allLogs = allLogs.filter(l => l.date).sort((a, b) => a.date.localeCompare(b.date));
+    const attendedLogs = allLogs.filter(l => l.status !== 'skipped');
 
     const programSnap = await db.collection('programs').get();
     const programsByName = {};
@@ -312,22 +313,22 @@
       if (data.name) programsByName[data.name] = { id: d.id, ...data };
     });
 
-    if (allLogs.length > 0) {
-      const first = allLogs[0].date;
-      const last  = allLogs[allLogs.length - 1].date;
+    if (attendedLogs.length > 0) {
+      const first = attendedLogs[0].date;
+      const last  = attendedLogs[attendedLogs.length - 1].date;
       document.getElementById('dataRange').textContent =
-        `${allLogs.length} sessions · ${fmt(first)} – ${fmt(last)}`;
+        `${attendedLogs.length} sessions · ${fmt(first)} – ${fmt(last)}`;
     } else {
       document.getElementById('dataRange').textContent = 'No workout data yet';
     }
 
-    renderSummaryStats(athletes, allLogs, programsByName);
-    renderHeatmap(allLogs);
-    renderWeeklyChart(allLogs);
-    renderRpeDist(allLogs);
+    renderSummaryStats(athletes, attendedLogs, programsByName);
+    renderHeatmap(attendedLogs);
+    renderWeeklyChart(attendedLogs);
+    renderRpeDist(attendedLogs);
     renderProgramPopularity(athletes);
-    renderTopExercises(allLogs);
-    renderAthleteTable(athletes, allLogs, programsByName);
+    renderTopExercises(attendedLogs);
+    renderAthleteTable(athletes, attendedLogs, programsByName);
 
     document.getElementById('loadingOverlay').style.display = 'none';
   });

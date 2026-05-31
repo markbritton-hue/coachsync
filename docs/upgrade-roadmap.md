@@ -26,3 +26,7 @@
 - Adherence should distinguish completed, skipped, missed, and future workouts.
 - Program views should expose block, week, and day structure.
 - Performance tracking should support exercise history, rep PRs, estimated 1RM, progress graphs, all-time filters, training-block filters, custom ranges, and week/month/year views.
+
+## Pending Decisions
+
+- Adherence rule for partial workouts: decide later whether a partially logged workout counts as attended/adherent or only fully completed workouts count.

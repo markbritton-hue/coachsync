@@ -114,6 +114,37 @@
       height: 100%; border-radius: 10px; transition: width 0.4s ease;
     }
 
+    /* Timer tools */
+    .timer-tools {
+      background: rgba(30,41,59,0.72); border: 1px solid rgba(80,184,240,0.16);
+      border-radius: 10px; padding: 10px 12px; margin-bottom: 12px;
+      display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+    }
+    .timer-display {
+      font-size: 1.35rem; font-weight: 900; color: #83B7DE; line-height: 1;
+    }
+    .timer-label {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      color: rgba(255,255,255,0.35); letter-spacing: 0.5px; margin-bottom: 3px;
+    }
+    .timer-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    .btn-tool {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.68); font-size: 0.78rem; font-weight: 700;
+      padding: 6px 10px; border-radius: 20px; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .btn-tool:hover { border-color: rgba(131,183,222,0.55); color: #83B7DE; }
+    .btn-tool.active { background: rgba(131,183,222,0.13); border-color: rgba(131,183,222,0.5); color: #83B7DE; }
+    .btn-tool.warn { border-color: rgba(239,68,68,0.28); color: rgba(239,68,68,0.78); }
+    .btn-tool.warn:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.08); }
+    .skip-banner {
+      display: none; background: rgba(128,128,128,0.14); border: 1px solid rgba(128,128,128,0.35);
+      border-radius: 10px; padding: 10px 12px; margin-bottom: 12px;
+      color: rgba(255,255,255,0.7); font-size: 0.84rem;
+    }
+    .skip-banner.visible { display: block; }
+
     /* ── Exercise cards ── */
     .section-label {
       font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
@@ -269,6 +300,8 @@
       .page-header { padding: 6px 0 4px; }
       .page-header h1 { font-size: 1.2rem; }
       .container { padding-left: 10px; padding-right: 10px; }
+      .timer-tools { grid-template-columns: 1fr; }
+      .timer-actions { justify-content: flex-start; }
     }
   </style>
 </head>
@@ -358,6 +391,29 @@
         </div>
       </div>
 
+      <div class="skip-banner" id="skipBanner"></div>
+
+      <div class="timer-tools">
+        <div>
+          <div class="timer-label" id="timerModeLabel">Rest Timer</div>
+          <div class="timer-display" id="timerDisplay">0:00</div>
+        </div>
+        <div class="timer-actions">
+          <button class="btn-tool" id="btnRestTimer" onclick="startProgrammedRest()">
+            <i class="fa-regular fa-clock"></i> Rest
+          </button>
+          <button class="btn-tool" id="btnStopwatch" onclick="toggleStopwatch()">
+            <i class="fa-solid fa-stopwatch"></i> Start
+          </button>
+          <button class="btn-tool" onclick="resetTimerTool()">
+            <i class="fa-solid fa-rotate-left"></i> Reset
+          </button>
+          <button class="btn-tool warn" onclick="skipWorkout()">
+            <i class="fa-solid fa-forward"></i> Skip Workout
+          </button>
+        </div>
+      </div>
+
       <!-- Exercises -->
       <p class="section-label" id="exerciseSectionLabel">Exercises</p>
       <div id="exerciseList"></div>
@@ -421,6 +477,12 @@
   let completed      = new Set();
   let exerciseNotes  = {};
   let todayLogId     = null;
+  let workoutStatus  = 'in_progress';
+  let skipReason     = '';
+  let timerMode      = 'rest';
+  let timerInterval  = null;
+  let timerSeconds   = 0;
+  let timerRunning   = false;
   const todayKey     = new Date().toISOString().split('T')[0];
 
   // Compute week + day from programStartDate and daysPerWeek
@@ -557,12 +619,17 @@
     });
     if (logDoc) {
       todayLogId    = logDoc.id;
-      completed     = normalizeCompletedKeys(logDoc.data().completedExercises || []);
-      exerciseNotes = logDoc.data().exerciseNotes || {};
+      const data    = logDoc.data();
+      completed     = normalizeCompletedKeys(data.completedExercises || []);
+      exerciseNotes = data.exerciseNotes || {};
+      workoutStatus = data.status || 'in_progress';
+      skipReason    = data.skippedReason || '';
     } else {
       todayLogId    = null;
       completed     = new Set();
       exerciseNotes = {};
+      workoutStatus = 'in_progress';
+      skipReason    = '';
     }
   }
 
@@ -603,6 +670,8 @@
 
     renderDayTabs();
     renderExercises();
+    resetTimerTool();
+    renderTimerTools();
   }
 
   function updateWeekDayLabel() {
@@ -631,6 +700,7 @@
     });
     updateWeekDayLabel();
     renderExercises();
+    renderTimerTools();
   }
 
   // ── Get exercises for current day ──
@@ -786,10 +856,15 @@
     });
 
     updateProgress();
+    renderTimerTools();
   }
 
   // ── Toggle exercise complete ──
   function toggleExercise(localIndex) {
+    if (workoutStatus === 'skipped' || workoutStatus === 'completed') {
+      workoutStatus = 'in_progress';
+      skipReason = '';
+    }
     const key = localIndex.toString();
     completed.has(key) ? completed.delete(key) : completed.add(key);
     const card = document.getElementById('ex-' + localIndex);
@@ -805,9 +880,97 @@
     const total = dayExercises.length;
     const done  = Array.from(completed).filter(key => validKeys.has(key)).length;
     document.getElementById('dayProgressLabel').textContent = `Week ${currentWeek} · Day ${currentDay} Progress`;
-    document.getElementById('progressText').textContent = `${done} / ${total} exercises`;
-    document.getElementById('progressBar').style.width = total ? (done / total * 100) + '%' : '0%';
-    document.getElementById('btnLog').disabled = done === 0;
+    document.getElementById('progressText').textContent = workoutStatus === 'skipped'
+      ? 'Skipped'
+      : `${done} / ${total} exercises`;
+    document.getElementById('progressBar').style.width = workoutStatus === 'skipped'
+      ? '100%'
+      : (total ? (done / total * 100) + '%' : '0%');
+    document.getElementById('progressBar').style.background = workoutStatus === 'skipped'
+      ? 'linear-gradient(90deg,#808080,#a3a3a3)'
+      : 'linear-gradient(90deg,#72b832,#a0d060)';
+    document.getElementById('btnLog').disabled = done === 0 || workoutStatus === 'skipped';
+
+    const skipBanner = document.getElementById('skipBanner');
+    if (workoutStatus === 'skipped') {
+      skipBanner.classList.add('visible');
+      skipBanner.innerHTML = `<i class="fa-solid fa-forward me-1"></i> Workout skipped${skipReason ? ': ' + esc(skipReason) : '.'}`;
+    } else {
+      skipBanner.classList.remove('visible');
+      skipBanner.innerHTML = '';
+    }
+  }
+
+  function getDefaultRestSeconds() {
+    const rests = getDayExercises()
+      .map(ex => parseInt(ex.rest, 10))
+      .filter(v => Number.isFinite(v) && v > 0);
+    return rests.length ? rests[0] : 60;
+  }
+
+  function formatTimer(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${String(s).padStart(2, '0')}`;
+  }
+
+  function renderTimerTools() {
+    const restSeconds = getDefaultRestSeconds();
+    const restBtn = document.getElementById('btnRestTimer');
+    if (!restBtn) return;
+    restBtn.innerHTML = `<i class="fa-regular fa-clock"></i> Rest ${formatTimer(restSeconds)}`;
+    document.getElementById('timerDisplay').textContent = formatTimer(timerSeconds);
+    document.getElementById('timerModeLabel').textContent = timerMode === 'stopwatch' ? 'Stopwatch' : 'Rest Timer';
+    document.getElementById('btnStopwatch').innerHTML = timerRunning && timerMode === 'stopwatch'
+      ? '<i class="fa-solid fa-pause"></i> Pause'
+      : '<i class="fa-solid fa-stopwatch"></i> Start';
+    document.getElementById('btnStopwatch').classList.toggle('active', timerMode === 'stopwatch' && timerRunning);
+    restBtn.classList.toggle('active', timerMode === 'rest' && timerRunning);
+  }
+
+  function stopTimerInterval() {
+    clearInterval(timerInterval);
+    timerInterval = null;
+    timerRunning = false;
+  }
+
+  function startProgrammedRest() {
+    stopTimerInterval();
+    timerMode = 'rest';
+    timerSeconds = getDefaultRestSeconds();
+    timerRunning = true;
+    renderTimerTools();
+    timerInterval = setInterval(() => {
+      timerSeconds = Math.max(0, timerSeconds - 1);
+      renderTimerTools();
+      if (timerSeconds <= 0) {
+        stopTimerInterval();
+        renderTimerTools();
+        showToast('Rest complete.');
+      }
+    }, 1000);
+  }
+
+  function toggleStopwatch() {
+    if (timerMode === 'stopwatch' && timerRunning) {
+      stopTimerInterval();
+      renderTimerTools();
+      return;
+    }
+    stopTimerInterval();
+    timerMode = 'stopwatch';
+    timerRunning = true;
+    renderTimerTools();
+    timerInterval = setInterval(() => {
+      timerSeconds++;
+      renderTimerTools();
+    }, 1000);
+  }
+
+  function resetTimerTool() {
+    stopTimerInterval();
+    timerSeconds = 0;
+    renderTimerTools();
   }
 
   // ── Toggle note editor ──
@@ -858,6 +1021,7 @@
         exerciseIndexes:    dayExercises.map(ex => ex.globalIndex),
         exerciseNotes:      exerciseNotes,
         totalExercises:     dayExercises.length,
+        status:             workoutStatus,
         updatedAt:          firebase.firestore.FieldValue.serverTimestamp()
       };
       if (rpe !== null) data.rpe = rpe;
@@ -932,6 +1096,7 @@
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
 
     try {
+      workoutStatus = 'completed';
       await saveProgress(selectedRpe);
       await db.collection('users').doc(currentUser.uid).update({
         sessionsCompleted: firebase.firestore.FieldValue.increment(1),
@@ -946,11 +1111,57 @@
     }
   }
 
+  // ── Skip workout ──
+  async function skipWorkout() {
+    const reason = prompt('Reason for skipping this workout? Optional, but helpful for your coach.', skipReason || '');
+    if (reason === null) return;
+
+    workoutStatus = 'skipped';
+    skipReason = reason.trim();
+    completed = new Set();
+    const dayExercises = getDayExercises();
+
+    const data = {
+      athleteId:          currentUser.uid,
+      programName:        programData.name,
+      week:               currentWeek,
+      day:                currentDay,
+      date:               todayKey,
+      status:             'skipped',
+      skippedReason:      skipReason,
+      skippedAt:          firebase.firestore.FieldValue.serverTimestamp(),
+      completedExercises: [],
+      exerciseNames:      dayExercises.map(ex => ex.name),
+      exerciseIndexes:    dayExercises.map(ex => ex.globalIndex),
+      exerciseNotes:      exerciseNotes,
+      totalExercises:     dayExercises.length,
+      updatedAt:          firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    try {
+      if (todayLogId) {
+        await db.collection('workoutLogs').doc(todayLogId).update(data);
+      } else {
+        data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        const ref = await db.collection('workoutLogs').add(data);
+        todayLogId = ref.id;
+      }
+      resetTimerTool();
+      renderExercises();
+      showToast('Workout marked as skipped.');
+    } catch(e) {
+      console.error('Error skipping workout:', e);
+      showToast('Error skipping workout.', true);
+    }
+  }
+
   // ── Reset workout ──
   async function resetWorkout() {
     if (!confirm('Reset this workout? All completed exercises will be cleared.')) return;
     completed     = new Set();
     exerciseNotes = {};
+    workoutStatus = 'in_progress';
+    skipReason    = '';
     if (todayLogId) {
       try {
         await db.collection('workoutLogs').doc(todayLogId).delete();
@@ -961,6 +1172,7 @@
     btn.disabled  = false;
     btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Log Workout';
     renderExercises();
+    resetTimerTool();
     showToast('Workout reset — starting fresh!');
   }
 
@@ -994,6 +1206,7 @@
         const total   = log.totalExercises || (log.exerciseNames || []).length || '?';
         const names   = log.exerciseNames || [];
         const completedNames = names.filter((_, i) => (log.completedExercises || []).includes(i.toString()));
+        const skipped = log.status === 'skipped';
 
         list.insertAdjacentHTML('beforeend', `
           <div class="history-card">
@@ -1002,8 +1215,11 @@
                 <div class="history-date">${dateStr}${log.week ? ` — Week ${log.week} · Day ${log.day}` : (log.day ? ` — Day ${log.day}` : '')}</div>
                 <div class="history-program">${esc(log.programName || '')}</div>
               </div>
-              <span class="history-badge">${done} / ${total} completed</span>
+              <span class="history-badge" style="${skipped ? 'border-color:rgba(128,128,128,0.45);color:#d1d5db;background:rgba(128,128,128,0.12);' : ''}">
+                ${skipped ? 'Skipped' : `${done} / ${total} completed`}
+              </span>
             </div>
+            ${skipped && log.skippedReason ? `<div class="history-program" style="margin-bottom:6px;"><i class="fa-solid fa-note-sticky me-1"></i>${esc(log.skippedReason)}</div>` : ''}
             ${completedNames.length ? `
             <div class="history-exercises">
               ${completedNames.map(n => `<span class="history-ex-pill">${esc(n)}</span>`).join('')}
