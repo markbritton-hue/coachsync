@@ -72,15 +72,13 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script>
-  firebase.initializeApp({
-    apiKey: "AIzaSyDnaS5J_-KkmFZcE3FtjjxV54cZkbWcop8",
-    authDomain: "coachsync-7e07e.firebaseapp.com",
-    projectId: "coachsync-7e07e",
-    storageBucket: "coachsync-7e07e.firebasestorage.app",
-    messagingSenderId: "774513797996",
-    appId: "1:774513797996:web:e38f47773c5b487982e149"
-  });
+  const firebaseConfig = window.CoachSyncFirebaseConfig;
+  if (!firebaseConfig) {
+    throw new Error('Missing Firebase config. Create firebase-config.js from firebase-config.example.js.');
+  }
+  firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db   = firebase.firestore();
 

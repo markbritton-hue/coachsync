@@ -189,7 +189,7 @@
     </div>
     <div class="stat-card">
       <div class="stat-val" id="statAvgCompletion">—</div>
-      <div class="stat-label">Avg Completion</div>
+      <div class="stat-label">Avg Adherence</div>
     </div>
   </div>
 
@@ -276,15 +276,13 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script>
-  firebase.initializeApp({
-    apiKey: "AIzaSyDnaS5J_-KkmFZcE3FtjjxV54cZkbWcop8",
-    authDomain: "coachsync-7e07e.firebaseapp.com",
-    projectId: "coachsync-7e07e",
-    storageBucket: "coachsync-7e07e.firebasestorage.app",
-    messagingSenderId: "774513797996",
-    appId: "1:774513797996:web:e38f47773c5b487982e149"
-  });
+  const firebaseConfig = window.CoachSyncFirebaseConfig;
+  if (!firebaseConfig) {
+    throw new Error('Missing Firebase config. Create firebase-config.js from firebase-config.example.js.');
+  }
+  firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db   = firebase.firestore();
 
@@ -307,6 +305,13 @@
     }
     allLogs = allLogs.filter(l => l.date).sort((a, b) => a.date.localeCompare(b.date));
 
+    const programSnap = await db.collection('programs').get();
+    const programsByName = {};
+    programSnap.docs.forEach(d => {
+      const data = d.data();
+      if (data.name) programsByName[data.name] = { id: d.id, ...data };
+    });
+
     if (allLogs.length > 0) {
       const first = allLogs[0].date;
       const last  = allLogs[allLogs.length - 1].date;
@@ -316,19 +321,88 @@
       document.getElementById('dataRange').textContent = 'No workout data yet';
     }
 
-    renderSummaryStats(athletes, allLogs);
+    renderSummaryStats(athletes, allLogs, programsByName);
     renderHeatmap(allLogs);
     renderWeeklyChart(allLogs);
     renderRpeDist(allLogs);
     renderProgramPopularity(athletes);
     renderTopExercises(allLogs);
-    renderAthleteTable(athletes, allLogs);
+    renderAthleteTable(athletes, allLogs, programsByName);
 
     document.getElementById('loadingOverlay').style.display = 'none';
   });
 
+  function getAssignedPrograms(athlete) {
+    return athlete.assignedPrograms || (athlete.assignedProgram ? [athlete.assignedProgram] : []);
+  }
+
+  function getProgramStartDate(athlete, programName) {
+    const programs = getAssignedPrograms(athlete);
+    return (athlete.programStartDates && athlete.programStartDates[programName])
+      || (programs.length === 1 ? athlete.programStartDate : null)
+      || null;
+  }
+
+  function dayNumber(dateMs) {
+    return Math.floor(dateMs / 86400000);
+  }
+
+  function normalizeStartMs(startDate) {
+    if (!startDate) return null;
+    if (typeof startDate === 'number') return startDate;
+    if (startDate.seconds) return startDate.seconds * 1000;
+    const parsed = new Date(startDate).getTime();
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+
+  function getExpectedWorkoutCount(athlete, programsByName) {
+    const todayDay = dayNumber(Date.now());
+    return getAssignedPrograms(athlete).reduce((total, programName) => {
+      const program = programsByName[programName];
+      const startMs = normalizeStartMs(getProgramStartDate(athlete, programName));
+      if (!program || !startMs) return total;
+
+      const startDay = dayNumber(startMs);
+      if (startDay > todayDay) return total;
+
+      const daysPerWeek = parseInt(program.daysPerWeek, 10) || 1;
+      const durationWeeks = parseInt(program.duration, 10) || 0;
+      const elapsedTrainingDays = todayDay - startDay + 1;
+      const programTrainingDays = durationWeeks ? durationWeeks * daysPerWeek : elapsedTrainingDays;
+      return total + Math.max(0, Math.min(elapsedTrainingDays, programTrainingDays));
+    }, 0);
+  }
+
+  function computeAthleteAdherence(athlete, logs, programsByName) {
+    const expected = getExpectedWorkoutCount(athlete, programsByName);
+    if (!expected) return { completed: 0, expected: 0, percent: null };
+
+    const completedKeys = new Set();
+    logs.forEach(log => {
+      if (log.status === 'skipped') return;
+      const programName = log.programName || '';
+      if (!getAssignedPrograms(athlete).includes(programName)) return;
+
+      const total = parseInt(log.totalExercises, 10) || (log.exerciseNames || []).length || 0;
+      const done = (log.completedExercises || []).length;
+      if (total && done === 0) return;
+
+      const week = parseInt(log.week, 10);
+      const day = parseInt(log.day, 10);
+      const key = week && day ? `${programName}|${week}|${day}` : `${programName}|${log.date}`;
+      completedKeys.add(key);
+    });
+
+    const completed = Math.min(completedKeys.size, expected);
+    return {
+      completed,
+      expected,
+      percent: Math.round((completed / expected) * 100)
+    };
+  }
+
   // ── Summary stats ──
-  function renderSummaryStats(athletes, logs) {
+  function renderSummaryStats(athletes, logs, programsByName) {
     // Active = athletes with at least one log
     const activeIds = new Set(logs.map(l => l.athleteId));
     document.getElementById('statAthletes').textContent = activeIds.size;
@@ -339,9 +413,11 @@
       ? (rpeLogs.reduce((s, l) => s + l.rpe, 0) / rpeLogs.length).toFixed(1) : '—';
     document.getElementById('statAvgRpe').textContent = avgRpe;
 
-    const withTotal = logs.filter(l => l.totalExercises);
-    const avgComp = withTotal.length
-      ? Math.round(withTotal.reduce((s, l) => s + ((l.completedExercises || []).length / l.totalExercises) * 100, 0) / withTotal.length) + '%'
+    const adherenceRows = athletes
+      .map(a => computeAthleteAdherence(a, logs.filter(l => l.athleteId === a.id), programsByName))
+      .filter(row => row.percent != null);
+    const avgComp = adherenceRows.length
+      ? Math.round(adherenceRows.reduce((sum, row) => sum + row.percent, 0) / adherenceRows.length) + '%'
       : '—';
     document.getElementById('statAvgCompletion').textContent = avgComp;
   }
@@ -466,7 +542,7 @@
   }
 
   // ── Per-athlete table ──
-  function renderAthleteTable(athletes, logs) {
+  function renderAthleteTable(athletes, logs, programsByName) {
     const table = document.getElementById('athleteTable');
     const byAthlete = {};
     logs.forEach(l => {
@@ -480,20 +556,12 @@
         const sessions = aLogs.length;
         const rpeLogs  = aLogs.filter(l => l.rpe != null);
         const avgRpe   = rpeLogs.length ? (rpeLogs.reduce((s, l) => s + l.rpe, 0) / rpeLogs.length).toFixed(1) : '—';
-        const exerciseTotals = aLogs.reduce((totals, log) => {
-          const total = parseInt(log.totalExercises, 10) || (log.exerciseNames || []).length || 0;
-          if (!total) return totals;
-          totals.completed += (log.completedExercises || []).length;
-          totals.total += total;
-          return totals;
-        }, { completed: 0, total: 0 });
-        const adherence = exerciseTotals.total
-          ? Math.round((exerciseTotals.completed / exerciseTotals.total) * 100)
-          : null;
+        const adherenceStats = computeAthleteAdherence(a, aLogs, programsByName);
+        const adherence = adherenceStats.percent;
         const lastDate = aLogs.length ? aLogs[aLogs.length - 1].date : null;
-        return { a, sessions, avgRpe, adherence, exerciseTotals, lastDate };
+        return { a, sessions, avgRpe, adherence, adherenceStats, lastDate };
       })
-      .filter(r => r.sessions > 0)
+      .filter(r => r.sessions > 0 || r.adherenceStats.expected > 0)
       .sort((a, b) => b.sessions - a.sessions);
 
     if (rows.length === 0) {
@@ -501,12 +569,12 @@
       return;
     }
 
-    rows.forEach(({ a, sessions, avgRpe, adherence, exerciseTotals, lastDate }) => {
+    rows.forEach(({ a, sessions, avgRpe, adherence, adherenceStats, lastDate }) => {
       const initials = getInitials(a.displayName || a.email || '?');
       const progs    = (a.assignedPrograms || (a.assignedProgram ? [a.assignedProgram] : [])).join(', ');
       const lastStr  = lastDate ? daysAgo(lastDate) : '—';
       const adherenceClass = adherence == null ? '' : adherence >= 85 ? ' adherence-high' : adherence >= 65 ? ' adherence-mid' : ' adherence-low';
-      const adherenceText = adherence == null ? '—' : `${exerciseTotals.completed}/${exerciseTotals.total} (${adherence}%)`;
+      const adherenceText = adherence == null ? '—' : `${adherenceStats.completed}/${adherenceStats.expected} (${adherence}%)`;
       table.insertAdjacentHTML('beforeend', `
         <div class="athlete-row">
           <div class="athlete-avatar">${esc(initials)}</div>

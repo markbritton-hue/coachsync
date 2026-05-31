@@ -1,6 +1,7 @@
 .env.local
 .env
 .env.*.local
+firebase-config.js
 node_modules/
 .claude/
 Fitness Gym.gif
