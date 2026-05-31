@@ -656,6 +656,33 @@
         summary.style.cssText = 'color:rgba(255,255,255,0.5);font-size:0.85rem;margin:0;';
         summary.innerHTML = `<i class="fa-solid fa-dumbbell me-1" style="color:#50b8f0;"></i>${allEx} exercise${allEx !== 1 ? 's' : ''}`;
         exSection.appendChild(summary);
+        const weeks = parseInt(p.duration, 10) || 0;
+        const days = parseInt(p.daysPerWeek, 10) || ((p.days || []).length || 1);
+        const daySummary = (p.days && p.days.length)
+          ? p.days.map((day, i) => `D${i + 1}: ${(day.exercises || []).length}`).join(' · ')
+          : `D1: ${(p.exercises || []).length}`;
+        const structure = document.createElement('div');
+        structure.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;';
+        structure.innerHTML = [
+          `<span class="badge-pill"><i class="fa-solid fa-layer-group me-1"></i>Block 1</span>`,
+          `<span class="badge-pill"><i class="fa-solid fa-calendar-week me-1"></i>${weeks || '—'} weeks</span>`,
+          `<span class="badge-pill"><i class="fa-solid fa-calendar-days me-1"></i>${days} days/week</span>`,
+          `<span class="badge-pill blue"><i class="fa-solid fa-list-check me-1"></i>${esc(daySummary)}</span>`
+        ].join('');
+        exSection.appendChild(structure);
+        card.appendChild(exSection);
+      } else {
+        const weeks = parseInt(p.duration, 10) || 0;
+        const days = parseInt(p.daysPerWeek, 10) || ((p.days || []).length || 1);
+        const exSection = document.createElement('div');
+        exSection.className = 'program-card-exercises';
+        exSection.innerHTML = `
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <span class="badge-pill"><i class="fa-solid fa-layer-group me-1"></i>Block 1</span>
+            <span class="badge-pill"><i class="fa-solid fa-calendar-week me-1"></i>${weeks || '—'} weeks</span>
+            <span class="badge-pill"><i class="fa-solid fa-calendar-days me-1"></i>${days} days/week</span>
+            <span class="badge-pill blue"><i class="fa-solid fa-list-check me-1"></i>No exercises yet</span>
+          </div>`;
         card.appendChild(exSection);
       }
 

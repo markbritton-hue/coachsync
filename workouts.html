@@ -144,6 +144,27 @@
       color: rgba(255,255,255,0.7); font-size: 0.84rem;
     }
     .skip-banner.visible { display: block; }
+    .week-nav {
+      background: rgba(30,41,59,0.68); border: 1px solid rgba(114,184,50,0.14);
+      border-radius: 10px; padding: 9px 12px; margin-bottom: 10px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .week-nav-title { font-size: 0.84rem; font-weight: 800; color: rgba(255,255,255,0.8); }
+    .week-nav-sub { font-size: 0.72rem; color: rgba(255,255,255,0.35); margin-top: 2px; }
+    .week-arrow {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.7); display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+    }
+    .week-arrow:hover:not(:disabled) { border-color: rgba(114,184,50,0.45); color: #72b832; }
+    .week-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+    .structure-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .structure-pill {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
+      color: rgba(255,255,255,0.55); border-radius: 20px; padding: 3px 9px;
+      font-size: 0.72rem; display: inline-flex; align-items: center; gap: 5px;
+    }
 
     /* ── Exercise cards ── */
     .section-label {
@@ -370,6 +391,20 @@
       </div>
 
       <!-- Week / Day header -->
+      <div class="week-nav">
+        <button class="week-arrow" id="btnPrevWeek" onclick="changeWeek(-1)" title="Previous week">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <div style="flex:1;text-align:center;">
+          <div class="week-nav-title" id="weekNavTitle">Block 1 Â· Week 1</div>
+          <div class="week-nav-sub" id="weekNavSub">Program structure</div>
+        </div>
+        <button class="week-arrow" id="btnNextWeek" onclick="changeWeek(1)" title="Next week">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+      <div class="structure-row" id="programStructureRow"></div>
+
       <div id="weekDayHeader" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
         <div style="font-size:0.95rem;font-weight:800;color:#72b832;" id="weekDayLabel">Week 1 · Day 1</div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -474,6 +509,8 @@
   let allAssigned    = []; // all program names assigned to athlete
   let currentWeek    = 1;
   let currentDay     = 1;
+  let todayWeek      = 1;
+  let todayDay       = 1;
   let completed      = new Set();
   let exerciseNotes  = {};
   let todayLogId     = null;
@@ -594,6 +631,8 @@
 
     const numDays = parseInt(programData.daysPerWeek) || 1;
     const pos     = computeWeekDay(startDate, numDays);
+    todayWeek     = pos.week;
+    todayDay      = pos.day;
     currentWeek   = _restoreWeek || pos.week;
     currentDay    = _restoreDay  || pos.day;
     completed     = new Set();
@@ -677,6 +716,31 @@
   function updateWeekDayLabel() {
     document.getElementById('weekDayLabel').textContent = `Week ${currentWeek} · Day ${currentDay}`;
     document.getElementById('exerciseSectionLabel').textContent = `Week ${currentWeek} · Day ${currentDay} Exercises`;
+    renderProgramStructure();
+  }
+
+  function getTotalWeeks() {
+    return parseInt(programData?.duration, 10) || Math.max(currentWeek, todayWeek, 1);
+  }
+
+  function renderProgramStructure() {
+    if (!programData) return;
+    const totalWeeks = getTotalWeeks();
+    const days = parseInt(programData.daysPerWeek, 10) || 1;
+    document.getElementById('weekNavTitle').textContent = `Block 1 · Week ${currentWeek}`;
+    document.getElementById('weekNavSub').textContent = `Week ${currentWeek} of ${totalWeeks} · ${days} day${days !== 1 ? 's' : ''}/week`;
+    document.getElementById('btnPrevWeek').disabled = currentWeek <= 1;
+    document.getElementById('btnNextWeek').disabled = currentWeek >= totalWeeks;
+
+    const dayCounts = Array.isArray(programData.days) && programData.days.length
+      ? programData.days.map((day, i) => `Day ${i + 1}: ${(day.exercises || []).length}`)
+      : [`Day 1: ${(programData.exercises || []).length}`];
+    document.getElementById('programStructureRow').innerHTML = [
+      `<span class="structure-pill"><i class="fa-solid fa-layer-group"></i> Block 1</span>`,
+      `<span class="structure-pill"><i class="fa-solid fa-calendar-week"></i> ${totalWeeks} weeks</span>`,
+      `<span class="structure-pill"><i class="fa-solid fa-calendar-days"></i> ${days} days/week</span>`,
+      ...dayCounts.map(label => `<span class="structure-pill"><i class="fa-solid fa-dumbbell"></i> ${esc(label)}</span>`)
+    ].join('');
   }
 
   // ── Day tabs ──
@@ -704,6 +768,15 @@
   }
 
   // ── Get exercises for current day ──
+  async function changeWeek(delta) {
+    const totalWeeks = getTotalWeeks();
+    currentWeek = Math.max(1, Math.min(totalWeeks, currentWeek + delta));
+    await loadDayLog();
+    renderDayTabs();
+    renderExercises();
+    resetTimerTool();
+  }
+
   function getDayExercises() {
     const days = Array.isArray(programData.days) ? programData.days : [];
     const dayIdx = currentDay - 1;
