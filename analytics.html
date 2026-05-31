@@ -116,6 +116,7 @@
     .athlete-sessions { text-align: center; min-width: 40px; font-size: 0.88rem; font-weight: 700; color: #3566AB; }
     .athlete-rpe     { text-align: center; min-width: 36px; font-size: 0.82rem; font-weight: 600; color: rgba(255,255,255,0.5); }
     .athlete-adherence { text-align: center; min-width: 96px; font-size: 0.82rem; font-weight: 700; }
+    .athlete-compliance { text-align: center; min-width: 90px; font-size: 0.82rem; font-weight: 700; }
     .athlete-last    { font-size: 0.72rem; color: rgba(255,255,255,0.3); text-align: right; min-width: 70px; }
     .adherence-pill {
       display: inline-flex; align-items: center; justify-content: center;
@@ -262,6 +263,7 @@
             <div style="min-width:40px;text-align:center;" class="col-header">Sessions</div>
             <div style="min-width:36px;text-align:center;" class="col-header">Avg RPE</div>
             <div style="min-width:96px;text-align:center;" class="col-header">Adherence</div>
+            <div style="min-width:90px;text-align:center;" class="col-header">Compliance</div>
             <div style="min-width:70px;text-align:right;" class="col-header">Last Workout</div>
           </div>
           <div id="athleteTable"></div>
@@ -374,11 +376,43 @@
     }, 0);
   }
 
+  function getExpectedExerciseCount(athlete, programsByName) {
+    const todayDay = dayNumber(Date.now());
+    return getAssignedPrograms(athlete).reduce((total, programName) => {
+      const program = programsByName[programName];
+      const startMs = normalizeStartMs(getProgramStartDate(athlete, programName));
+      if (!program || !startMs) return total;
+
+      const startDay = dayNumber(startMs);
+      if (startDay > todayDay) return total;
+
+      const daysPerWeek = parseInt(program.daysPerWeek, 10) || 1;
+      const durationWeeks = parseInt(program.duration, 10) || 0;
+      const elapsedTrainingDays = todayDay - startDay + 1;
+      const programTrainingDays = durationWeeks ? durationWeeks * daysPerWeek : elapsedTrainingDays;
+      const scheduledSessions = Math.max(0, Math.min(elapsedTrainingDays, programTrainingDays));
+
+      for (let i = 0; i < scheduledSessions; i++) {
+        const dayNumber = (i % daysPerWeek) + 1;
+        total += getProgramDayExerciseCount(program, dayNumber);
+      }
+      return total;
+    }, 0);
+  }
+
+  function getProgramDayExerciseCount(program, dayNumber) {
+    const days = Array.isArray(program.days) ? program.days : [];
+    if (days.length) return (days[dayNumber - 1]?.exercises || []).length;
+    return dayNumber === 1 ? (program.exercises || []).length : 0;
+  }
+
   function computeAthleteAdherence(athlete, logs, programsByName) {
     const expected = getExpectedWorkoutCount(athlete, programsByName);
-    if (!expected) return { completed: 0, expected: 0, percent: null };
+    const expectedExercises = getExpectedExerciseCount(athlete, programsByName);
+    if (!expected) return { completed: 0, expected: 0, percent: null, exerciseDone: 0, exerciseExpected: expectedExercises, compliancePercent: null };
 
     const completedKeys = new Set();
+    const exerciseKeys = new Set();
     logs.forEach(log => {
       if (log.status === 'skipped') return;
       const programName = log.programName || '';
@@ -386,7 +420,7 @@
 
       const total = parseInt(log.totalExercises, 10) || (log.exerciseNames || []).length || 0;
       const done = (log.completedExercises || []).length;
-      if (total && done === 0) return;
+      if (!total || done < total) return;
 
       const week = parseInt(log.week, 10);
       const day = parseInt(log.day, 10);
@@ -394,11 +428,27 @@
       completedKeys.add(key);
     });
 
+    logs.forEach(log => {
+      if (log.status === 'skipped') return;
+      const programName = log.programName || '';
+      if (!getAssignedPrograms(athlete).includes(programName)) return;
+      const week = parseInt(log.week, 10);
+      const day = parseInt(log.day, 10);
+      const sessionKey = week && day ? `${programName}|${week}|${day}` : `${programName}|${log.date}`;
+      (log.completedExercises || []).forEach(exKey => {
+        exerciseKeys.add(`${sessionKey}|${exKey}`);
+      });
+    });
+
     const completed = Math.min(completedKeys.size, expected);
+    const exerciseDone = Math.min(exerciseKeys.size, expectedExercises);
     return {
       completed,
       expected,
-      percent: Math.round((completed / expected) * 100)
+      percent: Math.round((completed / expected) * 100),
+      exerciseDone,
+      exerciseExpected: expectedExercises,
+      compliancePercent: expectedExercises ? Math.round((exerciseDone / expectedExercises) * 100) : null
     };
   }
 
@@ -576,6 +626,9 @@
       const lastStr  = lastDate ? daysAgo(lastDate) : '—';
       const adherenceClass = adherence == null ? '' : adherence >= 85 ? ' adherence-high' : adherence >= 65 ? ' adherence-mid' : ' adherence-low';
       const adherenceText = adherence == null ? '—' : `${adherenceStats.completed}/${adherenceStats.expected} (${adherence}%)`;
+      const compliance = adherenceStats.compliancePercent;
+      const complianceClass = compliance == null ? '' : compliance >= 90 ? ' adherence-high' : compliance >= 75 ? ' adherence-mid' : ' adherence-low';
+      const complianceText = compliance == null ? '—' : `${compliance}%`;
       table.insertAdjacentHTML('beforeend', `
         <div class="athlete-row">
           <div class="athlete-avatar">${esc(initials)}</div>
@@ -586,6 +639,7 @@
           <div class="athlete-sessions">${sessions}</div>
           <div class="athlete-rpe">${avgRpe}</div>
           <div class="athlete-adherence"><span class="adherence-pill${adherenceClass}">${adherenceText}</span></div>
+          <div class="athlete-compliance"><span class="adherence-pill${complianceClass}" title="${adherenceStats.exerciseDone}/${adherenceStats.exerciseExpected} programmed exercises completed">${complianceText}</span></div>
           <div class="athlete-last">${lastStr}</div>
         </div>`);
     });

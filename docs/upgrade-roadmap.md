@@ -24,9 +24,11 @@
 - Stopwatch should be available when athletes need open-ended timing.
 - Skipped workouts should be logged explicitly instead of remaining incomplete.
 - Adherence should distinguish completed, skipped, missed, and future workouts.
+- Adherence counts only workouts where every programmed exercise was completed.
+- Compliance tracks completed programmed exercises against expected programmed exercises to show whether the athlete followed the full prescription.
 - Program views should expose block, week, and day structure.
 - Performance tracking should support exercise history, rep PRs, estimated 1RM, progress graphs, all-time filters, training-block filters, custom ranges, and week/month/year views.
 
 ## Pending Decisions
 
-- Adherence rule for partial workouts: decide later whether a partially logged workout counts as attended/adherent or only fully completed workouts count.
+- Estimated max formula still needs to be provided before that phase.
