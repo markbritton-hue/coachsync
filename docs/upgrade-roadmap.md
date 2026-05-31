@@ -14,9 +14,9 @@
 1. Fix adherence calculation.
 2. Add workout skip logging, rest timer sync, and athlete stopwatch.
 3. Improve program navigation for blocks, weeks, and days on athlete and trainer views.
-4. Convert the goals section into structured 90-day, 180-day, and 1-year submissions.
+4. Convert the goals section into structured 90-day, 180-day, and 1-year submissions. Done.
 5. Add estimated max calculations after the preferred formula is provided.
-6. Build performance tracking and PR history for athletes and trainers.
+6. Build performance tracking and PR history for athletes and trainers. Started with exercise history, rep PR, weight history, graph filters, and trainer/athlete views.
 
 ## Feature Notes
 

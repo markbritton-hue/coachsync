@@ -148,6 +148,20 @@
     }
     .ex-pill.done { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.3); color: #10b981; }
 
+    /* Goals */
+    .goals-grid { display: grid; gap: 12px; }
+    .goal-card {
+      background: rgba(17,64,132,0.8); border: 1px solid rgba(53,102,171,0.18);
+      border-radius: 12px; padding: 18px 20px;
+    }
+    .goal-card-title {
+      font-size: 0.78rem; font-weight: 800; color: #83B7DE;
+      text-transform: uppercase; letter-spacing: 0.45px; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .goal-card-text { color: rgba(255,255,255,0.72); font-size: 0.9rem; line-height: 1.55; white-space: pre-wrap; }
+    .goal-updated { color: rgba(255,255,255,0.35); font-size: 0.8rem; margin-bottom: 14px; }
+
     /* ── Current workout ── */
     .current-exercise-card {
       background: rgba(17,64,132,0.8); border: 1px solid rgba(53,102,171,0.18);
@@ -257,6 +271,9 @@
     <button class="tab" id="tabHistory" onclick="setTab('history')">
       <i class="fa-solid fa-clock-rotate-left me-1"></i> History
     </button>
+    <button class="tab" id="tabGoals" onclick="setTab('goals')">
+      <i class="fa-solid fa-bullseye me-1"></i> Goals
+    </button>
   </div>
 
   <!-- Day tabs (shown inside Workout tab) -->
@@ -280,6 +297,7 @@
 
   <div id="todayView"></div>
   <div id="historyView" style="display:none;"></div>
+  <div id="goalsView" style="display:none;"></div>
 
 </div>
 
@@ -347,6 +365,7 @@
     renderDayTabs();
     renderToday();
     await renderHistory();
+    await renderGoals();
 
     if (focusProgram) {
       document.title = focusProgram + ' — CoachSync';
@@ -711,11 +730,60 @@
     }
   }
 
+  async function renderGoals() {
+    const view = document.getElementById('goalsView');
+    view.innerHTML = '<p style="color:rgba(255,255,255,0.3);font-size:0.9rem;">Loading goals...</p>';
+
+    try {
+      const snap = await db.collection('goals').doc(athleteId).get();
+      if (!snap.exists) {
+        view.innerHTML = `<div class="empty-state">
+          <i class="fa-solid fa-bullseye"></i>
+          <p>No structured goals submitted yet.</p>
+        </div>`;
+        return;
+      }
+
+      const data = snap.data();
+      const updated = data.updatedAt
+        ? new Date(data.updatedAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : '';
+      const goals = [
+        { label: '90-day goal', icon: 'fa-calendar-day', value: data.goal90 },
+        { label: '180-day goal', icon: 'fa-calendar-week', value: data.goal180 },
+        { label: '1-year goal', icon: 'fa-calendar-days', value: data.goal365 }
+      ];
+      const hasGoalText = goals.some(g => String(g.value || '').trim());
+      if (!hasGoalText) {
+        view.innerHTML = `<div class="empty-state">
+          <i class="fa-solid fa-bullseye"></i>
+          <p>No structured goals submitted yet.</p>
+        </div>`;
+        return;
+      }
+
+      view.innerHTML = `
+        ${updated ? `<div class="goal-updated"><i class="fa-regular fa-clock me-1"></i>Updated ${updated}</div>` : ''}
+        <div class="goals-grid">
+          ${goals.map(g => `
+            <div class="goal-card">
+              <div class="goal-card-title"><i class="fa-solid ${g.icon}"></i>${esc(g.label)}</div>
+              <div class="goal-card-text">${esc(g.value || 'Not provided yet.')}</div>
+            </div>
+          `).join('')}
+        </div>`;
+    } catch (e) {
+      view.innerHTML = `<p style="color:#ef4444;font-size:0.9rem;">Error loading goals: ${e.message}</p>`;
+    }
+  }
+
   function setTab(tab) {
     document.getElementById('tabToday').classList.toggle('active',   tab === 'today');
     document.getElementById('tabHistory').classList.toggle('active', tab === 'history');
+    document.getElementById('tabGoals').classList.toggle('active', tab === 'goals');
     document.getElementById('todayView').style.display   = tab === 'today'   ? 'block' : 'none';
     document.getElementById('historyView').style.display = tab === 'history' ? 'block' : 'none';
+    document.getElementById('goalsView').style.display = tab === 'goals' ? 'block' : 'none';
   }
 
   function esc(str) {

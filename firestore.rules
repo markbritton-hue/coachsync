@@ -34,6 +34,28 @@ service cloud.firestore {
         (request.auth.uid == resource.data.athleteId || isTrainer());
     }
 
+    match /exerciseLogs/{logId} {
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.athleteId ||
+        get(/databases/$(database)/documents/users/$(resource.data.athleteId)).data.trainerId == request.auth.uid ||
+        isTrainer()
+      );
+      allow create: if request.auth != null && request.resource.data.athleteId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /goals/{athleteId} {
+      allow read: if request.auth != null && (
+        request.auth.uid == athleteId ||
+        get(/databases/$(database)/documents/users/$(athleteId)).data.trainerId == request.auth.uid ||
+        isTrainer()
+      );
+      allow create, update: if request.auth != null &&
+        request.auth.uid == athleteId &&
+        request.resource.data.athleteId == request.auth.uid;
+      allow delete: if false;
+    }
+
     match /messages/{msgId} {
       // Only the sender or receiver can read/write
       allow read: if request.auth != null &&

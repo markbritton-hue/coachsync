@@ -373,3 +373,48 @@ body.light-mode .history-ex-pill {
   border-color: rgba(0,0,0,0.1) !important;
   color: #475569 !important;
 }
+
+/* Goals */
+body.light-mode .goal-form,
+body.light-mode .goal-card {
+  background: #F1F1F1 !important;
+  border-color: rgba(53,102,171,0.18) !important;
+}
+body.light-mode .goal-input {
+  background: #f8fafc !important;
+  border-color: rgba(0,0,0,0.18) !important;
+  color: #114084 !important;
+}
+body.light-mode .goal-input::placeholder { color: #94a3b8 !important; }
+body.light-mode .goal-input:focus { border-color: #3566AB !important; }
+body.light-mode .goal-card-text { color: #475569 !important; }
+body.light-mode .goal-updated,
+body.light-mode .meta-panel {
+  color: #64748b !important;
+}
+body.light-mode .meta-panel {
+  background: #F1F1F1 !important;
+  border-color: rgba(53,102,171,0.15) !important;
+}
+
+/* Performance */
+body.light-mode .filter-panel,
+body.light-mode .panel,
+body.light-mode .exercise-row {
+  background: #F1F1F1 !important;
+  border-color: rgba(53,102,171,0.16) !important;
+}
+body.light-mode .filter-input {
+  background: #f8fafc !important;
+  border-color: rgba(0,0,0,0.18) !important;
+  color: #114084 !important;
+}
+body.light-mode .filter-input option { background: #ffffff !important; color: #114084 !important; }
+body.light-mode .filter-field label,
+body.light-mode .section-title,
+body.light-mode .stat-label,
+body.light-mode .cell-label,
+body.light-mode .exercise-sub {
+  color: #64748b !important;
+}
+body.light-mode .exercise-name { color: #114084 !important; }

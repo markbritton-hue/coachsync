@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="CoachSyncLogo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1C1C1C" />
+  <title>Performance - CoachSync</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="theme.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #1C1C1C 0%, #114084 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: rgba(255,255,255,0.9);
+    }
+    .top-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; border-bottom: 1px solid rgba(53,102,171,0.15);
+      background: rgba(28,28,28,0.6);
+    }
+    .nav-right { display: flex; gap: 8px; align-items: center; }
+    .btn-back {
+      background: none; border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.6); font-size: 0.8rem; font-weight: 600;
+      padding: 5px 12px; border-radius: 25px; cursor: pointer;
+      text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px;
+    }
+    .btn-back:hover { border-color: #3566AB; color: #3566AB; }
+    .page-header { padding: 22px 0 14px; }
+    .page-header h1 {
+      font-size: 1.55rem; font-weight: 800;
+      background: linear-gradient(135deg, #3566AB, #83B7DE);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0;
+    }
+    .page-header p { color: rgba(255,255,255,0.4); font-size: 0.86rem; margin: 5px 0 0; }
+    .filter-panel {
+      background: rgba(17,64,132,0.78); border: 1px solid rgba(53,102,171,0.18);
+      border-radius: 12px; padding: 14px; margin-bottom: 16px;
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;
+    }
+    .filter-field label {
+      display: block; color: rgba(255,255,255,0.38); font-size: 0.68rem;
+      font-weight: 800; text-transform: uppercase; letter-spacing: 0.45px; margin-bottom: 5px;
+    }
+    .filter-input {
+      width: 100%; background: rgba(28,28,28,0.55); border: 1px solid rgba(255,255,255,0.12);
+      color: white; border-radius: 8px; padding: 8px 10px; outline: none; font-size: 0.86rem;
+    }
+    .filter-input:focus { border-color: #3566AB; }
+    .filter-input option { background: #114084; color: white; }
+    .custom-range { display: none; grid-column: span 2; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .custom-range.visible { display: grid; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+    .stat-card {
+      background: rgba(17,64,132,0.82); border: 1px solid rgba(53,102,171,0.16);
+      border-radius: 12px; padding: 14px; text-align: center;
+    }
+    .stat-val {
+      font-size: 1.55rem; font-weight: 900; line-height: 1;
+      background: linear-gradient(135deg, #3566AB, #83B7DE);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .stat-label { color: rgba(255,255,255,0.35); font-size: 0.68rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.4px; margin-top: 5px; }
+    .section { margin-bottom: 18px; }
+    .section-title {
+      font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.5px; color: rgba(255,255,255,0.35); margin-bottom: 9px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .section-title i { color: #83B7DE; }
+    .panel {
+      background: rgba(17,64,132,0.7); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px; padding: 15px;
+    }
+    .chart {
+      height: 190px; display: flex; align-items: flex-end; gap: 7px;
+      border-bottom: 1px solid rgba(255,255,255,0.08); padding: 8px 0 0;
+    }
+    .bar-wrap { flex: 1; min-width: 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+    .bar { width: 100%; min-height: 3px; border-radius: 5px 5px 0 0; background: linear-gradient(180deg, #83B7DE, #3566AB); }
+    .bar-label { font-size: 0.58rem; color: rgba(255,255,255,0.28); white-space: nowrap; transform: rotate(-35deg); transform-origin: top center; margin-top: 8px; }
+    .exercise-list { display: grid; gap: 8px; }
+    .exercise-row {
+      background: rgba(28,28,28,0.42); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px; padding: 11px 12px; display: grid; grid-template-columns: 1.4fr repeat(4, minmax(70px, 0.6fr)); gap: 10px; align-items: center;
+    }
+    .exercise-name { font-weight: 800; color: rgba(255,255,255,0.82); font-size: 0.9rem; }
+    .exercise-sub { color: rgba(255,255,255,0.35); font-size: 0.72rem; margin-top: 2px; }
+    .cell-label { color: rgba(255,255,255,0.28); font-size: 0.62rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.35px; }
+    .cell-value { color: #83B7DE; font-size: 0.84rem; font-weight: 800; margin-top: 2px; }
+    .empty-state { text-align: center; padding: 42px 18px; color: rgba(255,255,255,0.35); }
+    .empty-state i { display: block; font-size: 2.4rem; color: rgba(131,183,222,0.2); margin-bottom: 12px; }
+    .loading-overlay {
+      position: fixed; inset: 0; background: linear-gradient(135deg, #1C1C1C, #114084);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; font-size: 1.1rem; color: rgba(255,255,255,0.5); gap: 12px;
+    }
+    @media (max-width: 760px) {
+      .filter-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .exercise-row { grid-template-columns: 1fr 1fr; }
+      .exercise-row .exercise-name-wrap { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <i class="fa-solid fa-spinner fa-spin"></i> Loading performance...
+</div>
+
+<nav class="top-nav">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <img src="CoachSyncLogo.png" alt="CoachSync" style="height:44px;">
+  </div>
+  <div class="nav-right">
+    <a href="athlete-dashboard.html" class="btn-back" id="backLink"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
+  </div>
+</nav>
+
+<div class="container" style="max-width:980px;">
+  <div class="page-header">
+    <h1><i class="fa-solid fa-chart-line me-2" style="font-size:1.22rem;"></i>Performance</h1>
+    <p id="scopeLabel">Exercise history</p>
+  </div>
+
+  <div class="filter-panel">
+    <div class="filter-field" id="athleteFilterWrap" style="display:none;">
+      <label for="athleteFilter">Athlete</label>
+      <select class="filter-input" id="athleteFilter" onchange="renderPerformance()"></select>
+    </div>
+    <div class="filter-field">
+      <label for="exerciseFilter">Exercise</label>
+      <select class="filter-input" id="exerciseFilter" onchange="renderPerformance()"></select>
+    </div>
+    <div class="filter-field">
+      <label for="programFilter">Program</label>
+      <select class="filter-input" id="programFilter" onchange="renderPerformance()"></select>
+    </div>
+    <div class="filter-field">
+      <label for="rangeFilter">Range</label>
+      <select class="filter-input" id="rangeFilter" onchange="toggleCustomRange(); renderPerformance();">
+        <option value="all">All time</option>
+        <option value="90">Last 90 days</option>
+        <option value="365">Last year</option>
+        <option value="custom">Custom</option>
+      </select>
+    </div>
+    <div class="custom-range" id="customRange">
+      <div class="filter-field">
+        <label for="dateStart">Start</label>
+        <input class="filter-input" id="dateStart" type="date" onchange="renderPerformance()" />
+      </div>
+      <div class="filter-field">
+        <label for="dateEnd">End</label>
+        <input class="filter-input" id="dateEnd" type="date" onchange="renderPerformance()" />
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-val" id="statSessions">0</div><div class="stat-label">Exercise Logs</div></div>
+    <div class="stat-card"><div class="stat-val" id="statBestWeight">-</div><div class="stat-label">Best Weight</div></div>
+    <div class="stat-card"><div class="stat-val" id="statRepPr">-</div><div class="stat-label">Rep PR</div></div>
+    <div class="stat-card"><div class="stat-val" id="statEstMax">Pending</div><div class="stat-label">Estimated 1RM</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><i class="fa-solid fa-arrow-trend-up"></i> Weight Progression</div>
+    <div class="panel">
+      <div class="chart" id="progressChart"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><i class="fa-solid fa-dumbbell"></i> Exercise Database</div>
+    <div class="exercise-list" id="exerciseList"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+  const firebaseConfig = window.CoachSyncFirebaseConfig;
+  if (!firebaseConfig) {
+    throw new Error('Missing Firebase config. Create firebase-config.js from firebase-config.example.js.');
+  }
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  let role = 'athlete';
+  let currentUser = null;
+  let athletes = [];
+  let rawLogs = [];
+
+  auth.onAuthStateChanged(async user => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    currentUser = user;
+
+    const meSnap = await db.collection('users').doc(user.uid).get();
+    if (!meSnap.exists) { window.location.href = 'index.html'; return; }
+    role = meSnap.data().role || 'athlete';
+    document.getElementById('backLink').href = role === 'trainer' ? 'trainer-dashboard.html' : 'athlete-dashboard.html';
+
+    if (role === 'trainer') {
+      const athleteSnap = await db.collection('users').where('trainerId', '==', user.uid).get();
+      athletes = athleteSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      await loadTrainerLogs();
+      document.getElementById('athleteFilterWrap').style.display = 'block';
+      document.getElementById('scopeLabel').textContent = 'Team exercise history';
+    } else {
+      athletes = [{ id: user.uid, ...meSnap.data() }];
+      const logSnap = await db.collection('exerciseLogs').where('athleteId', '==', user.uid).get();
+      rawLogs = logSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      document.getElementById('scopeLabel').textContent = 'Your exercise history';
+    }
+
+    hydrateFilters();
+    renderPerformance();
+    document.getElementById('loadingOverlay').style.display = 'none';
+  });
+
+  async function loadTrainerLogs() {
+    rawLogs = [];
+    const ids = athletes.map(a => a.id);
+    for (let i = 0; i < ids.length; i += 30) {
+      const chunk = ids.slice(i, i + 30);
+      if (!chunk.length) continue;
+      const snap = await db.collection('exerciseLogs').where('athleteId', 'in', chunk).get();
+      snap.docs.forEach(d => rawLogs.push({ id: d.id, ...d.data() }));
+    }
+  }
+
+  function hydrateFilters() {
+    if (role === 'trainer') {
+      document.getElementById('athleteFilter').innerHTML =
+        '<option value="all">All athletes</option>' +
+        athletes.map(a => `<option value="${esc(a.id)}">${esc(a.displayName || a.email || 'Athlete')}</option>`).join('');
+    }
+    const exercises = unique(rawLogs.map(l => l.exerciseName).filter(Boolean));
+    document.getElementById('exerciseFilter').innerHTML =
+      '<option value="all">All exercises</option>' + exercises.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+
+    const programs = unique(rawLogs.map(l => l.programName).filter(Boolean));
+    document.getElementById('programFilter').innerHTML =
+      '<option value="all">All programs</option>' + programs.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  }
+
+  function toggleCustomRange() {
+    document.getElementById('customRange').classList.toggle('visible', document.getElementById('rangeFilter').value === 'custom');
+  }
+
+  function renderPerformance() {
+    const filtered = getFilteredLogs();
+    const setRows = flattenSets(filtered);
+    renderStats(filtered, setRows);
+    renderChart(setRows);
+    renderExerciseDatabase(filtered);
+  }
+
+  function getFilteredLogs() {
+    const athleteId = document.getElementById('athleteFilter')?.value || 'all';
+    const exercise = document.getElementById('exerciseFilter').value;
+    const program = document.getElementById('programFilter').value;
+    const range = document.getElementById('rangeFilter').value;
+    const today = new Date();
+    let start = null;
+    let end = null;
+
+    if (range === '90' || range === '365') {
+      start = new Date(today);
+      start.setDate(start.getDate() - parseInt(range, 10));
+    } else if (range === 'custom') {
+      const s = document.getElementById('dateStart').value;
+      const e = document.getElementById('dateEnd').value;
+      start = s ? new Date(s + 'T00:00:00') : null;
+      end = e ? new Date(e + 'T23:59:59') : null;
+    }
+
+    return rawLogs
+      .filter(l => athleteId === 'all' || l.athleteId === athleteId)
+      .filter(l => exercise === 'all' || l.exerciseName === exercise)
+      .filter(l => program === 'all' || l.programName === program)
+      .filter(l => {
+        if (!l.date) return false;
+        const d = new Date(l.date + 'T12:00:00');
+        if (start && d < start) return false;
+        if (end && d > end) return false;
+        return true;
+      })
+      .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  }
+
+  function flattenSets(logs) {
+    const rows = [];
+    logs.forEach(log => {
+      (log.sets || []).forEach(set => {
+        rows.push({
+          ...set,
+          athleteId: log.athleteId,
+          exerciseName: log.exerciseName || 'Exercise',
+          programName: log.programName || '',
+          date: log.date,
+          weightNum: parseLoad(set.weight),
+          repsNum: set.reps != null ? parseInt(set.reps, 10) : null
+        });
+      });
+    });
+    return rows;
+  }
+
+  function renderStats(logs, setRows) {
+    document.getElementById('statSessions').textContent = logs.length;
+    const weights = setRows.map(r => r.weightNum).filter(n => n != null);
+    document.getElementById('statBestWeight').textContent = weights.length ? formatLoad(Math.max(...weights)) : '-';
+    const reps = setRows.map(r => r.repsNum).filter(n => n != null);
+    document.getElementById('statRepPr').textContent = reps.length ? Math.max(...reps) : '-';
+    document.getElementById('statEstMax').textContent = 'Pending';
+  }
+
+  function renderChart(setRows) {
+    const chart = document.getElementById('progressChart');
+    const byDate = {};
+    setRows.forEach(r => {
+      if (r.weightNum == null) return;
+      byDate[r.date] = Math.max(byDate[r.date] || 0, r.weightNum);
+    });
+    const points = Object.entries(byDate).slice(-18);
+    if (!points.length) {
+      chart.innerHTML = '<div class="empty-state" style="margin:auto;padding:0;"><i class="fa-solid fa-chart-simple"></i>No weight history for this filter.</div>';
+      return;
+    }
+    const max = Math.max(...points.map(p => p[1]), 1);
+    chart.innerHTML = points.map(([date, weight]) => `
+      <div class="bar-wrap" title="${esc(date)}: ${formatLoad(weight)}">
+        <div class="bar" style="height:${Math.round((weight / max) * 145)}px;"></div>
+        <div class="bar-label">${esc(date.slice(5))}</div>
+      </div>
+    `).join('');
+  }
+
+  function renderExerciseDatabase(logs) {
+    const list = document.getElementById('exerciseList');
+    const groups = {};
+    logs.forEach(log => {
+      const name = log.exerciseName || 'Exercise';
+      if (!groups[name]) groups[name] = [];
+      groups[name].push(log);
+    });
+    const rows = Object.entries(groups).map(([name, entries]) => {
+      const sets = flattenSets(entries);
+      const weights = sets.map(s => s.weightNum).filter(n => n != null);
+      const reps = sets.map(s => s.repsNum).filter(n => n != null);
+      const last = entries[entries.length - 1]?.date || '';
+      return {
+        name,
+        entries,
+        sets,
+        bestWeight: weights.length ? Math.max(...weights) : null,
+        repPr: reps.length ? Math.max(...reps) : null,
+        last
+      };
+    }).sort((a, b) => (b.bestWeight || 0) - (a.bestWeight || 0) || b.entries.length - a.entries.length);
+
+    if (!rows.length) {
+      list.innerHTML = '<div class="empty-state"><i class="fa-solid fa-dumbbell"></i>No exercise history yet.</div>';
+      return;
+    }
+
+    list.innerHTML = rows.map(row => `
+      <div class="exercise-row">
+        <div class="exercise-name-wrap">
+          <div class="exercise-name">${esc(row.name)}</div>
+          <div class="exercise-sub">${row.entries.length} log${row.entries.length !== 1 ? 's' : ''}${row.last ? ' · Last ' + esc(fmt(row.last)) : ''}</div>
+        </div>
+        <div><div class="cell-label">Best Weight</div><div class="cell-value">${row.bestWeight != null ? formatLoad(row.bestWeight) : '-'}</div></div>
+        <div><div class="cell-label">Rep PR</div><div class="cell-value">${row.repPr != null ? row.repPr : '-'}</div></div>
+        <div><div class="cell-label">Sets</div><div class="cell-value">${row.sets.length}</div></div>
+        <div><div class="cell-label">Est 1RM</div><div class="cell-value">Pending</div></div>
+      </div>
+    `).join('');
+  }
+
+  function parseLoad(value) {
+    if (value == null) return null;
+    const match = String(value).replace(/,/g, '').match(/-?\d+(\.\d+)?/);
+    if (!match) return null;
+    const parsed = parseFloat(match[0]);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  function formatLoad(value) {
+    return Number.isInteger(value) ? value + ' lb' : value.toFixed(1) + ' lb';
+  }
+
+  function unique(values) {
+    return [...new Set(values)].sort((a, b) => a.localeCompare(b));
+  }
+
+  function fmt(dateStr) {
+    return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+<script src="theme.js"></script>
+</body>
+</html>
