@@ -133,24 +133,6 @@
     }
     .btn-auth:hover { background: #114084; transform: translateY(-2px); }
     .btn-auth:disabled { opacity: 0.6; transform: none; cursor: not-allowed; }
-    .btn-google {
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.2);
-      color: rgba(255,255,255,0.85);
-      font-weight: 600;
-      padding: 12px;
-      border-radius: 25px;
-      width: 100%;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    .btn-google:hover { background: rgba(255,255,255,0.13); transform: translateY(-2px); }
     .auth-switch {
       text-align: center;
       color: rgba(255,255,255,0.45);
@@ -225,10 +207,6 @@
       <i class="fa-solid fa-right-to-bracket me-2"></i>Sign In
     </button>
 
-    <button class="btn-google" id="btnGoogle" onclick="doGoogle()">
-      <i class="fa-brands fa-google"></i>Continue with Google
-    </button>
-
     <p class="auth-switch">New to CoachSync? <a href="signup.html">Create an account</a></p>
   </div>
 
@@ -290,7 +268,6 @@
 
   function setLoading(on) {
     document.getElementById('btnLogin').disabled = on;
-    document.getElementById('btnGoogle').disabled = on;
     document.getElementById('btnLogin').innerHTML = on
       ? '<i class="fa-solid fa-spinner fa-spin me-2"></i>Signing in…'
       : '<i class="fa-solid fa-right-to-bracket me-2"></i>Sign In';
@@ -317,32 +294,7 @@
     }
   }
 
-  async function doGoogle() {
-    document.getElementById('authError').style.display = 'none';
-    setLoading(true);
-    try {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      const cred = await auth.signInWithPopup(provider);
-      // Create user doc if first Google sign-in
-      const ref  = db.collection('users').doc(cred.user.uid);
-      const snap = await ref.get();
-      if (!snap.exists) {
-        await ref.set({
-          uid: cred.user.uid,
-          displayName: cred.user.displayName || '',
-          email: cred.user.email,
-          role: 'athlete',
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-      }
-      await redirectByRole(cred.user);
-    } catch (e) {
-      showError(friendlyError(e.code));
-      setLoading(false);
-    }
-  }
-
-  // Allow Enter key to submit
+// Allow Enter key to submit
   document.getElementById('loginPassword').addEventListener('keydown', e => {
     if (e.key === 'Enter') doLogin();
   });
