@@ -211,6 +211,27 @@
     <p>The all-in-one platform connecting athletes and trainers.</p>
   </div>
 
+  <div class="login-card">
+    <h2>Sign in to CoachSync</h2>
+    <div class="auth-error" id="authError"></div>
+
+    <label class="field-label" for="loginEmail">Email</label>
+    <input type="email" class="field-input" id="loginEmail" placeholder="you@example.com" autocomplete="email" />
+
+    <label class="field-label" for="loginPassword">Password</label>
+    <input type="password" class="field-input" id="loginPassword" placeholder="Your password" autocomplete="current-password" />
+
+    <button class="btn-auth" id="btnLogin" onclick="doLogin()">
+      <i class="fa-solid fa-right-to-bracket me-2"></i>Sign In
+    </button>
+
+    <button class="btn-google" id="btnGoogle" onclick="doGoogle()">
+      <i class="fa-brands fa-google"></i>Continue with Google
+    </button>
+
+    <p class="auth-switch">New to CoachSync? <a href="signup.html">Create an account</a></p>
+  </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
