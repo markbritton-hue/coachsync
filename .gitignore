@@ -5,6 +5,4 @@ node_modules/
 serviceAccountKey.json
 *.service-account.json
 .claude/
-Fitness Gym.gif
-gym-calendar.png
 docs/handoffs/
