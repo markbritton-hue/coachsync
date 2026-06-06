@@ -293,8 +293,8 @@
     const meSnap = await db.collection('users').doc(user.uid).get();
     if (!meSnap.exists || meSnap.data().role !== 'trainer') { window.location.href = 'index.html'; return; }
 
-    // Load all athletes
-    const athleteSnap = await db.collection('users').where('role', '==', 'athlete').get();
+    // Load athletes assigned to this trainer
+    const athleteSnap = await db.collection('users').where('trainerId', '==', user.uid).get();
     const athletes = athleteSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
     // Load all workout logs in chunks of 30
@@ -308,7 +308,7 @@
     allLogs = allLogs.filter(l => l.date).sort((a, b) => a.date.localeCompare(b.date));
     const attendedLogs = allLogs.filter(l => l.status !== 'skipped');
 
-    const programSnap = await db.collection('programs').get();
+    const programSnap = await db.collection('programs').where('trainerId', '==', user.uid).get();
     const programsByName = {};
     programSnap.docs.forEach(d => {
       const data = d.data();
