@@ -224,7 +224,7 @@
   }
 
   async function loadPrograms() {
-    const snap = await db.collection('programs').get();
+    const snap = await db.collection('programs').where('trainerId', '==', currentUser.uid).get();
     programMap = {};
     snap.docs.forEach(d => {
       const data = { id: d.id, ...d.data() };
