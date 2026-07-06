@@ -207,7 +207,25 @@
       <i class="fa-solid fa-right-to-bracket me-2"></i>Sign In
     </button>
 
+    <p class="auth-switch">
+      <a href="#" onclick="toggleForgotPassword(event)">Forgot password?</a>
+    </p>
     <p class="auth-switch">New to CoachSync? <a href="signup.html">Create an account</a></p>
+  </div>
+
+  <div class="login-card" id="forgotCard" style="display:none;">
+    <h2>Reset your password</h2>
+    <div class="auth-error" id="resetError"></div>
+    <div class="auth-error" id="resetSuccess" style="display:none; color:#22c55e; background:rgba(34,197,94,0.1); border-color:rgba(34,197,94,0.3);"></div>
+
+    <label class="field-label" for="resetEmail">Email</label>
+    <input type="email" class="field-input" id="resetEmail" placeholder="you@example.com" autocomplete="email" />
+
+    <button class="btn-auth" id="btnReset" onclick="doPasswordReset()">
+      <i class="fa-solid fa-envelope me-2"></i>Send Reset Link
+    </button>
+
+    <p class="auth-switch"><a href="#" onclick="toggleForgotPassword(event)">Back to sign in</a></p>
   </div>
 
 </div>
@@ -309,6 +327,44 @@
       'auth/popup-closed-by-user':'Sign-in popup was closed.',
     };
     return map[code] || 'Sign-in failed. Please try again.';
+  }
+
+  function toggleForgotPassword(e) {
+    e.preventDefault();
+    const loginCard = document.querySelector('.login-card');
+    const forgotCard = document.getElementById('forgotCard');
+    const showingForgot = forgotCard.style.display !== 'none';
+    forgotCard.style.display = showingForgot ? 'none' : 'block';
+    loginCard.style.display = showingForgot ? 'block' : 'none';
+    document.getElementById('resetError').style.display = 'none';
+    document.getElementById('resetSuccess').style.display = 'none';
+  }
+
+  async function doPasswordReset() {
+    const email = document.getElementById('resetEmail').value.trim();
+    const errEl = document.getElementById('resetError');
+    const okEl = document.getElementById('resetSuccess');
+    errEl.style.display = 'none';
+    okEl.style.display = 'none';
+    if (!email) {
+      errEl.textContent = 'Please enter your email address.';
+      errEl.style.display = 'block';
+      return;
+    }
+    const btn = document.getElementById('btnReset');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Sending…';
+    try {
+      await auth.sendPasswordResetEmail(email);
+      okEl.textContent = 'Password reset email sent! Check your inbox for a link to reset your password.';
+      okEl.style.display = 'block';
+    } catch (e) {
+      errEl.textContent = friendlyError(e.code);
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-envelope me-2"></i>Send Reset Link';
+    }
   }
 </script>
 <script src="theme.js"></script>
