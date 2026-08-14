@@ -322,7 +322,8 @@
     document.getElementById('statBestWeight').textContent = weights.length ? formatLoad(Math.max(...weights)) : '-';
     const reps = setRows.map(r => r.repsNum).filter(n => n != null);
     document.getElementById('statRepPr').textContent = reps.length ? Math.max(...reps) : '-';
-    document.getElementById('statEstMax').textContent = 'Pending';
+    const estMaxes = setRows.map(r => estMax(r.weightNum, r.repsNum)).filter(n => n != null);
+    document.getElementById('statEstMax').textContent = estMaxes.length ? formatLoad(Math.max(...estMaxes)) : '-';
   }
 
   function renderChart(setRows) {
@@ -365,6 +366,7 @@
         sets,
         bestWeight: weights.length ? Math.max(...weights) : null,
         repPr: reps.length ? Math.max(...reps) : null,
+        estMax: sets.map(s => estMax(s.weightNum, s.repsNum)).filter(n => n != null).reduce((m, n) => Math.max(m, n), 0) || null,
         last
       };
     }).sort((a, b) => (b.bestWeight || 0) - (a.bestWeight || 0) || b.entries.length - a.entries.length);
@@ -383,9 +385,14 @@
         <div><div class="cell-label">Best Weight</div><div class="cell-value">${row.bestWeight != null ? formatLoad(row.bestWeight) : '-'}</div></div>
         <div><div class="cell-label">Rep PR</div><div class="cell-value">${row.repPr != null ? row.repPr : '-'}</div></div>
         <div><div class="cell-label">Sets</div><div class="cell-value">${row.sets.length}</div></div>
-        <div><div class="cell-label">Est 1RM</div><div class="cell-value">Pending</div></div>
+        <div><div class="cell-label">Est 1RM</div><div class="cell-value">${row.estMax != null ? formatLoad(row.estMax) : '-'}</div></div>
       </div>
     `).join('');
+  }
+
+  function estMax(weight, reps) {
+    if (weight == null || reps == null || reps <= 0) return null;
+    return weight * (1 + reps / 30);
   }
 
   function parseLoad(value) {

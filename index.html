@@ -355,7 +355,9 @@
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Sending…';
     try {
-      await auth.sendPasswordResetEmail(email);
+      await auth.sendPasswordResetEmail(email, {
+        url: window.location.origin + window.location.pathname.replace(/index\.html$/, '') + 'reset-password.html',
+      });
       okEl.textContent = 'Password reset email sent! Check your inbox for a link to reset your password.';
       okEl.style.display = 'block';
     } catch (e) {

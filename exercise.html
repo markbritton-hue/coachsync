@@ -555,6 +555,20 @@
     initExercise();
   });
 
+  // Resolve the prescribed weight for the athlete's current week, honoring
+  // a per-week % progression if the trainer set one (falls back to the static target/weight).
+  function resolveWeekTargetWeight(ex, week) {
+    if (Array.isArray(ex.weeklyPercents) && ex.weeklyPercents.length) {
+      const pct  = parseFloat(ex.weeklyPercents[week - 1]);
+      const base = parseFloat(ex.weight);
+      if (!isNaN(pct) && !isNaN(base)) {
+        const rounded = Math.round(base * (pct / 100) * 10) / 10;
+        return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+      }
+    }
+    return ex.targetWeight || '';
+  }
+
   function initExercise() {
     totalSets   = parseInt(ex.sets) || 3;
     currentSet  = 1;
@@ -572,12 +586,13 @@
     meta.innerHTML = '';
     if (ex.sets)     addPill(meta, 'fa-layer-group',    ex.sets + ' sets');
     if (metricVal)   addPill(meta, metricIcon,           metricVal + ' ' + metricUnit);
-    const prescribedWeight = ex.targetWeight ? ex.targetWeight + ' lb target' : ex.weight;
+    const weekTarget = resolveWeekTargetWeight(ex, paramWeek);
+    const prescribedWeight = weekTarget ? weekTarget + ' lb target' : ex.weight;
     if (prescribedWeight) addPill(meta, 'fa-weight-hanging', prescribedWeight);
     if (ex.rest)     addPill(meta, 'fa-clock',           ex.rest + 's rest');
 
     // Pre-fill weight override with prescribed weight
-    if (ex.targetWeight || ex.weight) document.getElementById('weightOverride').value = ex.targetWeight ? ex.targetWeight + ' lb' : ex.weight;
+    if (weekTarget || ex.weight) document.getElementById('weightOverride').value = weekTarget ? weekTarget + ' lb' : ex.weight;
     // Hide weight row if no weight relevant (bodyweight exercises OK to leave)
 
     if (ex.notes) {

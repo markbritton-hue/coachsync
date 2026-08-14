@@ -237,6 +237,21 @@
     .ex-input:focus { border-color: #83B7DE; }
     .ex-input::placeholder { color: rgba(255,255,255,0.25); }
     .ex-notes { grid-column: 1/-1; }
+    .ex-weekly-toggle {
+      background: none; border: 1px solid rgba(131,183,222,0.3); color: #83B7DE;
+      border-radius: 6px; padding: 7px 10px; font-size: 0.75rem; font-weight: 600;
+      cursor: pointer; white-space: nowrap; height: fit-content;
+    }
+    .ex-weekly-toggle.active { background: rgba(131,183,222,0.15); }
+    .ex-weekly-toggle:hover { border-color: #83B7DE; }
+    .ex-weekly-strip {
+      grid-column: 1/-1; display: none; flex-wrap: wrap; gap: 10px;
+      margin-top: 10px; padding-top: 12px; border-top: 1px dashed rgba(131,183,222,0.2);
+    }
+    .ex-weekly-strip.open { display: flex; }
+    .ex-weekly-week { width: 64px; }
+    .ex-weekly-week .ex-mini-label { text-align: center; font-size: 0.68rem; }
+    .ex-weekly-week .ex-input { text-align: center; padding: 6px 4px; }
     .target-weight-box {
       background: rgba(131,183,222,0.1); border: 1px solid rgba(131,183,222,0.25);
       color: #83B7DE; border-radius: 6px; padding: 8px 8px;
@@ -471,6 +486,7 @@
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db   = firebase.firestore();
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(err => console.error('Auth persistence error:', err));
 
   let currentUser    = null;
   let allPrograms    = [];
@@ -488,8 +504,16 @@
   const returnTo        = _params.get('returnTo'); // e.g. 'my-athletes'
 
   // ── Auth guard ──
+  // If the auth listener fires with a null user while the builder modal is open, it's
+  // often a transient blip (token refresh hiccup, tab visibility change, IndexedDB
+  // persistence issue) rather than a real sign-out. Save an in-progress draft before
+  // navigating away so a trainer's work-in-progress program is never silently lost.
   auth.onAuthStateChanged(async user => {
-    if (!user) { window.location.href = 'index.html'; return; }
+    if (!user) {
+      saveDraftToStorage();
+      window.location.href = 'index.html';
+      return;
+    }
     const snap = await db.collection('users').doc(user.uid).get();
     if (!snap.exists || snap.data().role !== 'trainer') {
       window.location.href = 'athlete-dashboard.html'; return;
@@ -497,6 +521,7 @@
     currentUser = user;
     loadPrograms();
     loadAthletes();
+    checkForDraft();
 
     // Athlete context setup
     if (athleteUid && athleteName) {
@@ -505,6 +530,96 @@
       document.getElementById('bannerAthleteName').textContent = athleteName;
     }
   });
+
+  // ── Draft autosave/recovery ──
+  // Protects against lost work if the session drops mid-edit (see auth guard above)
+  // or the tab is closed/refreshed accidentally while the program builder is open.
+  const DRAFT_KEY = 'coachsync_program_draft';
+  const DRAFT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+  let draftSaveTimer = null;
+
+  function saveDraftToStorage() {
+    const modal = document.getElementById('programModal');
+    if (!modal || !modal.classList.contains('open')) return;
+    const name = document.getElementById('progName')?.value.trim();
+    const days = collectDays();
+    const hasContent = name || days.some(d => d.exercises.length > 0);
+    if (!hasContent) return;
+    const draft = {
+      savedAt: Date.now(),
+      editingId,
+      returnTo,
+      athleteUid,
+      athleteName,
+      fields: {
+        progName:       name || '',
+        progDifficulty: document.getElementById('progDifficulty')?.value,
+        progDuration:   document.getElementById('progDuration')?.value,
+        progDays:       document.getElementById('progDays')?.value,
+        progGoal:       document.getElementById('progGoal')?.value,
+        progDesc:       document.getElementById('progDesc')?.value,
+        progEstTime:    document.getElementById('progEstTime')?.value,
+      },
+      days,
+    };
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch (e) { console.error('Draft save failed:', e); }
+  }
+
+  function scheduleDraftSave() {
+    clearTimeout(draftSaveTimer);
+    draftSaveTimer = setTimeout(saveDraftToStorage, 800);
+  }
+
+  function clearDraft() {
+    localStorage.removeItem(DRAFT_KEY);
+    document.getElementById('draftRecoveryBanner')?.remove();
+  }
+
+  function readDraft() {
+    let raw;
+    try { raw = localStorage.getItem(DRAFT_KEY); } catch (e) { return null; }
+    if (!raw) return null;
+    try {
+      const draft = JSON.parse(raw);
+      if (!draft.savedAt || Date.now() - draft.savedAt > DRAFT_MAX_AGE_MS) { clearDraft(); return null; }
+      return draft;
+    } catch (e) { clearDraft(); return null; }
+  }
+
+  function checkForDraft() {
+    const draft = readDraft();
+    if (!draft || document.getElementById('draftRecoveryBanner')) return;
+    const banner = document.createElement('div');
+    banner.id = 'draftRecoveryBanner';
+    banner.style.cssText = 'background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.35); border-radius:14px; padding:16px 22px; margin-top:28px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;';
+    banner.innerHTML = `
+      <span><i class="fa-solid fa-clock-rotate-left" style="color:#f59e0b;margin-right:8px;"></i>
+      You have an unsaved program draft${draft.fields.progName ? ` ("${esc(draft.fields.progName)}")` : ''} from a previous session.</span>
+      <span style="display:flex; gap:8px;">
+        <button class="btn-cancel" id="btnDiscardDraft">Discard</button>
+        <button class="btn-save" id="btnResumeDraft"><i class="fa-solid fa-rotate-left me-1"></i> Resume Draft</button>
+      </span>`;
+    const banners = document.getElementById('athleteContextBanner');
+    banners.parentNode.insertBefore(banner, banners);
+    document.getElementById('btnDiscardDraft').onclick = clearDraft;
+    document.getElementById('btnResumeDraft').onclick = () => { resumeDraft(draft); banner.remove(); };
+  }
+
+  function resumeDraft(draft) {
+    editingId = draft.editingId || null;
+    openModal(false);
+    document.getElementById('modalTitle').textContent = editingId ? 'Edit Program' : (draft.athleteUid && draft.athleteName ? `New Program for ${draft.athleteName}` : 'New Program');
+    document.getElementById('progName').value       = draft.fields.progName || '';
+    document.getElementById('progDifficulty').value = draft.fields.progDifficulty || 'Intermediate';
+    document.getElementById('progDuration').value   = draft.fields.progDuration || '8 weeks';
+    document.getElementById('progDays').value       = draft.fields.progDays || '4 days';
+    document.getElementById('progGoal').value       = draft.fields.progGoal || 'Strength';
+    document.getElementById('progDesc').value       = draft.fields.progDesc || '';
+    document.getElementById('progEstTime').value    = draft.fields.progEstTime || '';
+    exCounter = 0;
+    const n = parseDayCount(draft.fields.progDays || '4 days');
+    buildDayUI(n, draft.days);
+  }
 
   // ── Load athletes ──
   function loadAthletes() {
@@ -818,6 +933,8 @@
         weight:   (document.getElementById('ex-weight-'+ idx)?.value  || '').trim(),
         percent:  (document.getElementById('ex-percent-'+ idx)?.value || '').trim(),
         targetWeight: getTargetWeightValue(idx),
+        weeklyPercents: document.getElementById(`ex-weekly-strip-${idx}`)?.classList.contains('open')
+          ? collectWeeklyPercents(idx) : [],
         rest:     (document.getElementById('ex-rest-'  + idx)?.value  || '').trim(),
         notes:    (document.getElementById('ex-notes-' + idx)?.value  || '').trim(),
         videoUrl: (document.getElementById('ex-video-' + idx)?.value  || '').trim(),
@@ -879,6 +996,7 @@
       const current = collectDays();
       buildDayUI(n, current);
     });
+    document.getElementById('progDuration').addEventListener('change', resizeAllWeeklyStrips);
   });
 
   function addExerciseRow(data = {}, dayIdx = activeDayIdx) {
@@ -887,6 +1005,7 @@
     const type = data.type || 'Reps';
     const valueLabel       = type === 'Timed' ? 'Time (sec)' : type === 'Cals' ? 'Calories' : 'Reps';
     const valuePlaceholder = type === 'Timed' ? '45'  : type === 'Cals' ? '20' : '8';
+    const hasWeekly = Array.isArray(data.weeklyPercents) && data.weeklyPercents.some(v => String(v||'').trim() !== '');
 
     const container = document.getElementById(`exercises-day-${dayIdx}`);
     if (!container) return;
@@ -927,9 +1046,14 @@
             <span class="ex-mini-label">Target</span>
             <div class="target-weight-box empty" id="ex-target-${idx}">—</div>
           </div>
-          <div>
-            <span class="ex-mini-label">Rest (sec)</span>
-            <input class="ex-input" id="ex-rest-${idx}" placeholder="90" value="${esc(data.rest||'')}" style="text-align:center;" />
+          <div style="display:flex; gap:6px; align-items:end;">
+            <div style="flex:1;">
+              <span class="ex-mini-label">Rest (sec)</span>
+              <input class="ex-input" id="ex-rest-${idx}" placeholder="90" value="${esc(data.rest||'')}" style="text-align:center;" />
+            </div>
+            <button type="button" class="ex-weekly-toggle${hasWeekly ? ' active' : ''}" id="ex-weekly-toggle-${idx}" onclick="toggleWeeklyProgression(${idx})" title="Vary % by week">
+              <i class="fa-solid fa-chart-line"></i> Wk %
+            </button>
           </div>
           <div class="ex-notes">
             <span class="ex-mini-label">Notes / Cues</span>
@@ -939,11 +1063,62 @@
             <span class="ex-mini-label"><i class="fa-solid fa-video" style="color:#83B7DE;margin-right:4px;"></i>Instructional Video Link</span>
             <input class="ex-input" id="ex-video-${idx}" placeholder="https://youtube.com/watch?v=..." value="${esc(data.videoUrl||'')}" />
           </div>
+          <div class="ex-weekly-strip${hasWeekly ? ' open' : ''}" id="ex-weekly-strip-${idx}"></div>
         </div>
       </div>`);
 
+    if (hasWeekly) renderWeeklyStrip(idx, data.weeklyPercents);
     updateTargetWeight(idx);
     updateDayHint(dayIdx);
+  }
+
+  // ── Weekly % progression ──
+  function getWeeksCount() {
+    return parseInt(document.getElementById('progDuration')?.value, 10) || 8;
+  }
+
+  function toggleWeeklyProgression(idx) {
+    const strip = document.getElementById(`ex-weekly-strip-${idx}`);
+    const btn   = document.getElementById(`ex-weekly-toggle-${idx}`);
+    if (!strip) return;
+    const opening = !strip.classList.contains('open');
+    if (opening && !strip.dataset.rendered) renderWeeklyStrip(idx);
+    strip.classList.toggle('open', opening);
+    btn.classList.toggle('active', opening);
+  }
+
+  function renderWeeklyStrip(idx, existingPercents = []) {
+    const strip = document.getElementById(`ex-weekly-strip-${idx}`);
+    if (!strip) return;
+    const weeks = getWeeksCount();
+    const basePercent = document.getElementById(`ex-percent-${idx}`)?.value || '';
+    strip.innerHTML = Array.from({ length: weeks }, (_, w) => {
+      const val = existingPercents[w] != null ? existingPercents[w] : basePercent;
+      return `
+        <div class="ex-weekly-week">
+          <span class="ex-mini-label">Wk ${w + 1}</span>
+          <input class="ex-input" id="ex-wkpct-${idx}-${w}" placeholder="${esc(basePercent||'75')}" value="${esc(val||'')}" />
+        </div>`;
+    }).join('');
+    strip.dataset.rendered = '1';
+  }
+
+  function resizeAllWeeklyStrips() {
+    document.querySelectorAll('.ex-weekly-strip[data-rendered]').forEach(strip => {
+      const idx = strip.id.split('-')[3];
+      const current = collectWeeklyPercents(idx);
+      renderWeeklyStrip(idx, current);
+    });
+  }
+
+  function collectWeeklyPercents(idx) {
+    const weeks = getWeeksCount();
+    const result = [];
+    for (let w = 0; w < weeks; w++) {
+      const el = document.getElementById(`ex-wkpct-${idx}-${w}`);
+      result.push(el ? el.value.trim() : '');
+    }
+    return result;
   }
 
   function updateExValueLabel(idx) {
@@ -1048,6 +1223,7 @@
     try {
       if (editingId) {
         await db.collection('programs').doc(editingId).update({ ...data, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        clearDraft();
         showToast('Program updated!', 'success');
         if (returnTo === 'my-athletes') {
           setTimeout(() => { window.location.href = 'my-athletes.html'; }, 900);
@@ -1057,6 +1233,7 @@
       } else {
         data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
         await db.collection('programs').add(data);
+        clearDraft();
 
         if (athleteUid) {
           // Auto-assign this program to the athlete and go back
@@ -1160,6 +1337,11 @@
   document.getElementById('programModal').addEventListener('click', function(e) {
     if (e.target === this) closeModal();
   });
+
+  // Autosave the draft as the trainer types/edits, and on tab close/refresh
+  document.getElementById('programModal').addEventListener('input', scheduleDraftSave);
+  document.getElementById('programModal').addEventListener('change', scheduleDraftSave);
+  window.addEventListener('beforeunload', saveDraftToStorage);
 
 
 

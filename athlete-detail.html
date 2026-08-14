@@ -493,7 +493,7 @@
     snap.docs.forEach(d => {
       const data = d.data();
       if (progFilter && data.programName !== progFilter) return;
-      allDayLogs[`${data.week || currentWeek}_${data.day}`] = data;
+      allDayLogs[`${data.week || currentWeek}_${data.day}`] = { ...data, id: d.id };
     });
   }
 
@@ -527,6 +527,71 @@
     renderToday();
   }
 
+  // Calendar date (YYYY-MM-DD) for a given program week/day.
+  function dateForWeekDay(startDateMs, daysPerWeek, week, day) {
+    const msPerDay = 86400000;
+    const startDay = Math.floor(startDateMs / msPerDay);
+    const dayIndex = (week - 1) * daysPerWeek + (day - 1);
+    return new Date((startDay + dayIndex) * msPerDay).toISOString().split('T')[0];
+  }
+
+  // ── Trainer: mark a day as skipped on the athlete's behalf ──
+  async function trainerSkipDay() {
+    const progName = focusProgram || athleteData.assignedProgram;
+    const startDate = (athleteData.programStartDates && athleteData.programStartDates[progName])
+      || athleteData.programStartDate || null;
+    if (!programData || !startDate) return;
+
+    const existing = allDayLogs[`${currentWeek}_${viewingDay}`] || null;
+    if (existing && existing.status === 'skipped') {
+      if (!confirm(`Clear the skipped status for Week ${currentWeek} · Day ${viewingDay}?`)) return;
+      try {
+        await db.collection('workoutLogs').doc(existing.id).delete();
+      } catch(e) {
+        console.error('Error clearing skip:', e);
+        alert('Error clearing skip.');
+        return;
+      }
+    } else {
+      const reason = prompt(`Reason for skipping Week ${currentWeek} · Day ${viewingDay}? Optional.`, '');
+      if (reason === null) return;
+
+      const numDays = parseInt(programData.daysPerWeek, 10) || 1;
+      const exs = getDayExercises(viewingDay);
+      const data = {
+        athleteId:          athleteId,
+        programName:        progName,
+        week:               currentWeek,
+        day:                viewingDay,
+        date:               dateForWeekDay(startDate, numDays, currentWeek, viewingDay),
+        status:             'skipped',
+        skippedReason:      reason.trim(),
+        skippedBy:          'trainer',
+        skippedAt:          firebase.firestore.FieldValue.serverTimestamp(),
+        completedExercises: [],
+        exerciseNames:      exs.map(ex => ex.name),
+        totalExercises:     exs.length,
+        updatedAt:          firebase.firestore.FieldValue.serverTimestamp()
+      };
+      try {
+        if (existing) {
+          await db.collection('workoutLogs').doc(existing.id).update(data);
+        } else {
+          data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+          await db.collection('workoutLogs').add(data);
+        }
+      } catch(e) {
+        console.error('Error skipping day:', e);
+        alert('Error skipping day.');
+        return;
+      }
+    }
+
+    await loadAllDayLogs();
+    renderDayTabs();
+    renderToday();
+  }
+
   // ── Today's workout for this athlete ──
   async function changeWeek(delta) {
     const totalWeeks = getTotalWeeks();
@@ -535,6 +600,20 @@
     renderProgramStructure();
     renderDayTabs();
     renderToday();
+  }
+
+  // Resolve the prescribed weight for the viewed week, honoring a per-week
+  // % progression if the trainer set one (falls back to the static target/weight).
+  function resolveWeekTargetWeight(ex, week) {
+    if (Array.isArray(ex.weeklyPercents) && ex.weeklyPercents.length) {
+      const pct  = parseFloat(ex.weeklyPercents[week - 1]);
+      const base = parseFloat(ex.weight);
+      if (!isNaN(pct) && !isNaN(base)) {
+        const rounded = Math.round(base * (pct / 100) * 10) / 10;
+        return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+      }
+    }
+    return ex.targetWeight || '';
   }
 
   function getDayExercises(dayNumber) {
@@ -565,16 +644,30 @@
     const done    = doneSet.size;
     const total   = exs.length;
 
-    const isToday = currentWeek === todayWeek && viewingDay === todayDay;
+    const isToday   = currentWeek === todayWeek && viewingDay === todayDay;
+    const isSkipped = logData && logData.status === 'skipped';
     let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
       <div style="font-size:1rem;font-weight:700;color:rgba(255,255,255,0.8);">
         Block 1 · Week ${currentWeek} · Day ${viewingDay}
         ${isToday ? '<span style="font-size:0.72rem;font-weight:600;background:rgba(131,183,222,0.15);border:1px solid rgba(131,183,222,0.3);color:#83B7DE;padding:2px 8px;border-radius:12px;margin-left:8px;">Today</span>' : ''}
       </div>
-      <div style="font-size:0.85rem;color:${done===total&&total>0?'#10b981':'rgba(255,255,255,0.45)'};">
-        ${logData ? `${done} / ${total} exercises completed` : 'Not logged yet'}
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div style="font-size:0.85rem;color:${isSkipped ? '#f59e0b' : (done===total&&total>0?'#10b981':'rgba(255,255,255,0.45)')};">
+          ${isSkipped ? 'Skipped' : (logData ? `${done} / ${total} exercises completed` : 'Not logged yet')}
+        </div>
+        <button onclick="trainerSkipDay()" style="background:none;border:1px solid ${isSkipped ? 'rgba(245,158,11,0.4)' : 'rgba(239,68,68,0.3)'};color:${isSkipped ? '#f59e0b' : 'rgba(239,68,68,0.6)'};font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:20px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
+          <i class="fa-solid fa-forward"></i> ${isSkipped ? 'Clear Skip' : 'Skip Day'}
+        </button>
       </div>
     </div>`;
+
+    if (isSkipped) {
+      html += `<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:14px 16px;margin-bottom:20px;font-size:0.85rem;color:rgba(255,255,255,0.7);">
+        <i class="fa-solid fa-forward" style="color:#f59e0b;margin-right:6px;"></i>Marked as skipped${logData.skippedBy === 'trainer' ? ' by trainer' : ''}${logData.skippedReason ? ` — ${esc(logData.skippedReason)}` : ''}
+      </div>`;
+      view.innerHTML = html;
+      return;
+    }
 
     if (logData && total > 0) {
       const pct = Math.round(done / total * 100);
@@ -605,6 +698,7 @@
         const isDone  = doneSet.has(i.toString());
         const noteKey = `${viewingDay}_${i}`;
         const note    = notes[noteKey] || '';
+        const weekTarget = resolveWeekTargetWeight(ex, currentWeek);
         html += `
           <div class="current-exercise-card">
             <div class="ex-check ${isDone ? 'done-check' : 'pending-check'}">
@@ -615,7 +709,7 @@
               <div class="ex-details">
                 ${ex.sets   ? `<span><i class="fa-solid fa-layer-group"></i> ${esc(ex.sets)} sets</span>` : ''}
                 ${ex.value  ? `<span><i class="fa-solid fa-repeat"></i> ${esc(ex.value)} ${esc(ex.type||'reps')}</span>` : (ex.reps ? `<span><i class="fa-solid fa-repeat"></i> ${esc(ex.reps)} reps</span>` : '')}
-                ${ex.targetWeight || ex.weight ? `<span><i class="fa-solid fa-dumbbell"></i> ${esc(ex.targetWeight ? ex.targetWeight + ' lb target' : ex.weight)}</span>` : ''}
+                ${weekTarget || ex.weight ? `<span><i class="fa-solid fa-dumbbell"></i> ${esc(weekTarget ? weekTarget + ' lb target' : ex.weight)}</span>` : ''}
                 ${ex.rest   ? `<span><i class="fa-regular fa-clock"></i> ${esc(ex.rest)}s rest</span>` : ''}
               </div>
               ${ex.notes ? `<div style="font-size:0.78rem;color:rgba(255,255,255,0.4);font-style:italic;margin-top:3px;"><i class="fa-solid fa-whistle" style="font-size:0.65rem;margin-right:3px;"></i>${esc(ex.notes)}</div>` : ''}

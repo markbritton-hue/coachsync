@@ -444,7 +444,7 @@
             <i class="fa-solid fa-rotate-left"></i> Reset
           </button>
           <button class="btn-tool warn" onclick="skipWorkout()">
-            <i class="fa-solid fa-forward"></i> Skip Workout
+            <i class="fa-solid fa-forward"></i> Skip Day
           </button>
         </div>
       </div>
@@ -531,6 +531,19 @@
     const week        = Math.floor(dayIndex / daysPerWeek) + 1;
     const day         = (dayIndex % daysPerWeek) + 1;
     return { week, day };
+  }
+
+  // Calendar date (YYYY-MM-DD) for a given program week/day, so logs made while
+  // browsing a non-today day tab are dated correctly instead of always "today".
+  function dateForWeekDay(week, day) {
+    const startDate = programData && programData._startDate;
+    const daysPerWeek = parseInt(programData?.daysPerWeek, 10) || 1;
+    if (!startDate) return todayKey;
+    const msPerDay = 86400000;
+    const startDay = Math.floor(startDate / msPerDay);
+    const dayIndex = (week - 1) * daysPerWeek + (day - 1);
+    const targetMs = (startDay + dayIndex) * msPerDay;
+    return new Date(targetMs).toISOString().split('T')[0];
   }
 
   // ── Auth ──
@@ -777,6 +790,20 @@
     resetTimerTool();
   }
 
+  // Resolve the prescribed weight for the athlete's current week, honoring
+  // a per-week % progression if the trainer set one (falls back to the static target/weight).
+  function resolveWeekTargetWeight(ex, week) {
+    if (Array.isArray(ex.weeklyPercents) && ex.weeklyPercents.length) {
+      const pct  = parseFloat(ex.weeklyPercents[week - 1]);
+      const base = parseFloat(ex.weight);
+      if (!isNaN(pct) && !isNaN(base)) {
+        const rounded = Math.round(base * (pct / 100) * 10) / 10;
+        return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+      }
+    }
+    return ex.targetWeight || '';
+  }
+
   function getDayExercises() {
     const days = Array.isArray(programData.days) ? programData.days : [];
     const dayIdx = currentDay - 1;
@@ -865,7 +892,8 @@
       details.className = 'exercise-details';
       if (ex.sets)     details.innerHTML += `<span><i class="fa-solid fa-layer-group"></i> ${esc(ex.sets)} sets</span>`;
       if (metricVal)   details.innerHTML += `<span><i class="fa-solid ${metricIcon}"></i> ${esc(metricVal)} ${metricUnit}</span>`;
-      if (ex.targetWeight || ex.weight) details.innerHTML += `<span><i class="fa-solid fa-weight-hanging"></i> ${esc(ex.targetWeight ? ex.targetWeight + ' lb target' : ex.weight)}</span>`;
+      const weekTarget = resolveWeekTargetWeight(ex, currentWeek);
+      if (weekTarget || ex.weight) details.innerHTML += `<span><i class="fa-solid fa-weight-hanging"></i> ${esc(weekTarget ? weekTarget + ' lb target' : ex.weight)}</span>`;
       if (ex.rest)     details.innerHTML += `<span><i class="fa-regular fa-clock"></i> ${esc(ex.rest)}s rest</span>`;
 
       info.appendChild(nameEl);
@@ -1088,7 +1116,7 @@
         programName:        programData.name,
         week:               currentWeek,
         day:                currentDay,
-        date:               todayKey,
+        date:               dateForWeekDay(currentWeek, currentDay),
         completedExercises: Array.from(completed).filter(key => validKeys.has(key)),
         exerciseNames:      dayExercises.map(ex => ex.name),
         exerciseIndexes:    dayExercises.map(ex => ex.globalIndex),
@@ -1186,7 +1214,7 @@
 
   // ── Skip workout ──
   async function skipWorkout() {
-    const reason = prompt('Reason for skipping this workout? Optional, but helpful for your coach.', skipReason || '');
+    const reason = prompt(`Reason for skipping Week ${currentWeek} · Day ${currentDay}? Optional, but helpful for your coach.`, skipReason || '');
     if (reason === null) return;
 
     workoutStatus = 'skipped';
@@ -1199,7 +1227,7 @@
       programName:        programData.name,
       week:               currentWeek,
       day:                currentDay,
-      date:               todayKey,
+      date:               dateForWeekDay(currentWeek, currentDay),
       status:             'skipped',
       skippedReason:      skipReason,
       skippedAt:          firebase.firestore.FieldValue.serverTimestamp(),
@@ -1221,7 +1249,7 @@
       }
       resetTimerTool();
       renderExercises();
-      showToast('Workout marked as skipped.');
+      showToast(`Week ${currentWeek} · Day ${currentDay} marked as skipped.`);
     } catch(e) {
       console.error('Error skipping workout:', e);
       showToast('Error skipping workout.', true);
