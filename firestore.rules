@@ -29,7 +29,11 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(resource.data.athleteId)).data.trainerId == request.auth.uid ||
         isTrainer()
       );
-      allow create:         if request.auth != null && request.resource.data.athleteId == request.auth.uid;
+      allow create: if request.auth != null && (
+        request.resource.data.athleteId == request.auth.uid ||
+        get(/databases/$(database)/documents/users/$(request.resource.data.athleteId)).data.trainerId == request.auth.uid ||
+        isTrainer()
+      );
       allow update, delete: if request.auth != null &&
         (request.auth.uid == resource.data.athleteId || isTrainer());
     }

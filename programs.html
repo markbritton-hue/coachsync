@@ -871,6 +871,9 @@
             <select id="copy-target-${d}" class="ex-input" style="width:80px;padding:5px 8px;font-size:0.78rem;">
             </select>
           </div>
+          <button type="button" class="btn-secondary" onclick="copyWeek1ToAllWeeks(${d})" style="font-size:0.78rem;padding:5px 12px;" title="Copy Week 1's % to every other week for this day's exercises">
+            <i class="fa-solid fa-arrows-turn-right"></i> Copy Wk 1 to All Weeks
+          </button>
           <button type="button" class="btn-secondary" onclick="addExerciseRow({}, ${d})" style="font-size:0.82rem;padding:6px 14px;">
             <i class="fa-solid fa-plus"></i> Add Exercise
           </button>
@@ -1101,6 +1104,34 @@
         </div>`;
     }).join('');
     strip.dataset.rendered = '1';
+  }
+
+  function copyWeek1ToAllWeeks(dayIdx) {
+    const list = document.getElementById(`exercises-day-${dayIdx}`);
+    if (!list) return;
+    const rows = list.querySelectorAll('.exercise-builder-row');
+    if (rows.length === 0) { showToast('No exercises on this day yet.', 'error'); return; }
+
+    rows.forEach(row => {
+      const idx = row.id.split('-')[1];
+      const strip = document.getElementById(`ex-weekly-strip-${idx}`);
+      const btn   = document.getElementById(`ex-weekly-toggle-${idx}`);
+      if (!strip) return;
+      if (!strip.dataset.rendered) renderWeeklyStrip(idx);
+      if (!strip.classList.contains('open')) {
+        strip.classList.add('open');
+        btn?.classList.add('active');
+      }
+      const week1Input = document.getElementById(`ex-wkpct-${idx}-0`);
+      const week1Val = week1Input ? week1Input.value.trim() : '';
+      const weeks = getWeeksCount();
+      for (let w = 1; w < weeks; w++) {
+        const input = document.getElementById(`ex-wkpct-${idx}-${w}`);
+        if (input) input.value = week1Val;
+      }
+    });
+
+    showToast('Week 1 percentages copied to all weeks.');
   }
 
   function resizeAllWeeklyStrips() {
